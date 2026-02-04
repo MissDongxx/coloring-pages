@@ -7,7 +7,7 @@ tags: ["Superhero Thunder God", "IP", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/IP_Superhero_thunder_god.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/IP_Superhero_thunder_god.png"
   alt: "Superhero Thunder God Coloring Page coloring page for kids"
   width: 1200
   height: 1200

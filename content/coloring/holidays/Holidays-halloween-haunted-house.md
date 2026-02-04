@@ -7,7 +7,7 @@ tags: ["Halloween Haunted House", "Holidays", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Holidays_halloween_haunted_house.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Holidays_halloween_haunted_house.png"
   alt: "Halloween Haunted House Coloring Page coloring page for kids"
   width: 1200
   height: 1200

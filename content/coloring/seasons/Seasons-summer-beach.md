@@ -7,7 +7,7 @@ tags: ["Summer Beach", "Seasons", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Seasons_summer_beach.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Seasons_summer_beach.png"
   alt: "Summer Beach Coloring Page coloring page for kids"
   width: 1200
   height: 1200

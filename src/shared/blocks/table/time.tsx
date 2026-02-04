@@ -1,5 +1,6 @@
-import moment from 'moment';
 import { useLocale } from 'next-intl';
+
+import { dayjs, formatDate, fromNow } from '@/shared/lib/dayjs';
 
 export function Time({
   value,
@@ -20,16 +21,13 @@ export function Time({
     return null;
   }
 
-  let locale = useLocale();
-  if (locale === 'zh') {
-    locale = 'zh-cn';
-  }
+  const locale = useLocale();
 
   return (
     <div className={className}>
       {metadata?.format
-        ? moment(value).locale(locale).format(metadata?.format)
-        : moment(value).locale(locale).fromNow()}
+        ? formatDate(value, metadata?.format, locale)
+        : fromNow(value, locale)}
     </div>
   );
 }

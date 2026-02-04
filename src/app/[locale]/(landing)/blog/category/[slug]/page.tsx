@@ -1,5 +1,6 @@
-import moment from 'moment';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+
+import { formatDate } from '@/shared/lib/dayjs';
 
 import { getThemePage } from '@/core/theme';
 import { envConfigs } from '@/config';
@@ -113,7 +114,7 @@ export default async function CategoryBlogPage({
     description: post.description || '',
     author_name: post.authorName || '',
     author_image: post.authorImage || '',
-    created_at: moment(post.createdAt).format('MMM D, YYYY') || '',
+    created_at: formatDate(post.createdAt, 'MMM D, YYYY') || '',
     image: post.image || '',
     url: `/blog/${post.slug}`,
   }));

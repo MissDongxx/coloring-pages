@@ -7,7 +7,7 @@ tags: ["Wizard Potions Class", "IP", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/IP_Wizard_potions_class.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/IP_Wizard_potions_class.png"
   alt: "Wizard Potions Class Coloring Page coloring page for kids"
   width: 1200
   height: 1200

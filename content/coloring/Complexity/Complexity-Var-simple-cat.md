@@ -7,7 +7,7 @@ tags: ["Var Simple Cat", "Complexity", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Complexity_Var_simple_cat.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Complexity_Var_simple_cat.png"
   alt: "Var Simple Cat Coloring Page coloring page for kids"
   width: 1200
   height: 1200

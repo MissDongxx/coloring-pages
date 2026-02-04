@@ -52,4 +52,29 @@ export const envConfigs: ConfigMap = {
   version: packageJson.version,
   locale_detect_enabled:
     process.env.NEXT_PUBLIC_LOCALE_DETECT_ENABLED ?? 'false',
+  // Kaggle Configuration
+  kaggle_username: process.env.KAGGLE_USERNAME ?? '',
+  kaggle_key: process.env.KAGGLE_KEY ?? '',
+  kaggle_notebook_slug: process.env.KAGGLE_NOTEBOOK_SLUG ?? '',
+  kaggle_notebook_version: process.env.KAGGLE_NOTEBOOK_VERSION ?? '',
+  // Coloring Workflow Configuration
+  coloring_workflow_enabled: process.env.COLORING_WORKFLOW_ENABLED ?? 'false',
+  coloring_workflow_schedule_time: process.env.COLORING_WORKFLOW_SCHEDULE_TIME ?? '02:00',
+  coloring_workflow_max_daily: process.env.COLORING_WORKFLOW_MAX_DAILY ?? '100',
+  coloring_mdx_path: process.env.COLORING_MDX_PATH ?? 'content/coloring-pages',
+  coloring_r2_path: process.env.COLORING_R2_PATH ?? 'coloring-pages',
+  // Image Quality Settings
+  coloring_min_image_width: process.env.COLORING_MIN_IMAGE_WIDTH ?? '512',
+  coloring_max_image_width: process.env.COLORING_MAX_IMAGE_WIDTH ?? '4096',
+  coloring_min_image_size: process.env.COLORING_MIN_IMAGE_SIZE ?? '10240',
+  coloring_max_image_size: process.env.COLORING_MAX_IMAGE_SIZE ?? '5242880',
+  coloring_min_quality_score: process.env.COLORING_MIN_QUALITY_SCORE ?? '70',
+  coloring_use_ai_validation: process.env.COLORING_USE_AI_VALIDATION ?? 'true',
+  coloring_ai_validation_model: process.env.COLORING_AI_VALIDATION_MODEL ?? 'openai',
+  // R2 Storage Configuration
+  r2_account_id: process.env.CF_R2_ACCOUNT_ID ?? '',
+  r2_access_key: process.env.R2_ACCESS_KEY_ID ?? '',
+  r2_secret_key: process.env.R2_SECRET_ACCESS_KEY ?? '',
+  r2_bucket_name: process.env.R2_BUCKET_NAME ?? '',
+  r2_domain: process.env.R2_DOMAIN ?? '',
 };

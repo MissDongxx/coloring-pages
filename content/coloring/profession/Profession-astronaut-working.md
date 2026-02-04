@@ -7,7 +7,7 @@ tags: ["Astronaut Working", "Profession", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Profession_astronaut_working.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Profession_astronaut_working.png"
   alt: "Astronaut Working Coloring Page coloring page for kids"
   width: 1200
   height: 1200

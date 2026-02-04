@@ -7,7 +7,7 @@ tags: ["Mandala Double Layer Floral", "Extreme", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Extreme_Mandala_double_layer_floral.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Extreme_Mandala_double_layer_floral.png"
   alt: "Mandala Double Layer Floral Coloring Page coloring page for kids"
   width: 1200
   height: 1200

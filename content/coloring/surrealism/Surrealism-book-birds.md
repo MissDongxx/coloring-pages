@@ -7,7 +7,7 @@ tags: ["Book Birds", "Surrealism", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Surrealism_book_birds.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Surrealism_book_birds.png"
   alt: "Book Birds Coloring Page coloring page for kids"
   width: 1200
   height: 1200

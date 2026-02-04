@@ -7,7 +7,7 @@ tags: ["Cute Baby Lion", "Animals", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Animals_cute_baby_lion.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Animals_cute_baby_lion.png"
   alt: "Cute Baby Lion Coloring Page coloring page for kids"
   width: 1200
   height: 1200

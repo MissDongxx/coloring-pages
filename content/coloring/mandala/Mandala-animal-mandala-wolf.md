@@ -7,7 +7,7 @@ tags: ["Animal Mandala Wolf", "Mandala", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Mandala_animal_mandala_wolf.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Mandala_animal_mandala_wolf.png"
   alt: "Animal Mandala Wolf Coloring Page coloring page for kids"
   width: 1200
   height: 1200

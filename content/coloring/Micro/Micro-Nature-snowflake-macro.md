@@ -7,7 +7,7 @@ tags: ["Nature Snowflake Macro", "Micro", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Micro_Nature_snowflake_macro.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Micro_Nature_snowflake_macro.png"
   alt: "Nature Snowflake Macro Coloring Page coloring page for kids"
   width: 1200
   height: 1200

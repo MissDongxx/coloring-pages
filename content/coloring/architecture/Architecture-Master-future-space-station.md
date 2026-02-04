@@ -7,7 +7,7 @@ tags: ["Master Future Space Station", "Architecture", "coloring page", "printabl
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Architecture_Master_future_space_station.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Architecture_Master_future_space_station.png"
   alt: "Master Future Space Station Coloring Page coloring page for kids"
   width: 1200
   height: 1200

@@ -7,7 +7,7 @@ tags: ["star", "star", "nature", "star", "sky", "coloring page", "printable", "k
 difficulty: "easy"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/IP_SciFi_star_soldier.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/IP_SciFi_star_soldier.png"
   alt: "Star Coloring Page coloring page for kids"
   width: 1200
   height: 1200

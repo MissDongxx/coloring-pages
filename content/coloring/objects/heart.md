@@ -7,7 +7,7 @@ tags: ["heart", "heart", "objects", "heart", "love", "coloring page", "printable
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Mandala_heart_mandala.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Mandala_heart_mandala.png"
   alt: "Heart Coloring Page coloring page for kids"
   width: 1200
   height: 1200

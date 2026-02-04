@@ -7,7 +7,7 @@ tags: ["Mermaid Queen", "Fantasy", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Fantasy_mermaid_queen.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Fantasy_mermaid_queen.png"
   alt: "Mermaid Queen Coloring Page coloring page for kids"
   width: 1200
   height: 1200

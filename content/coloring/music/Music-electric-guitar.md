@@ -7,7 +7,7 @@ tags: ["Electric Guitar", "Music", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Music_electric_guitar.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Music_electric_guitar.png"
   alt: "Electric Guitar Coloring Page coloring page for kids"
   width: 1200
   height: 1200

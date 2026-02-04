@@ -60,6 +60,17 @@ export const PERMISSIONS = {
   AITASKS_READ: 'admin.ai-tasks.read',
   AITASKS_WRITE: 'admin.ai-tasks.write',
   AITASKS_DELETE: 'admin.ai-tasks.delete',
+
+  // Coloring Workflow
+  COLORING_WORKFLOW_READ: 'admin.coloring.workflow.read',
+  COLORING_WORKFLOW_WRITE: 'admin.coloring.workflow.write',
+  COLORING_JOBS_READ: 'admin.coloring.jobs.read',
+  COLORING_JOBS_WRITE: 'admin.coloring.jobs.write',
+  COLORING_JOBS_DELETE: 'admin.coloring.jobs.delete',
+  COLORING_PAGES_READ: 'admin.coloring.pages.read',
+  COLORING_PAGES_WRITE: 'admin.coloring.pages.write',
+  COLORING_PAGES_DELETE: 'admin.coloring.pages.delete',
+  COLORING_QUALITY_READ: 'admin.coloring.quality.read',
 } as const;
 
 /**

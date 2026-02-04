@@ -7,7 +7,7 @@ tags: ["Fairy Princess", "Fantasy", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Fantasy_fairy_princess.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Fantasy_fairy_princess.png"
   alt: "Fairy Princess Coloring Page coloring page for kids"
   width: 1200
   height: 1200

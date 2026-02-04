@@ -7,7 +7,7 @@ tags: ["Easter Basket", "Holidays", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Holidays_easter_basket.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Holidays_easter_basket.png"
   alt: "Easter Basket Coloring Page coloring page for kids"
   width: 1200
   height: 1200

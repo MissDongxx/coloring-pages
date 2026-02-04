@@ -7,7 +7,7 @@ tags: ["Mandala Cosmic Clock", "Extreme", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Extreme_Mandala_cosmic_clock.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Extreme_Mandala_cosmic_clock.png"
   alt: "Mandala Cosmic Clock Coloring Page coloring page for kids"
   width: 1200
   height: 1200

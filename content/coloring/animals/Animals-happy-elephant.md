@@ -7,7 +7,7 @@ tags: ["Happy Elephant", "Animals", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Animals_happy_elephant.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Animals_happy_elephant.png"
   alt: "Happy Elephant Coloring Page coloring page for kids"
   width: 1200
   height: 1200

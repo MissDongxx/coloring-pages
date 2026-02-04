@@ -7,7 +7,7 @@ tags: ["World Enchanted Forest Floor", "Fantasy", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Fantasy_World_enchanted_forest_floor.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Fantasy_World_enchanted_forest_floor.png"
   alt: "World Enchanted Forest Floor Coloring Page coloring page for kids"
   width: 1200
   height: 1200

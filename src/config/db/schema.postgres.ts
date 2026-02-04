@@ -555,3 +555,73 @@ export const chatMessage = table(
     index('idx_chat_message_user_id').on(table.userId, table.status),
   ]
 );
+
+// Coloring Page Generation Workflow Tables
+export const coloringJob = table(
+  'coloring_job',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    status: text('status').notNull(), // pending, processing, completed, failed
+    jobType: text('job_type').notNull(), // manual, scheduled
+    keywordsData: text('keywords_data'), // JSON: { keywords: [], csvPath: '' }
+    kaggleRunId: text('kaggle_run_id'),
+    totalKeywords: integer('total_keywords').default(0),
+    processedPages: integer('processed_pages').default(0),
+    failedPages: integer('failed_pages').default(0),
+    errorMessage: text('error_message'),
+    startedAt: timestamp('started_at'),
+    completedAt: timestamp('completed_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    index('idx_coloring_job_user_status').on(table.userId, table.status),
+    index('idx_coloring_job_status_created').on(table.status, table.createdAt),
+  ]
+);
+
+export const coloringPage = table(
+  'coloring_page',
+  {
+    id: text('id').primaryKey(),
+    jobId: text('job_id').references(() => coloringJob.id, {
+      onDelete: 'set null',
+    }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    slug: text('slug').unique().notNull(),
+    title: text('title').notNull(),
+    description: text('description'),
+    category: text('category').notNull(),
+    keyword: text('keyword').notNull(),
+    prompt: text('prompt'),
+    imageUrl: text('image_url').notNull(),
+    mdxPath: text('mdx_path'), // Path to MDX file
+    status: text('status').notNull(), // draft, published, archived
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+    publishedAt: timestamp('published_at'),
+    deletedAt: timestamp('deleted_at'),
+    sort: integer('sort').default(0).notNull(),
+  },
+  (table) => [
+    index('idx_coloring_page_job').on(table.jobId),
+    index('idx_coloring_page_category_status').on(
+      table.category,
+      table.status
+    ),
+    index('idx_coloring_page_slug').on(table.slug),
+    index('idx_coloring_page_status_published').on(
+      table.status,
+      table.publishedAt
+    ),
+  ]
+);

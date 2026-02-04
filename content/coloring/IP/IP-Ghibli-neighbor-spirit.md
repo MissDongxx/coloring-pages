@@ -7,7 +7,7 @@ tags: ["Ghibli Neighbor Spirit", "IP", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/IP_Ghibli_neighbor_spirit.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/IP_Ghibli_neighbor_spirit.png"
   alt: "Ghibli Neighbor Spirit Coloring Page coloring page for kids"
   width: 1200
   height: 1200

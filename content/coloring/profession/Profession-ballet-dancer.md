@@ -7,7 +7,7 @@ tags: ["Ballet Dancer", "Profession", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Profession_ballet_dancer.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Profession_ballet_dancer.png"
   alt: "Ballet Dancer Coloring Page coloring page for kids"
   width: 1200
   height: 1200

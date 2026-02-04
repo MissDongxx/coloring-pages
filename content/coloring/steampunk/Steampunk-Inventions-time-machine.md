@@ -7,7 +7,7 @@ tags: ["Inventions Time Machine", "Steampunk", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Steampunk_Inventions_time_machine.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Steampunk_Inventions_time_machine.png"
   alt: "Inventions Time Machine Coloring Page coloring page for kids"
   width: 1200
   height: 1200

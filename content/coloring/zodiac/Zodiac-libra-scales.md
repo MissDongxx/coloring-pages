@@ -7,7 +7,7 @@ tags: ["Libra Scales", "Zodiac", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Zodiac_libra_scales.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Zodiac_libra_scales.png"
   alt: "Libra Scales Coloring Page coloring page for kids"
   width: 1200
   height: 1200

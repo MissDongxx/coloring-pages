@@ -68,8 +68,11 @@ const nextConfig = {
     turbopackFileSystemCacheForDev: true,
     // Disable mdxRs for Vercel deployment compatibility with fumadocs-mdx
     ...(process.env.VERCEL ? {} : { mdxRs: true }),
+    optimizePackageImports: ['lucide-react', '@tabler/icons-react'],
   },
   reactCompiler: true,
+  // 强制外部化某些包或者优化打包
+  serverExternalPackages: ['sharp'],
 };
 
 export default withBundleAnalyzer(withNextIntl(withMDX(nextConfig)));

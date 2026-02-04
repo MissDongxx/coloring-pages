@@ -7,7 +7,7 @@ tags: ["Monsters Sleeping Snorlax", "IP", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/IP_Monsters_sleeping_snorlax.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/IP_Monsters_sleeping_snorlax.png"
   alt: "Monsters Sleeping Snorlax Coloring Page coloring page for kids"
   width: 1200
   height: 1200

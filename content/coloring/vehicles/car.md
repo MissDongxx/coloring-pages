@@ -7,7 +7,7 @@ tags: ["car", "car", "vehicles", "car", "vehicle", "coloring page", "printable",
 difficulty: "easy"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Vehicles_toy_car.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Vehicles_toy_car.png"
   alt: "Car Coloring Page coloring page for kids"
   width: 1200
   height: 1200

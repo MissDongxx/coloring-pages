@@ -1,5 +1,6 @@
-import moment from 'moment';
 import { getTranslations } from 'next-intl/server';
+
+import { formatDate } from '@/shared/lib/dayjs';
 
 import { Empty } from '@/shared/blocks/common';
 import { FormCard } from '@/shared/blocks/form';
@@ -138,13 +139,13 @@ export default async function CancelBillingPage({
       {
         name: 'subscriptionCreatedAt',
         title: t('fields.subscription_created_at'),
-        value: moment(subscription.createdAt).format('YYYY-MM-DD'),
+        value: formatDate(subscription.createdAt, 'YYYY-MM-DD'),
         attributes: { disabled: true },
       },
       {
         name: 'currentPeriod',
         title: t('fields.current_period'),
-        value: `${moment(subscription.currentPeriodStart).format('YYYY-MM-DD')} ~ ${moment(subscription.currentPeriodEnd).format('YYYY-MM-DD')}`,
+        value: `${formatDate(subscription.currentPeriodStart, 'YYYY-MM-DD')} ~ ${formatDate(subscription.currentPeriodEnd, 'YYYY-MM-DD')}`,
         attributes: { disabled: true },
       },
     ],

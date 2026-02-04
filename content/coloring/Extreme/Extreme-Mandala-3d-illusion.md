@@ -7,7 +7,7 @@ tags: ["Mandala 3D Illusion", "Extreme", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Extreme_Mandala_3d_illusion.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Extreme_Mandala_3d_illusion.png"
   alt: "Mandala 3D Illusion Coloring Page coloring page for kids"
   width: 1200
   height: 1200

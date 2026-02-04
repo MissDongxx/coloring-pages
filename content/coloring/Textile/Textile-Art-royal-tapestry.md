@@ -7,7 +7,7 @@ tags: ["Art Royal Tapestry", "Textile", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Textile_Art_royal_tapestry.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Textile_Art_royal_tapestry.png"
   alt: "Art Royal Tapestry Coloring Page coloring page for kids"
   width: 1200
   height: 1200

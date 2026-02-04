@@ -3,8 +3,9 @@
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { IconHistory } from '@tabler/icons-react';
-import moment from 'moment';
 import { useLocale, useTranslations } from 'next-intl';
+
+import { fromNow } from '@/shared/lib/dayjs';
 
 import { Link, usePathname, useRouter } from '@/core/i18n/navigation';
 import { LocaleSelector, Pagination } from '@/shared/blocks/common';
@@ -255,7 +256,7 @@ export function ChatHistory() {
                       {chat.title?.trim() || t('untitled')}
                     </Link>
                     <div className="text-muted-foreground flex items-center gap-2 text-xs">
-                      <span>{moment(chat.createdAt).fromNow()}</span>
+                      <span>{fromNow(chat.createdAt, locale)}</span>
                     </div>
                   </div>
                   <div className="flex flex-col items-start gap-2 text-left sm:items-end sm:text-right">

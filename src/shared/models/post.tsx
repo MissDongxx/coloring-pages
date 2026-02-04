@@ -1,7 +1,8 @@
 import { getMDXComponents } from '@/mdx-components';
 import { and, count, desc, eq, like } from 'drizzle-orm';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
-import moment from 'moment';
+
+import { getPostDate } from '@/shared/lib/dayjs';
 
 import { db } from '@/core/db';
 import { logsSource, pagesSource, postsSource } from '@/core/docs/source';
@@ -548,17 +549,7 @@ export function getPostSlug({
   return url;
 }
 
-export function getPostDate({
-  created_at,
-  locale,
-}: {
-  created_at: string;
-  locale?: string;
-}) {
-  return moment(created_at)
-    .locale(locale || 'en')
-    .format(locale === 'zh' ? 'YYYY/MM/DD' : 'MMM D, YYYY');
-}
+export { getPostDate } from '@/shared/lib/dayjs';
 
 // Helper function to remove frontmatter from markdown content
 export function removePostFrontmatter(content: string): string {

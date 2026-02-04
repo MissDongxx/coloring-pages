@@ -7,7 +7,7 @@ tags: ["Fantasy One Ring", "IP", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/IP_Fantasy_one_ring.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/IP_Fantasy_one_ring.png"
   alt: "Fantasy One Ring Coloring Page coloring page for kids"
   width: 1200
   height: 1200

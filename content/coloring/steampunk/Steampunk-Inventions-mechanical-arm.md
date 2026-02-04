@@ -7,7 +7,7 @@ tags: ["Inventions Mechanical Arm", "Steampunk", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Steampunk_Inventions_mechanical_arm.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Steampunk_Inventions_mechanical_arm.png"
   alt: "Inventions Mechanical Arm Coloring Page coloring page for kids"
   width: 1200
   height: 1200

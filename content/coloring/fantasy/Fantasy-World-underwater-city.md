@@ -7,7 +7,7 @@ tags: ["World Underwater City", "Fantasy", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Fantasy_World_underwater_city.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Fantasy_World_underwater_city.png"
   alt: "World Underwater City Coloring Page coloring page for kids"
   width: 1200
   height: 1200

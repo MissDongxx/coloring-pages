@@ -7,7 +7,7 @@ tags: ["Nature Insect Wing", "Micro", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Micro_Nature_insect_wing.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Micro_Nature_insect_wing.png"
   alt: "Nature Insect Wing Coloring Page coloring page for kids"
   width: 1200
   height: 1200

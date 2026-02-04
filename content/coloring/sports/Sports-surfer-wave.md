@@ -7,7 +7,7 @@ tags: ["Surfer Wave", "Sports", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Sports_surfer_wave.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Sports_surfer_wave.png"
   alt: "Surfer Wave Coloring Page coloring page for kids"
   width: 1200
   height: 1200

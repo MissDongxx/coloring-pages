@@ -1,0 +1,231 @@
+{
+  "header": {
+    "brand": {
+      "title": "Coloring Pages",
+      "logo": {
+        "src": "/logo.png",
+        "alt": "Coloring Pages"
+      },
+      "url": "/admin/coloring"
+    }
+  },
+  "workflow": {
+    "list": {
+      "title": "Workflow Management",
+      "crumbs": {
+        "title": "Business",
+        "href": "/admin"
+      },
+      "crumb": {
+        "title": "Coloring Pages",
+        "href": "/admin/coloring"
+      }
+    },
+    "fields": {
+      "id": "ID",
+      "status": "Status",
+      "jobType": "Type",
+      "totalKeywords": "Keywords",
+      "processedPages": "Processed",
+      "failedPages": "Failed",
+      "startedAt": "Started",
+      "completedAt": "Completed",
+      "duration": "Duration",
+      "actions": "Actions"
+    },
+    "status": {
+      "pending": "Pending",
+      "processing": "Processing",
+      "completed": "Completed",
+      "failed": "Failed"
+    },
+    "type": {
+      "manual": "Manual",
+      "scheduled": "Scheduled"
+    },
+    "actions": {
+      "start": "Start New Workflow",
+      "view": "View Details",
+      "retry": "Retry",
+      "delete": "Delete"
+    },
+    "form": {
+      "title": "Start New Workflow",
+      "wordRoots": "Word Roots",
+      "wordRootsPlaceholder": "Enter word roots (e.g., rose, butterfly)",
+      "jobType": "Job Type",
+      "submit": "Start Workflow"
+    },
+    "stats": {
+      "totalJobs": "Total Jobs",
+      "completed": "Completed",
+      "failed": "Failed",
+      "processing": "Processing",
+      "totalPages": "Total Pages Generated"
+    }
+  },
+  "jobs": {
+    "list": {
+      "title": "Jobs History",
+      "crumbs": {
+        "title": "Business",
+        "href": "/admin"
+      },
+      "crumb": {
+        "title": "Coloring Pages",
+        "href": "/admin/coloring"
+      }
+    },
+    "fields": {
+      "id": "Job ID",
+      "status": "Status",
+      "jobType": "Type",
+      "totalKeywords": "Keywords",
+      "processedPages": "Pages",
+      "failedPages": "Failed",
+      "errorMessage": "Error",
+      "startedAt": "Started At",
+      "completedAt": "Completed At",
+      "duration": "Duration"
+    },
+    "filters": {
+      "status": "Status",
+      "jobType": "Type",
+      "dateRange": "Date Range"
+    },
+    "tabs": {
+      "all": "All",
+      "processing": "Processing",
+      "completed": "Completed",
+      "failed": "Failed"
+    },
+    "actions": {
+      "view": "View Details",
+      "viewPages": "View Pages",
+      "retry": "Retry",
+      "delete": "Delete"
+    },
+    "detail": {
+      "title": "Job Details",
+      "keywords": "Generated Keywords",
+      "steps": "Execution Steps",
+      "logs": "Logs"
+    }
+  },
+  "pages": {
+    "list": {
+      "title": "Coloring Pages",
+      "crumbs": {
+        "title": "Business",
+        "href": "/admin"
+      },
+      "crumb": {
+        "title": "Coloring Pages",
+        "href": "/admin/coloring"
+      }
+    },
+    "fields": {
+      "id": "ID",
+      "title": "Title",
+      "slug": "Slug",
+      "category": "Category",
+      "keyword": "Keyword",
+      "imageUrl": "Image",
+      "status": "Status",
+      "locale": "Locale",
+      "publishedAt": "Published",
+      "createdAt": "Created",
+      "actions": "Actions"
+    },
+    "status": {
+      "draft": "Draft",
+      "published": "Published",
+      "archived": "Archived"
+    },
+    "filters": {
+      "status": "Status",
+      "category": "Category",
+      "locale": "Locale",
+      "search": "Search..."
+    },
+    "actions": {
+      "publish": "Publish",
+      "unpublish": "Unpublish",
+      "archive": "Archive",
+      "delete": "Delete",
+      "view": "View Page",
+      "edit": "Edit"
+    },
+    "stats": {
+      "total": "Total Pages",
+      "published": "Published",
+      "draft": "Draft",
+      "archived": "Archived"
+    }
+  },
+  "quality": {
+    "list": {
+      "title": "Quality Reports",
+      "crumbs": {
+        "title": "Business",
+        "href": "/admin"
+      },
+      "crumb": {
+        "title": "Coloring Pages",
+        "href": "/admin/coloring"
+      }
+    },
+    "fields": {
+      "imagePath": "Image",
+      "category": "Category",
+      "keyword": "Keyword",
+      "score": "Score",
+      "status": "Status",
+      "issues": "Issues",
+      "width": "Width",
+      "height": "Height",
+      "size": "Size",
+      "isLineArt": "Line Art",
+      "hasNoise": "Noise"
+    },
+    "filters": {
+      "status": "Status",
+      "category": "Category",
+      "minScore": "Min Score"
+    },
+    "stats": {
+      "total": "Total Checks",
+      "passed": "Passed",
+      "failed": "Failed",
+      "passRate": "Pass Rate"
+    },
+    "issues": {
+      "fileSize": "File size too small",
+      "dimensions": "Dimensions too small",
+      "format": "Unsupported format",
+      "lineArt": "Not line art",
+      "noise": "Excessive noise"
+    }
+  },
+  "keywords": {
+    "list": {
+      "title": "Keyword Generation",
+      "fields": {
+        "category": "Category",
+        "keyword": "Keyword",
+        "prompt": "Prompt"
+      }
+    }
+  },
+  "common": {
+    "back": "Back",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "noData": "No data available",
+    "error": "Error",
+    "success": "Success"
+  }
+}

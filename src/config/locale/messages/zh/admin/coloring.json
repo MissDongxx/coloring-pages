@@ -1,0 +1,231 @@
+{
+  "header": {
+    "brand": {
+      "title": "涂色页面",
+      "logo": {
+        "src": "/logo.png",
+        "alt": "涂色页面"
+      },
+      "url": "/admin/coloring"
+    }
+  },
+  "workflow": {
+    "list": {
+      "title": "工作流管理",
+      "crumbs": {
+        "title": "业务",
+        "href": "/admin"
+      },
+      "crumb": {
+        "title": "涂色页面",
+        "href": "/admin/coloring"
+      }
+    },
+    "fields": {
+      "id": "ID",
+      "status": "状态",
+      "jobType": "类型",
+      "totalKeywords": "关键词数",
+      "processedPages": "已处理",
+      "failedPages": "失败",
+      "startedAt": "开始时间",
+      "completedAt": "完成时间",
+      "duration": "耗时",
+      "actions": "操作"
+    },
+    "status": {
+      "pending": "待处理",
+      "processing": "处理中",
+      "completed": "已完成",
+      "failed": "失败"
+    },
+    "type": {
+      "manual": "手动",
+      "scheduled": "定时"
+    },
+    "actions": {
+      "start": "启动新工作流",
+      "view": "查看详情",
+      "retry": "重试",
+      "delete": "删除"
+    },
+    "form": {
+      "title": "启动新工作流",
+      "wordRoots": "词根",
+      "wordRootsPlaceholder": "输入词根（例如：玫瑰、蝴蝶）",
+      "jobType": "任务类型",
+      "submit": "启动工作流"
+    },
+    "stats": {
+      "totalJobs": "总任务数",
+      "completed": "已完成",
+      "failed": "失败",
+      "processing": "处理中",
+      "totalPages": "已生成页面总数"
+    }
+  },
+  "jobs": {
+    "list": {
+      "title": "任务历史",
+      "crumbs": {
+        "title": "业务",
+        "href": "/admin"
+      },
+      "crumb": {
+        "title": "涂色页面",
+        "href": "/admin/coloring"
+      }
+    },
+    "fields": {
+      "id": "任务ID",
+      "status": "状态",
+      "jobType": "类型",
+      "totalKeywords": "关键词数",
+      "processedPages": "页面数",
+      "failedPages": "失败数",
+      "errorMessage": "错误信息",
+      "startedAt": "开始时间",
+      "completedAt": "完成时间",
+      "duration": "耗时"
+    },
+    "filters": {
+      "status": "状态",
+      "jobType": "类型",
+      "dateRange": "日期范围"
+    },
+    "tabs": {
+      "all": "全部",
+      "processing": "处理中",
+      "completed": "已完成",
+      "failed": "失败"
+    },
+    "actions": {
+      "view": "查看详情",
+      "viewPages": "查看页面",
+      "retry": "重试",
+      "delete": "删除"
+    },
+    "detail": {
+      "title": "任务详情",
+      "keywords": "生成的关键词",
+      "steps": "执行步骤",
+      "logs": "日志"
+    }
+  },
+  "pages": {
+    "list": {
+      "title": "涂色页面",
+      "crumbs": {
+        "title": "业务",
+        "href": "/admin"
+      },
+      "crumb": {
+        "title": "涂色页面",
+        "href": "/admin/coloring"
+      }
+    },
+    "fields": {
+      "id": "ID",
+      "title": "标题",
+      "slug": "URL标识",
+      "category": "分类",
+      "keyword": "关键词",
+      "imageUrl": "图片",
+      "status": "状态",
+      "locale": "语言",
+      "publishedAt": "发布时间",
+      "createdAt": "创建时间",
+      "actions": "操作"
+    },
+    "status": {
+      "draft": "草稿",
+      "published": "已发布",
+      "archived": "已归档"
+    },
+    "filters": {
+      "status": "状态",
+      "category": "分类",
+      "locale": "语言",
+      "search": "搜索..."
+    },
+    "actions": {
+      "publish": "发布",
+      "unpublish": "取消发布",
+      "archive": "归档",
+      "delete": "删除",
+      "view": "查看页面",
+      "edit": "编辑"
+    },
+    "stats": {
+      "total": "总页面数",
+      "published": "已发布",
+      "draft": "草稿",
+      "archived": "已归档"
+    }
+  },
+  "quality": {
+    "list": {
+      "title": "质量报告",
+      "crumbs": {
+        "title": "业务",
+        "href": "/admin"
+      },
+      "crumb": {
+        "title": "涂色页面",
+        "href": "/admin/coloring"
+      }
+    },
+    "fields": {
+      "imagePath": "图片",
+      "category": "分类",
+      "keyword": "关键词",
+      "score": "得分",
+      "status": "状态",
+      "issues": "问题",
+      "width": "宽度",
+      "height": "高度",
+      "size": "大小",
+      "isLineArt": "线稿",
+      "hasNoise": "噪点"
+    },
+    "filters": {
+      "status": "状态",
+      "category": "分类",
+      "minScore": "最低得分"
+    },
+    "stats": {
+      "total": "总检查数",
+      "passed": "通过",
+      "failed": "失败",
+      "passRate": "通过率"
+    },
+    "issues": {
+      "fileSize": "文件太小",
+      "dimensions": "尺寸太小",
+      "format": "不支持的格式",
+      "lineArt": "不是线稿",
+      "noise": "噪点过多"
+    }
+  },
+  "keywords": {
+    "list": {
+      "title": "关键词生成",
+      "fields": {
+        "category": "分类",
+        "keyword": "关键词",
+        "prompt": "提示词"
+      }
+    }
+  },
+  "common": {
+    "back": "返回",
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "confirm": "确认",
+    "loading": "加载中...",
+    "noData": "暂无数据",
+    "error": "错误",
+    "success": "成功"
+  }
+}

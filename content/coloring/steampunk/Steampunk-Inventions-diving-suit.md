@@ -7,7 +7,7 @@ tags: ["Inventions Diving Suit", "Steampunk", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Steampunk_Inventions_diving_suit.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Steampunk_Inventions_diving_suit.png"
   alt: "Inventions Diving Suit Coloring Page coloring page for kids"
   width: 1200
   height: 1200

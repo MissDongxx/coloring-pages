@@ -7,7 +7,7 @@ tags: ["Inventions Steam Train", "Steampunk", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Steampunk_Inventions_steam_train.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Steampunk_Inventions_steam_train.png"
   alt: "Inventions Steam Train Coloring Page coloring page for kids"
   width: 1200
   height: 1200

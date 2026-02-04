@@ -7,7 +7,7 @@ tags: ["Fantasy Wizard Vs Demon", "IP", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/IP_Fantasy_wizard_vs_demon.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/IP_Fantasy_wizard_vs_demon.png"
   alt: "Fantasy Wizard Vs Demon Coloring Page coloring page for kids"
   width: 1200
   height: 1200

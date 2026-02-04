@@ -7,7 +7,7 @@ tags: ["Nature Butterfly Collection", "Advanced", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Advanced_Nature_butterfly_collection.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Advanced_Nature_butterfly_collection.png"
   alt: "Nature Butterfly Collection Coloring Page coloring page for kids"
   width: 1200
   height: 1200

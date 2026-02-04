@@ -7,7 +7,7 @@ tags: ["school bus coloring page", "animal friends bus", "back to school colorin
 difficulty: "easy"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Vehicles_school_bus.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Vehicles_school_bus.png"
   alt: "School Bus with Animal Friends coloring page for kids"
   width: 1200
   height: 1200

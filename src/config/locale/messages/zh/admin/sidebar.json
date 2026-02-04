@@ -79,6 +79,33 @@
       "title": "业务",
       "items": [
         {
+          "title": "涂色页面",
+          "icon": "Palette",
+          "is_expand": true,
+          "children": [
+            {
+              "title": "工作流",
+              "url": "/admin/coloring/workflow",
+              "icon": "Workflow"
+            },
+            {
+              "title": "任务列表",
+              "url": "/admin/coloring/jobs",
+              "icon": "ListTodo"
+            },
+            {
+              "title": "页面管理",
+              "url": "/admin/coloring/pages",
+              "icon": "FileImage"
+            },
+            {
+              "title": "质量检查",
+              "url": "/admin/coloring/quality",
+              "icon": "CheckCircle"
+            }
+          ]
+        },
+        {
           "title": "AI任务",
           "url": "/admin/ai-tasks",
           "icon": "Brain"

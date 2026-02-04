@@ -7,7 +7,7 @@ tags: ["Aquarius Water Bearer", "Zodiac", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Zodiac_aquarius_water_bearer.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Zodiac_aquarius_water_bearer.png"
   alt: "Aquarius Water Bearer Coloring Page coloring page for kids"
   width: 1200
   height: 1200

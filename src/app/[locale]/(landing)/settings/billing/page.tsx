@@ -1,5 +1,6 @@
-import moment from 'moment';
 import { getTranslations } from 'next-intl/server';
+
+import { formatDate } from '@/shared/lib/dayjs';
 
 import { Empty } from '@/shared/blocks/common';
 import { PanelCard } from '@/shared/blocks/panel';
@@ -101,9 +102,9 @@ export default async function BillingPage({
         callback: function (item) {
           let period = (
             <div>
-              {`${moment(item.currentPeriodStart).format('YYYY-MM-DD')}`} ~
+              {`${formatDate(item.currentPeriodStart, 'YYYY-MM-DD')}`} ~
               <br />
-              {`${moment(item.currentPeriodEnd).format('YYYY-MM-DD')}`}
+              {`${formatDate(item.currentPeriodEnd, 'YYYY-MM-DD')}`}
             </div>
           );
 
@@ -114,7 +115,7 @@ export default async function BillingPage({
         title: t('fields.end_time'),
         callback: function (item) {
           if (item.canceledEndAt) {
-            return <div>{moment(item.canceledEndAt).format('YYYY-MM-DD')}</div>;
+            return <div>{formatDate(item.canceledEndAt, 'YYYY-MM-DD')}</div>;
           }
           return '-';
         },
@@ -245,17 +246,13 @@ export default async function BillingPage({
             currentSubscription?.status === SubscriptionStatus.TRIALING ? (
               <div className="text-muted-foreground mt-4 text-sm font-normal">
                 {t('view.tip', {
-                  date: moment(currentSubscription?.currentPeriodEnd).format(
-                    'YYYY-MM-DD'
-                  ),
+                  date: formatDate(currentSubscription?.currentPeriodEnd, 'YYYY-MM-DD'),
                 })}
               </div>
             ) : (
               <div className="text-destructive mt-4 text-sm font-normal">
                 {t('view.end_tip', {
-                  date: moment(currentSubscription?.canceledEndAt).format(
-                    'YYYY-MM-DD'
-                  ),
+                  date: formatDate(currentSubscription?.canceledEndAt, 'YYYY-MM-DD'),
                 })}
               </div>
             )}

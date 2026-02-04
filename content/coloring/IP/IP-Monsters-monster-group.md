@@ -7,7 +7,7 @@ tags: ["Monsters Monster Group", "IP", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/IP_Monsters_monster_group.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/IP_Monsters_monster_group.png"
   alt: "Monsters Monster Group Coloring Page coloring page for kids"
   width: 1200
   height: 1200

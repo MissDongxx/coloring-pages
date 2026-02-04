@@ -7,7 +7,7 @@ tags: ["apple", "apple", "food", "apple", "fruit", "coloring page", "printable",
 difficulty: "easy"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Fruits_smiling_apple.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Fruits_smiling_apple.png"
   alt: "Apple Coloring Page coloring page for kids"
   width: 1200
   height: 1200

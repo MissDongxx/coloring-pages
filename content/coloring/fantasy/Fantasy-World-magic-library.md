@@ -7,7 +7,7 @@ tags: ["World Magic Library", "Fantasy", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Fantasy_World_magic_library.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Fantasy_World_magic_library.png"
   alt: "World Magic Library Coloring Page coloring page for kids"
   width: 1200
   height: 1200

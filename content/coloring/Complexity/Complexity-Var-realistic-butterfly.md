@@ -7,7 +7,7 @@ tags: ["Var Realistic Butterfly", "Complexity", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Complexity_Var_realistic_butterfly.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Complexity_Var_realistic_butterfly.png"
   alt: "Var Realistic Butterfly Coloring Page coloring page for kids"
   width: 1200
   height: 1200

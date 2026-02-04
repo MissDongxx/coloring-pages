@@ -7,7 +7,7 @@ tags: ["Paris Street", "Architecture", "coloring page", "printable"]
 difficulty: "medium"
 ageGroup: "kids"
 image:
-  src: "https://coloringpages.club/coloring-pages/2026/02/Architecture_paris_street.png"
+  src: "https://images.coloringpages.club/coloring-pages/2026/02/Architecture_paris_street.png"
   alt: "Paris Street Coloring Page coloring page for kids"
   width: 1200
   height: 1200
