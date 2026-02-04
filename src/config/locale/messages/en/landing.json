@@ -1,0 +1,162 @@
+{
+  "header": {
+    "id": "header",
+    "brand": {
+      "title": "ColoringPages",
+      "logo": {
+        "src": "/logo.png",
+        "alt": "ColoringPages",
+        "width": 100,
+        "height": 100
+      },
+      "url": "/"
+    },
+    "nav": {
+      "items": []
+    },
+    "buttons": [],
+    "user_nav": {
+      "show_name": true,
+      "show_credits": true,
+      "show_sign_out": true,
+      "items": [
+        {
+          "title": "Billing",
+          "url": "/settings/billing",
+          "icon": "CreditCard"
+        },
+        {
+          "title": "Activity",
+          "url": "/activity",
+          "icon": "Activity"
+        }
+      ]
+    },
+    "show_sign": true,
+    "show_theme": true,
+    "show_locale": true,
+    "topbanner": {
+      "text": "Welcome to ColoringPages.club - Create and color beautiful pages online!"
+    }
+  },
+  "footer": {
+    "id": "footer",
+    "brand": {
+      "title": "ColoringPages",
+      "description": "ColoringPages is a platform for creating and coloring pages online. Explore your creativity with our coloring tools.",
+      "logo": {
+        "src": "/logo.png",
+        "alt": "ColoringPages",
+        "width": 1024,
+        "height": 1024
+      },
+      "url": "/"
+    },
+    "nav": {
+      "items": [
+        {
+          "title": "About",
+          "children": [
+            {
+              "title": "Features",
+              "url": "/#features",
+              "target": "_self"
+            },
+            {
+              "title": "Showcases",
+              "url": "/showcases",
+              "target": "_self"
+            },
+            {
+              "title": "Pricing",
+              "url": "/pricing",
+              "target": "_self"
+            }
+          ]
+        },
+        {
+          "title": "Resources",
+          "children": [
+            {
+              "title": "Documents",
+              "url": "/docs",
+              "target": "_self"
+            },
+            {
+              "title": "Blog",
+              "url": "/blog",
+              "target": "_self"
+            },
+            {
+              "title": "Chat",
+              "url": "/chat",
+              "target": "_self"
+            }
+          ]
+        },
+        {
+          "title": "Friends",
+          "children": [
+            {
+              "title": "ColoringPages",
+              "url": "https://coloringpages.club",
+              "target": "_blank"
+            },
+            {
+              "title": "ThinkAny",
+              "url": "https://thinkany.ai",
+              "target": "_blank"
+            },
+            {
+              "title": "MCP.so",
+              "url": "https://mcp.so",
+              "target": "_blank"
+            }
+          ]
+        }
+      ]
+    },
+    "social": {
+      "items": [
+        {
+          "title": "X",
+          "icon": "RiTwitterXFill",
+          "url": "https://x.com/your-app-name",
+          "target": "_blank"
+        },
+        {
+          "title": "Github",
+          "icon": "Github",
+          "url": "https://github.com/your-app-name",
+          "target": "_blank"
+        },
+        {
+          "title": "Discord",
+          "icon": "RiDiscordFill",
+          "url": "https://discord.gg/your-app-name",
+          "target": "_blank"
+        },
+        {
+          "title": "Email",
+          "icon": "Mail",
+          "url": "mailto:support@your-domain.com",
+          "target": "_self"
+        }
+      ]
+    },
+    "agreement": {
+      "items": [
+        {
+          "title": "Privacy Policy",
+          "url": "/privacy-policy"
+        },
+        {
+          "title": "Terms of Service",
+          "url": "/terms-of-service"
+        }
+      ]
+    },
+    "show_theme": true,
+    "show_locale": true
+  }
+}

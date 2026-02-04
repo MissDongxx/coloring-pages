@@ -1,0 +1,423 @@
+{
+  "page": {
+    "show_sections": [
+      "hero",
+      "logos",
+      "introduce",
+      "benefits",
+      "usage",
+      "features",
+      "stats",
+      "testimonials",
+      "faq",
+      "cta"
+    ],
+    "sections": {
+      "hero": {
+        "id": "hero",
+        "title": "几分钟内创建美丽的涂色页面",
+        "highlight_text": "几分钟内",
+        "description": "ColoringPages 是一个在线创建和涂色页面的平台。<br/>使用我们的涂色工具释放您的创造力。",
+        "announcement": {
+          "badge": "全新",
+          "title": "🎉 欢迎来到 ColoringPages",
+          "url": "/pricing"
+        },
+        "tip": "🎁 免费注册，立即开始涂色",
+        "buttons": [
+          {
+            "title": "立即开始",
+            "icon": "Zap",
+            "url": "/pricing",
+            "target": "_self",
+            "variant": "default"
+          },
+          {
+            "title": "浏览作品",
+            "icon": "BookOpenText",
+            "url": "/showcases",
+            "target": "_blank",
+            "variant": "outline"
+          }
+        ],
+        "show_avatars": true,
+        "avatars_tip": "999+ 用户在使用 ColoringPages",
+        "show_award": false,
+        "image": {
+          "src": "/imgs/features/admin.png",
+          "alt": "hero",
+          "width": 1200,
+          "height": 800
+        },
+        "image_invert": {
+          "src": "/imgs/features/admin-dark.png",
+          "alt": "hero",
+          "width": 1200,
+          "height": 800
+        },
+        "background_image": {
+          "src": "/imgs/bg/tree.jpg",
+          "alt": "hero"
+        }
+      },
+      "logos": {
+        "title": "ColoringPages 使用以下技术栈构建",
+        "items": [
+          {
+            "title": "Next.js",
+            "image": {
+              "src": "/imgs/logos/nextjs.svg",
+              "alt": "Next.js"
+            }
+          },
+          {
+            "title": "React",
+            "image": {
+              "src": "/imgs/logos/react.svg",
+              "alt": "React"
+            }
+          },
+          {
+            "title": "TailwindCSS",
+            "image": {
+              "src": "/imgs/logos/tailwindcss.svg",
+              "alt": "TailwindCSS"
+            }
+          },
+          {
+            "title": "Shadcn/UI",
+            "image": {
+              "src": "/imgs/logos/shadcn.svg",
+              "alt": "Shadcn/UI"
+            }
+          },
+          {
+            "title": "Vercel",
+            "image": {
+              "src": "/imgs/logos/vercel.svg",
+              "alt": "Vercel"
+            }
+          }
+        ]
+      },
+      "introduce": {
+        "block": "features-list",
+        "id": "introduce",
+        "title": "ColoringPages 是什么？",
+        "label": "产品简介",
+        "description": "ColoringPages 是一个在线创建和涂色页面的平台，包括丰富模板、工具及社区。",
+        "image": {
+          "src": "/imgs/features/landing-page.png",
+          "alt": "introduce"
+        },
+        "items": [
+          {
+            "title": "丰富的模板",
+            "description": "从数百款精美的涂色模板中选择，快速开始你的创作。",
+            "icon": "RiNextjsFill",
+            "image": {
+              "src": "/imgs/features/1.png",
+              "alt": "introduce"
+            }
+          },
+          {
+            "title": "强大的涂色工具",
+            "description": "内置专业涂色工具，轻松创作美丽作品。",
+            "icon": "RiDatabase2Line",
+            "image": {
+              "src": "/imgs/features/2.png",
+              "alt": "introduce"
+            }
+          },
+          {
+            "title": "即时分享",
+            "description": "作品完成后可以立即分享给朋友和家人。",
+            "icon": "RiCloudyFill",
+            "image": {
+              "src": "/imgs/features/3.png",
+              "alt": "introduce"
+            }
+          },
+          {
+            "title": "社区互动",
+            "description": "加入我们的创作者社区，分享作品并获得灵感。",
+            "icon": "RiRobot2Line",
+            "image": {
+              "src": "/imgs/features/4.png",
+              "alt": "introduce"
+            }
+          }
+        ],
+        "className": "bg-muted"
+      },
+      "benefits": {
+        "block": "features-accordion",
+        "id": "benefits",
+        "title": "为何选择 ColoringPages",
+        "label": "产品优势",
+        "description": "你获得一切创作所需——从精美模板到专业涂色工具。",
+        "items": [
+          {
+            "title": "全平台支持",
+            "description": "支持桌面和移动设备，随时随地开始创作。",
+            "icon": "RiNextjsFill",
+            "image": {
+              "src": "/imgs/features/user-billing.png",
+              "alt": "benefits"
+            }
+          },
+          {
+            "title": "海量模板库",
+            "description": "多样的涂色模板，点击即用，涵盖动物、花卉、节日等多场景。",
+            "icon": "RiClapperboardAiLine",
+            "image": {
+              "src": "/imgs/features/admin-settings.png",
+              "alt": "benefits"
+            }
+          },
+          {
+            "title": "社区分享",
+            "description": "加入创作者社区，分享作品并获得灵感。",
+            "icon": "RiCodeFill",
+            "image": {
+              "src": "/imgs/features/landing-page.png",
+              "alt": "benefits"
+            }
+          }
+        ]
+      },
+      "usage": {
+        "block": "features-step",
+        "id": "usage",
+        "title": "三步开始使用 ColoringPages",
+        "description": "只需三步，快速开始你的涂色之旅：",
+        "image": {
+          "src": "/imgs/features/1.png",
+          "alt": "usage"
+        },
+        "image_position": "left",
+        "text_align": "center",
+        "items": [
+          {
+            "title": "注册 ColoringPages",
+            "description": "免费注册 ColoringPages 账户，立即开始涂色。",
+            "image": {
+              "src": "/imgs/features/5.png",
+              "alt": "usage"
+            }
+          },
+          {
+            "title": "选择模板",
+            "description": "浏览我们的涂色模板库，选择你喜欢的模板。",
+            "image": {
+              "src": "/imgs/features/6.png",
+              "alt": "usage"
+            }
+          },
+          {
+            "title": "开始创作",
+            "description": "使用我们的涂色工具，为你的作品增添色彩。",
+            "image": {
+              "src": "/imgs/features/7.png",
+              "alt": "usage"
+            }
+          },
+          {
+            "title": "分享作品",
+            "description": "完成后，将你的作品分享给朋友和家人。",
+            "image": {
+              "src": "/imgs/features/8.png",
+              "alt": "usage"
+            }
+          }
+        ],
+        "className": "bg-muted"
+      },
+      "features": {
+        "id": "features",
+        "title": "ColoringPages 核心功能",
+        "description": "一切你需要的工具，轻松创作美丽涂色作品。",
+        "items": [
+          {
+            "title": "丰富的模板库",
+            "description": "数百款精美涂色模板，涵盖多种主题。",
+            "icon": "RiNextjsFill"
+          },
+          {
+            "title": "专业涂色工具",
+            "description": "画笔、填充、橡皮擦等多种涂色工具。",
+            "icon": "RiKey2Fill"
+          },
+          {
+            "title": "云端保存",
+            "description": "作品自动保存到云端，永不丢失。",
+            "icon": "RiDatabase2Line"
+          },
+          {
+            "title": "一键分享",
+            "description": "将作品分享到社交媒体，与朋友互动。",
+            "icon": "RiCloudy2Fill"
+          },
+          {
+            "title": "高清下载",
+            "description": "支持多种格式高清下载，打印或保存。",
+            "icon": "RiBarChart2Line"
+          },
+          {
+            "title": "社区互动",
+            "description": "加入创作者社区，分享作品获取灵感。",
+            "icon": "RiRobot2Line"
+          }
+        ]
+      },
+      "stats": {
+        "id": "stats",
+        "title": "用户喜爱 ColoringPages",
+        "description": "因其简单有趣，富有创造力。",
+        "items": [
+          {
+            "title": "999+",
+            "description": "位用户"
+          },
+          {
+            "title": "200+",
+            "description": "组件块"
+          },
+          {
+            "title": "50+",
+            "description": "专业模板"
+          }
+        ],
+        "className": "bg-muted"
+      },
+      "testimonials": {
+        "id": "testimonials",
+        "title": "用户对 ColoringPages 的评价",
+        "description": "听听创作者们使用 ColoringPages 的故事。",
+        "items": [
+          {
+            "name": "David Chen",
+            "role": "家长",
+            "quote": "ColoringPages 太棒了！我几分钟就为孩子们创建了美丽的涂色页面，他们非常喜欢在线涂色！",
+            "image": {
+              "src": "/imgs/avatars/1.png",
+              "alt": "david"
+            }
+          },
+          {
+            "name": "Rachel Kim",
+            "role": "老师",
+            "quote": "模板精美且易于定制。我喜欢为课堂创建独特的涂色页面！",
+            "image": {
+              "src": "/imgs/avatars/2.png",
+              "alt": "rachel"
+            }
+          },
+          {
+            "name": "Marcus Thompson",
+            "role": "家长",
+            "quote": "作为家长，ColoringPages 是救命稻草。我的孩子们花几个小时创作和涂色，既有趣又有教育意义！",
+            "image": {
+              "src": "/imgs/avatars/3.png",
+              "alt": "marcus"
+            }
+          },
+          {
+            "name": "Sofia Garcia",
+            "role": "艺术治疗师",
+            "quote": "我用 ColoringPages 进行艺术治疗。模板的多样性和涂色工具非常棒！",
+            "image": {
+              "src": "/imgs/avatars/4.png",
+              "alt": "sofia"
+            }
+          },
+          {
+            "name": "James Wilson",
+            "role": "祖父母",
+            "quote": "ColoringPages 让我的孙辈们乐在其中。我们一起在线涂色，这已成为我们特殊的亲子活动！",
+            "image": {
+              "src": "/imgs/avatars/5.png",
+              "alt": "james"
+            }
+          },
+          {
+            "name": "Anna Zhang",
+            "role": "在家教育妈妈",
+            "quote": "ColoringPages 是我们在家教育的绝佳资源。教育模板让学习变得有趣且引人入胜！",
+            "image": {
+              "src": "/imgs/avatars/6.png",
+              "alt": "anna"
+            }
+          }
+        ]
+      },
+      "faq": {
+        "id": "faq",
+        "title": "关于 ColoringPages 的常见问题",
+        "description": "还有其他问题？欢迎联系我们。",
+        "items": [
+          {
+            "question": "ColoringPages 是什么？怎么用？",
+            "answer": "ColoringPages 是一个在线涂色平台，内含丰富的模板、涂色工具和分享社区，让你几分钟内创作美丽的涂色作品。"
+          },
+          {
+            "question": "使用 ColoringPages 需要艺术技能吗？",
+            "answer": "不需要！ColoringPages 适合所有人使用。我们的模板和易用的涂色工具让儿童和成人都能轻松使用，无论艺术经验如何。"
+          },
+          {
+            "question": "ColoringPages 支持哪些类型的涂色页面？",
+            "answer": "ColoringPages 提供多种模板，包括动物、曼陀罗、节日、人物等。你也可以上传自己的画作进行数字涂色。"
+          },
+          {
+            "question": "创建一个涂色页面需要多长时间？",
+            "answer": "使用 ColoringPages，你可以几秒钟开始涂色！我们的模板立即可用，直观的工具让涂色过程轻松愉快。"
+          },
+          {
+            "question": "ColoringPages 包含哪些功能？",
+            "answer": "ColoringPages 包含各种涂色工具、调色板、撤销/重做功能、保存和下载选项，以及分享社区。一切都是为了有趣和富有创造力的体验而设计。"
+          },
+          {
+            "question": "我可以自定义模板吗？",
+            "answer": "当然可以！所有 ColoringPages 模板都可以完全自定义。你可以修改颜色、添加自己的元素，创建符合个人风格的设计。"
+          }
+        ]
+      },
+      "cta": {
+        "id": "cta",
+        "title": "开始创作美丽的涂色作品",
+        "description": "加入 ColoringPages，释放你的创造力。",
+        "buttons": [
+          {
+            "title": "立即开始",
+            "url": "https://coloringpages.club",
+            "target": "_blank",
+            "icon": "Zap"
+          },
+          {
+            "title": "阅读文档",
+            "url": "/docs",
+            "target": "_blank",
+            "variant": "outline",
+            "icon": "BookOpenText"
+          }
+        ],
+        "className": "bg-muted"
+      },
+      "subscribe": {
+        "id": "subscribe",
+        "title": "订阅我们的邮件通知",
+        "description": "获取 ColoringPages 最新资讯与产品动态。",
+        "submit": {
+          "input": {
+            "placeholder": "输入邮箱"
+          },
+          "button": {
+            "title": "订阅"
+          },
+          "action": "/api/subscribe"
+        },
+        "className": "bg-muted"
+      }
+    }
+  }
+}

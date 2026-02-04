@@ -1,0 +1,424 @@
+{
+  "page": {
+    "show_sections": [
+      "hero",
+      "logos",
+      "introduce",
+      "benefits",
+      "usage",
+      "features",
+      "stats",
+      "testimonials",
+      "faq",
+      "cta"
+    ],
+    "sections": {
+      "hero": {
+        "id": "hero",
+        "title": "Create Beautiful Coloring Pages in Minutes",
+        "highlight_text": "in Minutes",
+        "description": "ColoringPages is a platform for creating and coloring pages online.<br/>Explore your creativity with our coloring tools.",
+        "announcement": {
+          "badge": "New",
+          "title": "🎉 Welcome to ColoringPages",
+          "url": "/pricing"
+        },
+        "tip": "🎁 Special offer for the first 1000 users",
+        "buttons": [
+          {
+            "title": "Get Started",
+            "icon": "Zap",
+            "url": "/pricing",
+            "target": "_self",
+            "variant": "default"
+          },
+          {
+            "title": "Read Document",
+            "icon": "BookOpenText",
+            "url": "/docs",
+            "target": "_blank",
+            "variant": "outline"
+          }
+        ],
+        "show_avatars": true,
+        "avatars_tip": "999+ users are using ColoringPages",
+        "show_award": false,
+        "image": {
+          "src": "/imgs/features/admin.png",
+          "alt": "hero",
+          "width": 1200,
+          "height": 800
+        },
+        "image_invert": {
+          "src": "/imgs/features/admin-dark.png",
+          "alt": "hero",
+          "width": 1200,
+          "height": 800
+        },
+        "background_image": {
+          "src": "/imgs/bg/tree.jpg",
+          "alt": "hero"
+        }
+      },
+      "logos": {
+        "id": "logos",
+        "title": "ColoringPages is built on the shoulders of giants",
+        "items": [
+          {
+            "title": "Next.js",
+            "image": {
+              "src": "/imgs/logos/nextjs.svg",
+              "alt": "Next.js"
+            }
+          },
+          {
+            "title": "React",
+            "image": {
+              "src": "/imgs/logos/react.svg",
+              "alt": "React"
+            }
+          },
+          {
+            "title": "TailwindCSS",
+            "image": {
+              "src": "/imgs/logos/tailwindcss.svg",
+              "alt": "TailwindCSS"
+            }
+          },
+          {
+            "title": "Shadcn/UI",
+            "image": {
+              "src": "/imgs/logos/shadcn.svg",
+              "alt": "Shadcn/UI"
+            }
+          },
+          {
+            "title": "Vercel",
+            "image": {
+              "src": "/imgs/logos/vercel.svg",
+              "alt": "Vercel"
+            }
+          }
+        ]
+      },
+      "introduce": {
+        "block": "features-list",
+        "id": "introduce",
+        "title": "What is ColoringPages",
+        "label": "Introduce",
+        "description": "ColoringPages is a platform for creating and coloring pages online, including templates, tools, and a community gallery.",
+        "image": {
+          "src": "/imgs/features/landing-page.png",
+          "alt": "introduce"
+        },
+        "items": [
+          {
+            "title": "Ready-to-use Templates",
+            "description": "Choose from dozens of production-ready AI SaaS templates to quickly start your project.",
+            "icon": "RiNextjsFill",
+            "image": {
+              "src": "/imgs/features/1.png",
+              "alt": "introduce"
+            }
+          },
+          {
+            "title": "Infrastructure Setup",
+            "description": "Get instant access to scalable infrastructure with best practices built-in.",
+            "icon": "RiDatabase2Line",
+            "image": {
+              "src": "/imgs/features/2.png",
+              "alt": "introduce"
+            }
+          },
+          {
+            "title": "Quick Deployment",
+            "description": "Deploy your AI SaaS application to production in hours, not days.",
+            "icon": "RiCloudyFill",
+            "image": {
+              "src": "/imgs/features/3.png",
+              "alt": "introduce"
+            }
+          },
+          {
+            "title": "AI Integration",
+            "description": "Integrate AI into your project with ease using our built-in AI SDK.",
+            "icon": "RiRobot2Line",
+            "image": {
+              "src": "/imgs/features/4.png",
+              "alt": "introduce"
+            }
+          }
+        ],
+        "className": "bg-muted"
+      },
+      "benefits": {
+        "block": "features-accordion",
+        "id": "benefits",
+        "title": "Why Choose ColoringPages",
+        "label": "Benefits",
+        "description": "Get everything you need to launch your AI startup - from ready-to-use templates to technical support.",
+        "items": [
+          {
+            "title": "Complete Framework",
+            "description": "Built on Next.js with authentication, payments, and AI integration - everything works out of the box.",
+            "icon": "RiNextjsFill",
+            "image": {
+              "src": "/imgs/features/user-billing.png",
+              "alt": "benefits"
+            }
+          },
+          {
+            "title": "Rich Templates Library",
+            "description": "Choose from various AI SaaS templates to kickstart your project - chatbots, image generation, and more.",
+            "icon": "RiClapperboardAiLine",
+            "image": {
+              "src": "/imgs/features/admin-settings.png",
+              "alt": "benefits"
+            }
+          },
+          {
+            "title": "Technical Guidance",
+            "description": "Get dedicated support and join our developer community to ensure your successful launch.",
+            "icon": "RiCodeFill",
+            "image": {
+              "src": "/imgs/features/landing-page.png",
+              "alt": "benefits"
+            }
+          }
+        ]
+      },
+      "usage": {
+        "block": "features-step",
+        "id": "usage",
+        "title": "How to Start with ColoringPages",
+        "description": "Get your coloring pages in three simple steps:",
+        "image": {
+          "src": "/imgs/features/1.png",
+          "alt": "usage"
+        },
+        "image_position": "left",
+        "text_align": "center",
+        "items": [
+          {
+            "title": "Sign Up for ColoringPages",
+            "description": "Create your free account on ColoringPages. Start coloring pages immediately.",
+            "image": {
+              "src": "/imgs/features/5.png",
+              "alt": "usage"
+            }
+          },
+          {
+            "title": "Choose a Template",
+            "description": "Browse our collection of coloring page templates and choose one to start with.",
+            "image": {
+              "src": "/imgs/features/6.png",
+              "alt": "usage"
+            }
+          },
+          {
+            "title": "Color and Create",
+            "description": "Use our coloring tools to bring your pages to life. Save and share your creations.",
+            "image": {
+              "src": "/imgs/features/7.png",
+              "alt": "usage"
+            }
+          },
+          {
+            "title": "Share Your Art",
+            "description": "Share your colored pages with friends and family, or download them to keep forever.",
+            "image": {
+              "src": "/imgs/features/8.png",
+              "alt": "usage"
+            }
+          }
+        ],
+        "className": "bg-muted"
+      },
+      "features": {
+        "id": "features",
+        "title": "Key Features of ColoringPages",
+        "description": "Everything you need to create beautiful coloring pages.",
+        "items": [
+          {
+            "title": "Next.js Boilerplate",
+            "description": "Production-ready Next.js templates with SEO-friendly structure and i18n support.",
+            "icon": "RiNextjsFill"
+          },
+          {
+            "title": "Authentication & Payments",
+            "description": "Integrated Google OAuth, one-tap login, and Stripe payment processing.",
+            "icon": "RiKey2Fill"
+          },
+          {
+            "title": "Data Infrastructure",
+            "description": "Built-in Supabase integration for reliable and scalable data storage.",
+            "icon": "RiDatabase2Line"
+          },
+          {
+            "title": "One-Click Deployment",
+            "description": "Seamless deployment to Vercel or Cloudflare with automated setup.",
+            "icon": "RiCloudy2Fill"
+          },
+          {
+            "title": "Business Analytics",
+            "description": "Integrated Google Analytics and Search Console for tracking growth.",
+            "icon": "RiBarChart2Line"
+          },
+          {
+            "title": "AI-Ready Infrastructure",
+            "description": "Pre-configured AI integration with built-in credits system and API sales.",
+            "icon": "RiRobot2Line"
+          }
+        ]
+      },
+      "stats": {
+        "id": "stats",
+        "title": "People Love ColoringPages",
+        "description": "for it's easy to use and fun to create.",
+        "items": [
+          {
+            "title": "999+",
+            "description": "Customers"
+          },
+          {
+            "title": "200+",
+            "description": "Blocks"
+          },
+          {
+            "title": "50+",
+            "description": "Templates"
+          }
+        ],
+        "className": "bg-muted"
+      },
+      "testimonials": {
+        "id": "testimonials",
+        "title": "What Users Say About ColoringPages",
+        "description": "Hear from artists and creators who use ColoringPages.",
+        "items": [
+          {
+            "name": "David Chen",
+            "role": "Founder of AIWallpaper.shop",
+            "quote": "ColoringPages is amazing! I created beautiful coloring pages for my kids in just minutes. They love coloring them online!",
+            "image": {
+              "src": "/imgs/avatars/1.png",
+              "alt": "david"
+            }
+          },
+          {
+            "name": "Rachel Kim",
+            "role": "Teacher",
+            "quote": "The templates are beautiful and so easy to customize. I love creating unique coloring pages for my classroom!",
+            "image": {
+              "src": "/imgs/avatars/2.png",
+              "alt": "rachel"
+            }
+          },
+          {
+            "name": "Marcus Thompson",
+            "role": "Parent",
+            "quote": "As a parent, ColoringPages is a lifesaver. My kids spend hours creating and coloring. It's both fun and educational!",
+            "image": {
+              "src": "/imgs/avatars/3.png",
+              "alt": "marcus"
+            }
+          },
+          {
+            "name": "Sofia Garcia",
+            "role": "Art Therapist",
+            "quote": "I use ColoringPages for my art therapy sessions. The variety of templates and coloring tools is incredible!",
+            "image": {
+              "src": "/imgs/avatars/4.png",
+              "alt": "sofia"
+            }
+          },
+          {
+            "name": "James Wilson",
+            "role": "Grandparent",
+            "quote": "ColoringPages keeps my grandkids entertained for hours. We color together online, it's become our special bonding activity!",
+            "image": {
+              "src": "/imgs/avatars/5.png",
+              "alt": "james"
+            }
+          },
+          {
+            "name": "Anna Zhang",
+            "role": "Homeschool Mom",
+            "quote": "ColoringPages has been amazing for our homeschool curriculum. The educational templates make learning fun and engaging!",
+            "image": {
+              "src": "/imgs/avatars/6.png",
+              "alt": "anna"
+            }
+          }
+        ]
+      },
+      "faq": {
+        "id": "faq",
+        "title": "Frequently Asked Questions About ColoringPages",
+        "description": "Have another question? Contact us on Discord or by email.",
+        "items": [
+          {
+            "question": "What exactly is ColoringPages and how does it work?",
+            "answer": "ColoringPages is an online platform for creating and coloring pages. It provides ready-to-use templates, coloring tools, and a sharing community that help you create beautiful coloring pages in minutes."
+          },
+          {
+            "question": "Do I need artistic skills to use ColoringPages?",
+            "answer": "No! ColoringPages is designed for everyone. Our templates and easy-to-use coloring tools make it fun for both kids and adults, regardless of artistic experience."
+          },
+          {
+            "question": "What types of coloring pages can I create with ColoringPages?",
+            "answer": "ColoringPages offers a wide variety of templates including animals, mandalas, holidays, characters, and more. You can also upload your own drawings to color digitally."
+          },
+          {
+            "question": "How long does it take to create a coloring page?",
+            "answer": "With ColoringPages, you can start coloring in seconds! Our templates are ready to use, and our intuitive tools make the coloring process smooth and enjoyable."
+          },
+          {
+            "question": "What features are included in ColoringPages?",
+            "answer": "ColoringPages includes a variety of coloring tools, color palettes, undo/redo functions, save and download options, and a sharing community. Everything is designed for a fun and creative experience."
+          },
+          {
+            "question": "Can I customize the templates to match my brand?",
+            "answer": "Absolutely! All ColoringPages templates are fully customizable. You can modify colors, add your own elements, and create unique designs that match your personal style."
+          }
+        ]
+      },
+      "cta": {
+        "id": "cta",
+        "title": "Start Creating Beautiful Coloring Pages",
+        "description": "Join ColoringPages and unleash your creativity.",
+        "buttons": [
+          {
+            "title": "Get Started",
+            "url": "https://coloringpages.club",
+            "target": "_blank",
+            "icon": "Zap"
+          },
+          {
+            "title": "Read Document",
+            "url": "/docs",
+            "target": "_blank",
+            "variant": "outline",
+            "icon": "BookOpenText"
+          }
+        ],
+        "className": "bg-muted"
+      },
+      "subscribe": {
+        "id": "subscribe",
+        "title": "Subscribe to our newsletter",
+        "description": "Get the latest news and updates from ColoringPages.",
+        "submit": {
+          "input": {
+            "placeholder": "Enter your email"
+          },
+          "button": {
+            "title": "Subscribe"
+          },
+          "action": "/api/subscribe"
+        },
+        "className": "bg-muted"
+      }
+    }
+  }
+}
