@@ -4,7 +4,7 @@
     "brand": {
       "title": "ColoringPages",
       "logo": {
-        "src": "/logo.png",
+        "src": "/logo-v2.png",
         "alt": "ColoringPages",
         "width": 100,
         "height": 100
@@ -45,7 +45,7 @@
       "title": "ColoringPages",
       "description": "ColoringPages 是一个在线创建和涂色页面的平台。使用我们的涂色工具探索您的创造力。",
       "logo": {
-        "src": "/logo.png",
+        "src": "/logo-v2.png",
         "alt": "ColoringPages",
         "width": 100,
         "height": 100
@@ -98,18 +98,18 @@
           "title": "合作伙伴",
           "children": [
             {
-              "title": "ColoringPages",
-              "url": "https://coloringpages.club",
+              "title": "Face Shapes",
+              "url": "https://faceshapes.app/",
               "target": "_blank"
             },
             {
-              "title": "ThinkAny",
-              "url": "https://thinkany.ai",
+              "title": "Nail Shapes",
+              "url": "https://thenailshapes.com/",
               "target": "_blank"
             },
             {
-              "title": "MCP.so",
-              "url": "https://mcp.so",
+              "title": "Insta Highlight Viewer",
+              "url": "https://www.instahighlightviewer.com/",
               "target": "_blank"
             }
           ]

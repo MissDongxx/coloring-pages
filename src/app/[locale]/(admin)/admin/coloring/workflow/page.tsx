@@ -9,6 +9,7 @@ import { getTranslations } from 'next-intl/server';
 import {
   getColoringJobs,
   getColoringJobsCount,
+  ColoringJobStatus,
 } from '@/shared/models/coloring_job';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
@@ -27,55 +28,57 @@ import { Workflow } from 'lucide-react';
 import { revalidatePath } from 'next/cache';
 
 interface PageProps {
-  params: { locale: string };
-  searchParams: { page?: string; status?: string };
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ page?: string; status?: string }>;
 }
 
-export default async AdminColoringWorkflowPage({
+export default async function AdminColoringWorkflowPage({
   params,
   searchParams,
 }: PageProps) {
+  const { locale } = await params;
+  const { page: searchPage, status: searchStatus } = await searchParams;
+
   await requirePermission({
     code: PERMISSIONS.COLORING_WORKFLOW_READ,
     redirectUrl: '/admin/no-permission',
-    locale: params.locale,
+    locale,
   });
 
   const t = await getTranslations('admin.coloring.workflow');
   const tCommon = await getTranslations('admin.coloring.common');
 
-  const page = parseInt(searchParams.page || '1');
+  const pageNum = parseInt(searchPage || '1');
   const limit = 10;
-  const status = searchParams.status;
 
   // Fetch jobs
   const jobs = await getColoringJobs({
-    page,
+    page: pageNum,
     limit,
-    status: status as any,
+    status: searchStatus as any,
   });
 
   const totalCount = await getColoringJobsCount({
-    status: status as any,
+    status: searchStatus as any,
   });
 
   // Calculate stats
   const [completedCount, failedCount, processingCount] = await Promise.all([
-    getColoringJobsCount({ status: 'completed' }),
-    getColoringJobsCount({ status: 'failed' }),
-    getColoringJobsCount({ status: 'processing' }),
+    getColoringJobsCount({ status: ColoringJobStatus.COMPLETED }),
+    getColoringJobsCount({ status: ColoringJobStatus.FAILED }),
+    getColoringJobsCount({ status: ColoringJobStatus.PROCESSING }),
   ]);
 
   const total = await getColoringJobsCount();
 
   const crumbs = [
     { title: t('list.crumbs.title'), href: '/admin' },
-    { title: t('list.crumbs.crumb.title'), href: '/admin/coloring' },
-    { title: t('list.crumbs.crumb.title'), href: '/admin/coloring/workflow' },
+    { title: t('list.crumb.title'), href: '/admin/coloring' },
+    { title: t('list.title'), href: '/admin/coloring/workflow' },
   ];
 
   // Server action to start workflow
-  async startWorkflow(formData: FormData) {
+  async function startWorkflow(formData: FormData) {
     'use server';
     const { requirePermission } = await import('@/core/rbac');
     const { getTranslations } = await import('next-intl/server');
@@ -92,17 +95,17 @@ export default async AdminColoringWorkflowPage({
 
     const workflowService = getWorkflowService();
     const jobId = await workflowService.runWorkflow({
-      wordRoots: wordRoots ? wordRoots.split(',').map((s) => s.trim()) : undefined,
+      wordRoots: wordRoots ? (wordRoots as string).split(',').map((s) => s.trim()) : undefined,
       jobType: jobType as any,
     });
 
     revalidatePath('/admin/coloring');
-    redirect({ href: `/admin/coloring/jobs/${jobId}` });
+    redirect({ href: `/admin/coloring/jobs/${jobId}`, locale });
   }
 
   // Format duration
-  function formatDuration(started: string, completed: string | null): string {
-    if (!completed) return '-';
+  function formatDuration(started: string | Date | null, completed: string | Date | null): string {
+    if (!completed || !started) return '-';
     const start = new Date(started).getTime();
     const end = new Date(completed).getTime();
     const diff = (end - start) / 1000;
@@ -144,25 +147,25 @@ export default async AdminColoringWorkflowPage({
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5 mb-6">
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>{t('form.stats.totalJobs')}</CardDescription>
+              <CardDescription>{t('stats.totalJobs')}</CardDescription>
               <CardTitle className="text-2xl">{total}</CardTitle>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>{t('form.stats.completed')}</CardDescription>
+              <CardDescription>{t('stats.completed')}</CardDescription>
               <CardTitle className="text-2xl">{completedCount}</CardTitle>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>{t('form.stats.processing')}</CardDescription>
+              <CardDescription>{t('stats.processing')}</CardDescription>
               <CardTitle className="text-2xl">{processingCount}</CardTitle>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>{t('form.stats.failed')}</CardDescription>
+              <CardDescription>{t('stats.failed')}</CardDescription>
               <CardTitle className="text-2xl text-destructive">
                 {failedCount}
               </CardTitle>
@@ -170,7 +173,7 @@ export default async AdminColoringWorkflowPage({
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>{t('form.stats.totalPages')}</CardDescription>
+              <CardDescription>{t('stats.totalPages')}</CardDescription>
               <CardTitle className="text-2xl">
                 {jobs.reduce((sum, job) => sum + (job.processedPages || 0), 0)}
               </CardTitle>
@@ -241,8 +244,8 @@ export default async AdminColoringWorkflowPage({
                       <Badge variant="outline">{t(`type.${job.jobType}`)}</Badge>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {job.totalKeywords} keywords · {job.processedPages} pages
-                      {job.failedPages > 0 && ` · ${job.failedPages} failed`}
+                      {job.totalKeywords} keywords · {job.processedPages ?? 0} pages
+                      {(job.failedPages ?? 0) > 0 && ` · ${job.failedPages} failed`}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       Started: {new Date(job.startedAt || '').toLocaleString()}

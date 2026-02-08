@@ -1,8 +1,8 @@
 import { envConfigs } from '@/config';
 
-import { closeMysqlDb, getMysqlDb } from './mysql';
+// import { closeMysqlDb, getMysqlDb } from './mysql';
 import { closePostgresDb, getPostgresDb } from './postgres';
-import { getSqliteDb } from './sqlite';
+// import { getSqliteDb } from './sqlite';
 
 const mysqlCompatProxyCache = new WeakMap<object, any>();
 const sqliteCompatProxyCache = new WeakMap<object, any>();
@@ -184,13 +184,13 @@ function withSqliteCompat<T extends object>(dbInstance: T): T {
  * So we intentionally return `any` to keep call sites stable.
  */
 export function db(): any {
-  if (['sqlite', 'turso'].includes(envConfigs.database_provider)) {
-    return withSqliteCompat(getSqliteDb() as any);
-  }
+  // if (['sqlite', 'turso'].includes(envConfigs.database_provider)) {
+  //   return withSqliteCompat(getSqliteDb() as any);
+  // }
 
-  if (envConfigs.database_provider === 'mysql') {
-    return withMysqlCompat(getMysqlDb() as any);
-  }
+  // if (envConfigs.database_provider === 'mysql') {
+  //   return withMysqlCompat(getMysqlDb() as any);
+  // }
 
   return getPostgresDb() as any;
 }
@@ -203,21 +203,21 @@ export function dbPostgres(): ReturnType<typeof getPostgresDb> {
   return getPostgresDb();
 }
 
-export function dbMysql(): ReturnType<typeof getMysqlDb> {
-  if (envConfigs.database_provider !== 'mysql') {
-    throw new Error('Database provider is not MySQL');
-  }
+// export function dbMysql(): ReturnType<typeof getMysqlDb> {
+//   if (envConfigs.database_provider !== 'mysql') {
+//     throw new Error('Database provider is not MySQL');
+//   }
 
-  return getMysqlDb();
-}
+//   return getMysqlDb();
+// }
 
-export function dbSqlite(): ReturnType<typeof getSqliteDb> {
-  if (!['sqlite', 'turso'].includes(envConfigs.database_provider)) {
-    throw new Error('Database provider is not SQLite');
-  }
+// export function dbSqlite(): ReturnType<typeof getSqliteDb> {
+//   if (!['sqlite', 'turso'].includes(envConfigs.database_provider)) {
+//     throw new Error('Database provider is not SQLite');
+//   }
 
-  return getSqliteDb();
-}
+//   return getSqliteDb();
+// }
 
 export async function closeDb() {
   if (envConfigs.database_provider === 'postgresql') {
@@ -225,8 +225,8 @@ export async function closeDb() {
     return;
   }
 
-  if (envConfigs.database_provider === 'mysql') {
-    await closeMysqlDb();
-    return;
-  }
+  // if (envConfigs.database_provider === 'mysql') {
+  //   await closeMysqlDb();
+  //   return;
+  // }
 }

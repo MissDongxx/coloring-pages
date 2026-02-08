@@ -6,7 +6,7 @@
 import { Header, Main, MainHeader } from '@/shared/blocks/dashboard';
 import { PERMISSIONS, requirePermission } from '@/core/rbac';
 import { getTranslations } from 'next-intl/server';
-import { getColoringPages, getColoringPagesCount } from '@/shared/models/coloring_page';
+import { getColoringPages, getColoringPagesCount, ColoringPageStatus } from '@/shared/models/coloring_page';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent } from '@/shared/components/ui/card';
@@ -25,14 +25,14 @@ import Link from 'next/link';
 import { revalidatePath } from 'next/cache';
 
 interface PageProps {
-  params: { locale: string };
-  searchParams: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{
     page?: string;
     status?: string;
     tab?: string;
     category?: string;
     jobId?: string;
-  };
+  }>;
 }
 
 // Server action to update page status
@@ -63,29 +63,32 @@ async function deletePage(pageId: string) {
   revalidatePath('/admin/coloring/pages');
 }
 
-export default async AdminColoringPagesPage({
+export default async function AdminColoringPagesPage({
   params,
   searchParams,
 }: PageProps) {
+  const { locale } = await params;
+  const { page: searchPage, status: searchStatus, tab: searchTab, category: searchCategory, jobId: searchJobId } = await searchParams;
+
   await requirePermission({
     code: PERMISSIONS.COLORING_PAGES_READ,
     redirectUrl: '/admin/no-permission',
-    locale: params.locale,
+    locale,
   });
 
   const t = await getTranslations('admin.coloring.pages');
   const tCommon = await getTranslations('admin.coloring.common');
 
-  const page = parseInt(searchParams.page || '1');
+  const page = parseInt(searchPage || '1');
   const limit = 20;
-  const status = searchParams.status;
-  const tab = searchParams.tab || 'all';
-  const category = searchParams.category;
-  const jobId = searchParams.jobId;
+  const status = searchStatus;
+  const tab = searchTab || 'all';
+  const category = searchCategory;
+  const jobId = searchJobId;
 
   // Determine status filter based on tab
   const statusFilter =
-    tab === 'all' ? undefined : (tab === 'archived' ? 'archived' : tab);
+    tab === 'all' ? undefined : (tab === 'archived' ? ColoringPageStatus.ARCHIVED : (tab as ColoringPageStatus));
 
   // Fetch pages
   const pages = await getColoringPages({
@@ -106,25 +109,25 @@ export default async AdminColoringPagesPage({
   const [allCount, publishedCount, draftCount, archivedCount] =
     await Promise.all([
       getColoringPagesCount(),
-      getColoringPagesCount({ status: 'published' }),
-      getColoringPagesCount({ status: 'draft' }),
-      getColoringPagesCount({ status: 'archived' }),
+      getColoringPagesCount({ status: ColoringPageStatus.PUBLISHED }),
+      getColoringPagesCount({ status: ColoringPageStatus.DRAFT }),
+      getColoringPagesCount({ status: ColoringPageStatus.ARCHIVED }),
     ]);
 
   const crumbs = [
     { title: t('list.crumbs.title'), href: '/admin' },
-    { title: t('list.crumbs.crumb.title'), href: '/admin/coloring' },
+    { title: t('list.crumb.title'), href: '/admin/coloring' },
     { title: t('list.title'), href: '/admin/coloring/pages' },
   ];
 
   // Status badge variant
   function getStatusVariant(status: string): 'default' | 'secondary' | 'outline' {
     switch (status) {
-      case 'published':
+      case ColoringPageStatus.PUBLISHED:
         return 'default';
-      case 'draft':
+      case ColoringPageStatus.DRAFT:
         return 'secondary';
-      case 'archived':
+      case ColoringPageStatus.ARCHIVED:
         return 'outline';
       default:
         return 'outline';
@@ -204,7 +207,7 @@ export default async AdminColoringPagesPage({
                       <SelectValue placeholder={t('filters.category')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Categories</SelectItem>
+                      <SelectItem value="all">All Categories</SelectItem>
                       <SelectItem value="animals">Animals</SelectItem>
                       <SelectItem value="nature">Nature</SelectItem>
                       <SelectItem value="vehicles">Vehicles</SelectItem>
@@ -217,7 +220,7 @@ export default async AdminColoringPagesPage({
                       <SelectValue placeholder={t('filters.locale')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Locales</SelectItem>
+                      <SelectItem value="all">All Locales</SelectItem>
                       <SelectItem value="en">English</SelectItem>
                       <SelectItem value="zh">中文</SelectItem>
                     </SelectContent>
@@ -268,7 +271,6 @@ export default async AdminColoringPagesPage({
 
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <Badge variant="outline">{page.category}</Badge>
-                          <Badge variant="outline">{page.locale}</Badge>
                         </div>
 
                         <div className="flex gap-2">
@@ -281,7 +283,7 @@ export default async AdminColoringPagesPage({
                           {page.status === 'draft' && (
                             <form action={async () => {
                               'use server';
-                              await updatePageStatus(page.id, 'published');
+                              await updatePageStatus(page.id, ColoringPageStatus.PUBLISHED);
                             }}>
                               <button
                                 type="submit"
@@ -294,7 +296,7 @@ export default async AdminColoringPagesPage({
                           {page.status === 'published' && (
                             <form action={async () => {
                               'use server';
-                              await updatePageStatus(page.id, 'draft');
+                              await updatePageStatus(page.id, ColoringPageStatus.DRAFT);
                             }}>
                               <button
                                 type="submit"

@@ -572,6 +572,7 @@ export const coloringJob = table(
     processedPages: integer('processed_pages').default(0),
     failedPages: integer('failed_pages').default(0),
     errorMessage: text('error_message'),
+    logs: text('logs'), // JSON: array of log entries with timestamp, level, message
     startedAt: timestamp('started_at'),
     completedAt: timestamp('completed_at'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -623,5 +624,20 @@ export const coloringPage = table(
       table.status,
       table.publishedAt
     ),
+  ]
+);
+
+// Rate Limiting table
+export const rateLimit = table(
+  'rate_limits',
+  {
+    ip: text('ip').primaryKey(),
+    count: integer('count').notNull().default(0),
+    lastRequestAt: timestamp('last_request_at'),
+    resetAt: timestamp('reset_at').notNull(),
+  },
+  (table) => [
+    // Index for cleanup queries
+    index('idx_rate_limits_reset_at').on(table.resetAt),
   ]
 );

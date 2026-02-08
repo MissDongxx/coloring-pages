@@ -251,6 +251,71 @@ const defaultPermissions = [
     description: 'Delete AI tasks',
   },
 
+  // Coloring workflow management
+  {
+    code: 'admin.coloring.workflow.read',
+    resource: 'coloring.workflow',
+    action: 'read',
+    title: 'Read Coloring Workflow',
+    description: 'View coloring workflow page and stats',
+  },
+  {
+    code: 'admin.coloring.workflow.write',
+    resource: 'coloring.workflow',
+    action: 'write',
+    title: 'Write Coloring Workflow',
+    description: 'Start coloring workflow jobs',
+  },
+  {
+    code: 'admin.coloring.jobs.read',
+    resource: 'coloring.jobs',
+    action: 'read',
+    title: 'Read Coloring Jobs',
+    description: 'View coloring job list and details',
+  },
+  {
+    code: 'admin.coloring.jobs.write',
+    resource: 'coloring.jobs',
+    action: 'write',
+    title: 'Write Coloring Jobs',
+    description: 'Update coloring jobs',
+  },
+  {
+    code: 'admin.coloring.jobs.delete',
+    resource: 'coloring.jobs',
+    action: 'delete',
+    title: 'Delete Coloring Jobs',
+    description: 'Delete coloring jobs',
+  },
+  {
+    code: 'admin.coloring.pages.read',
+    resource: 'coloring.pages',
+    action: 'read',
+    title: 'Read Coloring Pages',
+    description: 'View coloring page list and details',
+  },
+  {
+    code: 'admin.coloring.pages.write',
+    resource: 'coloring.pages',
+    action: 'write',
+    title: 'Write Coloring Pages',
+    description: 'Create and update coloring pages',
+  },
+  {
+    code: 'admin.coloring.pages.delete',
+    resource: 'coloring.pages',
+    action: 'delete',
+    title: 'Delete Coloring Pages',
+    description: 'Delete coloring pages',
+  },
+  {
+    code: 'admin.coloring.quality.read',
+    resource: 'coloring.quality',
+    action: 'read',
+    title: 'Read Coloring Quality',
+    description: 'View coloring quality reports',
+  },
+
   // Wildcard permission for super admin
   {
     code: '*',
@@ -288,6 +353,7 @@ const defaultRoles = [
       'admin.apikeys.*',
       'admin.settings.read',
       'admin.ai-tasks.*',
+      'admin.coloring.*',
     ],
   },
   {

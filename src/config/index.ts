@@ -23,7 +23,7 @@ export const envConfigs: ConfigMap = {
   app_url: process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000',
   app_name: process.env.NEXT_PUBLIC_APP_NAME ?? 'ColoringPages',
   app_description: process.env.NEXT_PUBLIC_APP_DESCRIPTION ?? '',
-  app_logo: process.env.NEXT_PUBLIC_APP_LOGO ?? '/logo.png',
+  app_logo: process.env.NEXT_PUBLIC_APP_LOGO ?? '/logo-v2.png',
   app_favicon: process.env.NEXT_PUBLIC_APP_FAVICON ?? '/favicon.ico',
   app_preview_image:
     process.env.NEXT_PUBLIC_APP_PREVIEW_IMAGE ?? '/preview.png',

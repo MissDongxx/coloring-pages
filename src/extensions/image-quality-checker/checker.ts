@@ -3,7 +3,7 @@
  * Uses sharp for image analysis
  */
 
-import sharp from 'sharp';
+import type sharp from 'sharp';
 import { promises as fs } from 'fs';
 import { envConfigs } from '@/config';
 import type {
@@ -69,6 +69,8 @@ export class ImageQualityChecker {
       }
 
       // Get image metadata
+      const sharpModule = await import('sharp');
+      const sharp = sharpModule.default || sharpModule;
       const metadata = await sharp(imagePath).metadata();
       const width = metadata.width || 0;
       const height = metadata.height || 0;
@@ -295,6 +297,8 @@ export class ImageQualityChecker {
   private async detectNoise(imagePath: string): Promise<boolean> {
     try {
       // Use edge detection to find noise
+      const sharpModule = await import('sharp');
+      const sharp = sharpModule.default || sharpModule;
       const edges = await sharp(imagePath)
         .clone()
         .resize(256, 256, { fit: 'inside' })

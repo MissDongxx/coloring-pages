@@ -25,7 +25,7 @@ export function MainHeader({
   tabs?: Tab[];
   filters?: FilterType[];
   search?: SearchType;
-  actions?: ButtonType[];
+  actions?: ButtonType[] | React.ReactNode;
 }) {
   return (
     <div className="flex flex-col">
@@ -35,22 +35,24 @@ export function MainHeader({
           <p className="text-muted-foreground">{description || ''}</p>
         </div>
         <div>
-          {actions?.map((action, idx) => (
-            <Link
-              key={idx}
-              href={action.url || ''}
-              target={action.target || '_self'}
-            >
-              <Button
-                onClick={action.onClick}
-                variant={action.variant || 'default'}
-                size={action.size || 'sm'}
-              >
-                {action.icon && <SmartIcon name={action.icon as string} />}
-                {action.title}
-              </Button>
-            </Link>
-          ))}
+          {Array.isArray(actions)
+            ? actions.map((action, idx) => (
+                <Link
+                  key={idx}
+                  href={action.url || ''}
+                  target={action.target || '_self'}
+                >
+                  <Button
+                    onClick={action.onClick}
+                    variant={action.variant || 'default'}
+                    size={action.size || 'sm'}
+                  >
+                    {action.icon && <SmartIcon name={action.icon as string} />}
+                    {action.title}
+                  </Button>
+                </Link>
+              ))
+            : actions}
         </div>
       </div>
       {tabs && tabs.length > 0 ? <Tabs tabs={tabs} /> : null}

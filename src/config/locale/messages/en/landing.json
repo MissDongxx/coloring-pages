@@ -4,7 +4,7 @@
     "brand": {
       "title": "ColoringPages",
       "logo": {
-        "src": "/logo.png",
+        "src": "/logo-v2.png",
         "alt": "ColoringPages",
         "width": 100,
         "height": 100
@@ -45,7 +45,7 @@
       "title": "ColoringPages",
       "description": "ColoringPages is a platform for creating and coloring pages online. Explore your creativity with our coloring tools.",
       "logo": {
-        "src": "/logo.png",
+        "src": "/logo-v2.png",
         "alt": "ColoringPages",
         "width": 1024,
         "height": 1024
@@ -98,18 +98,18 @@
           "title": "Friends",
           "children": [
             {
-              "title": "ColoringPages",
-              "url": "https://coloringpages.club",
+              "title": "Face Shapes",
+              "url": "https://faceshapes.app/",
               "target": "_blank"
             },
             {
-              "title": "ThinkAny",
-              "url": "https://thinkany.ai",
+              "title": "Nail Shapes",
+              "url": "https://thenailshapes.com/",
               "target": "_blank"
             },
             {
-              "title": "MCP.so",
-              "url": "https://mcp.so",
+              "title": "Insta Highlight Viewer",
+              "url": "https://www.instahighlightviewer.com/",
               "target": "_blank"
             }
           ]

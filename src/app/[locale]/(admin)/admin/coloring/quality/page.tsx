@@ -17,28 +17,31 @@ import { promises as fs } from 'fs';
 import path from 'path';
 
 interface PageProps {
-  params: { locale: string };
-  searchParams: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{
     jobId?: string;
     minScore?: string;
-  };
+  }>;
 }
 
-export default async AdminColoringQualityPage({
+export default async function AdminColoringQualityPage({
   params,
   searchParams,
 }: PageProps) {
+  const { locale } = await params;
+  const { jobId: searchJobId, minScore: searchMinScore } = await searchParams;
+
   await requirePermission({
     code: PERMISSIONS.COLORING_QUALITY_READ,
     redirectUrl: '/admin/no-permission',
-    locale: params.locale,
+    locale,
   });
 
   const t = await getTranslations('admin.coloring.quality');
   const tCommon = await getTranslations('admin.coloring.common');
 
-  const jobId = searchParams.jobId;
-  const minScore = parseInt(searchParams.minScore || '0');
+  const jobId = searchJobId;
+  const minScore = parseInt(searchMinScore || '0');
 
   // Get quality reports from job's temp directory
   let qualityReports: any[] = [];
@@ -102,7 +105,7 @@ export default async AdminColoringQualityPage({
 
   const crumbs = [
     { title: t('list.crumbs.title'), href: '/admin' },
-    { title: t('list.crumbs.crumb.title'), href: '/admin/coloring' },
+    { title: t('list.crumb.title'), href: '/admin/coloring' },
     { title: t('list.title'), href: '/admin/coloring/quality' },
   ];
 
@@ -259,7 +262,7 @@ export default async AdminColoringQualityPage({
                       {/* Issues */}
                       {report.issues.length > 0 && (
                         <div className="flex flex-wrap gap-2">
-                          {report.issues.map((issue, i) => (
+                          {report.issues.map((issue: string, i: number) => (
                             <Badge
                               key={i}
                               variant="destructive"

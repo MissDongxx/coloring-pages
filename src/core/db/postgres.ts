@@ -8,6 +8,22 @@ import { isCloudflareWorker } from '@/shared/lib/env';
 let dbInstance: ReturnType<typeof drizzle> | null = null;
 let client: ReturnType<typeof postgres> | null = null;
 
+/**
+ * Get Cloudflare Workers env from the global context
+ * This must be called within a request handler to have access to the env
+ */
+function getCloudflareEnv(): any {
+  if (!isCloudflareWorker) {
+    return {};
+  }
+  const cloudflareSymbol = Symbol.for('__cloudflare-context__');
+  const cloudflareContext = (globalThis as any)[cloudflareSymbol] as { env?: any } | undefined;
+  const env = cloudflareContext?.env || {};
+  console.log('[DB] Cloudflare env keys:', Object.keys(env));
+  console.log('[DB] Has HYPERDRIVE:', 'HYPERDRIVE' in env);
+  return env;
+}
+
 export function getPostgresDb() {
   let databaseUrl = envConfigs.database_url;
 
@@ -19,14 +35,23 @@ export function getPostgresDb() {
       : {};
 
   if (isCloudflareWorker) {
-    const { env }: { env: any } = { env: {} };
+    console.log('[DB] Running in Cloudflare Workers environment');
+    const env = getCloudflareEnv();
+
     // Detect if set Hyperdrive
     isHyperdrive = 'HYPERDRIVE' in env;
 
     if (isHyperdrive) {
       const hyperdrive = env.HYPERDRIVE;
       databaseUrl = hyperdrive.connectionString;
-      console.log('using Hyperdrive connection');
+      console.log('[DB] Using Hyperdrive connection:', databaseUrl ? 'OK' : 'MISSING');
+    } else {
+      console.error('[DB] HYPERDRIVE binding not found. Available keys:', Object.keys(env));
+      throw new Error(
+        'Cloudflare Workers requires Hyperdrive to connect to PostgreSQL. ' +
+        'Please configure Hyperdrive in your Cloudflare dashboard and add it to wrangler.toml. ' +
+        'See: https://developers.cloudflare.com/hyperdrive/'
+      );
     }
   }
 

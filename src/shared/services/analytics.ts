@@ -47,9 +47,10 @@ export function getAnalyticsManagerWithConfigs(configs: Configs) {
     );
   }
 
+
   // vercel analytics
   if (configs.vercel_analytics_enabled === 'true') {
-    analytics.addProvider(new VercelAnalyticsProvider({ mode: 'auto' }));
+    analytics.addProvider(new VercelAnalyticsProvider({ mode: 'production' }));
   }
 
   return analytics;

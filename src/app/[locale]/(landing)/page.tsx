@@ -61,7 +61,7 @@ export default async function LandingPage({
               href="/categories"
               className="inline-flex items-center justify-center px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
             >
-              更多类别 ({categories.length - 8}+)
+              More Categories ({categories.length - 8}+)
             </Link>
           </div>
         )}

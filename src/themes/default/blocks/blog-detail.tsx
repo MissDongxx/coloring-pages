@@ -1,6 +1,6 @@
 'use client';
 
-import { TOCItems, TOCProvider } from 'fumadocs-ui/components/layout/toc';
+// import { TOCItems, TOCProvider } from 'fumadocs-ui/components/layout/toc';
 import { CalendarIcon, ListIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
@@ -42,7 +42,7 @@ export function BlogDetail({ post }: { post: PostType }) {
   };
 
   return (
-    <TOCProvider toc={post.toc || []}>
+    // <TOCProvider toc={post.toc || []}>
       <section id={post.id}>
         <div className="py-24 md:py-32">
           <div className="mx-auto w-full max-w-7xl px-6 md:px-8">
@@ -64,8 +64,8 @@ export function BlogDetail({ post }: { post: PostType }) {
 
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 gap-8 md:mt-12 lg:grid-cols-12">
-              {/* Table of Contents - Left Sidebar */}
-              {showToc && (
+              {/* Table of Contents - Left Sidebar - DISABLED due to fumadocs removal */}
+              {/* {showToc && (
                 <div className="lg:col-span-3">
                   <div className="sticky top-24 hidden md:block">
                     <div className="bg-muted/30 rounded-lg p-4">
@@ -76,7 +76,7 @@ export function BlogDetail({ post }: { post: PostType }) {
                     </div>
                   </div>
                 </div>
-              )}
+              )} */}
 
               {/* Main Content - Center */}
               <div className={getMainColSpan()}>
@@ -129,6 +129,6 @@ export function BlogDetail({ post }: { post: PostType }) {
           </div>
         </div>
       </section>
-    </TOCProvider>
+    // </TOCProvider>
   );
 }

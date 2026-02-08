@@ -3,7 +3,7 @@
     "brand": {
       "title": "Coloring Pages",
       "logo": {
-        "src": "/logo.png",
+        "src": "/logo-v2.png",
         "alt": "Coloring Pages"
       },
       "url": "/admin/coloring"
@@ -92,6 +92,16 @@
       "status": "Status",
       "jobType": "Type",
       "dateRange": "Date Range"
+    },
+    "status": {
+      "pending": "Pending",
+      "processing": "Processing",
+      "completed": "Completed",
+      "failed": "Failed"
+    },
+    "type": {
+      "manual": "Manual",
+      "scheduled": "Scheduled"
     },
     "tabs": {
       "all": "All",

@@ -1,39 +1,52 @@
 import { ReactNode } from 'react';
-import { Analytics } from '@vercel/analytics/next';
+
+import { Analytics } from '@vercel/analytics/react';
 
 import { AnalyticsConfigs, AnalyticsProvider } from '.';
 
 /**
  * Vercel analytics configs
- * @docs https://vercel.com/docs/analytics/quickstart
+ * @docs https://vercel.com/analytics
  */
 export interface VercelAnalyticsConfigs extends AnalyticsConfigs {
-  mode?: string;
-  debug?: boolean;
+  mode?: 'auto' | 'production' | 'development'; // when to enable analytics
 }
 
 /**
  * Vercel analytics provider
- * @website https://vercel.com/
+ * @website https://vercel.com/analytics
  */
 export class VercelAnalyticsProvider implements AnalyticsProvider {
   readonly name = 'vercel-analytics';
 
   configs: VercelAnalyticsConfigs;
 
-  constructor(configs: VercelAnalyticsConfigs) {
+  constructor(configs: VercelAnalyticsConfigs = {}) {
     this.configs = configs;
   }
 
-  getHeadScripts(): ReactNode {
-    return null;
+  shouldEnable(): boolean {
+    const { mode = 'production' } = this.configs;
+    const isProduction = process.env.NODE_ENV === 'production';
+    const isDevelopment = process.env.NODE_ENV === 'development';
+
+    switch (mode) {
+      case 'auto':
+        return true;
+      case 'production':
+        return isProduction;
+      case 'development':
+        return isDevelopment;
+      default:
+        return true;
+    }
   }
 
   getBodyScripts(): ReactNode {
-    return <Analytics />;
-  }
+    if (!this.shouldEnable()) {
+      return null;
+    }
 
-  getMetaTags(): ReactNode {
-    return null;
+    return <Analytics />;
   }
 }

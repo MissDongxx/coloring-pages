@@ -1,8 +1,8 @@
 import bundleAnalyzer from '@next/bundle-analyzer';
-import { createMDX } from 'fumadocs-mdx/next';
+// import { createMDX } from 'fumadocs-mdx/next';
 import createNextIntlPlugin from 'next-intl/plugin';
 
-const withMDX = createMDX();
+// const withMDX = createMDX({ ... });
 
 const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
@@ -17,13 +17,12 @@ const nextConfig = {
   output: process.env.VERCEL ? undefined : 'standalone',
   staticPageGenerationTimeout: 180,
   reactStrictMode: false,
-  pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
+  pageExtensions: ['ts', 'tsx', 'js', 'jsx'],
   images: {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     qualities: [60, 70, 75],
     remotePatterns: [
-      // Cloudflare R2 存储图片
       {
         protocol: 'https',
         hostname: '**.r2.dev',
@@ -34,7 +33,6 @@ const nextConfig = {
         hostname: '**.r2.cloudflarestorage.com',
         pathname: '/**',
       },
-      // 通用配置（允许所有其他域名）
       {
         protocol: 'https',
         hostname: '*',
@@ -58,21 +56,18 @@ const nextConfig = {
     ];
   },
   turbopack: {
-    resolveAlias: {
-      // fs: {
-      //   browser: './empty.ts', // We recommend to fix code imports before using this method
-      // },
-    },
+    resolveAlias: {},
+  },
+  webpack: (config) => {
+    config.resolve.alias['@vercel/og'] = false;
+    config.resolve.alias['next/og'] = false;
+    return config;
   },
   experimental: {
     turbopackFileSystemCacheForDev: true,
-    // Disable mdxRs for Vercel deployment compatibility with fumadocs-mdx
-    ...(process.env.VERCEL ? {} : { mdxRs: true }),
     optimizePackageImports: ['lucide-react', '@tabler/icons-react'],
   },
   reactCompiler: true,
-  // 强制外部化某些包或者优化打包
-  serverExternalPackages: ['sharp'],
 };
 
-export default withBundleAnalyzer(withNextIntl(withMDX(nextConfig)));
+export default withBundleAnalyzer(withNextIntl(nextConfig));

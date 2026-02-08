@@ -9,6 +9,7 @@ import { getTranslations } from 'next-intl/server';
 import {
   getColoringJobs,
   getColoringJobsCount,
+  ColoringJobStatus,
 } from '@/shared/models/coloring_job';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
@@ -25,35 +26,38 @@ import { ListTodo, Clock, CheckCircle, XCircle } from 'lucide-react';
 import Link from 'next/link';
 
 interface PageProps {
-  params: { locale: string };
-  searchParams: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{
     page?: string;
     status?: string;
     tab?: string;
-  };
+  }>;
 }
 
-export default async AdminColoringJobsPage({
+export default async function AdminColoringJobsPage({
   params,
   searchParams,
 }: PageProps) {
+  const { locale } = await params;
+  const { page: searchPage, status: searchStatus, tab: searchTab } = await searchParams;
+
   await requirePermission({
     code: PERMISSIONS.COLORING_JOBS_READ,
     redirectUrl: '/admin/no-permission',
-    locale: params.locale,
+    locale,
   });
 
   const t = await getTranslations('admin.coloring.jobs');
   const tCommon = await getTranslations('admin.coloring.common');
 
-  const page = parseInt(searchParams.page || '1');
+  const page = parseInt(searchPage || '1');
   const limit = 20;
-  const status = searchParams.status;
-  const tab = searchParams.tab || 'all';
+  const status = searchStatus;
+  const tab = searchTab || 'all';
 
   // Determine status filter based on tab
   const statusFilter =
-    tab === 'all' ? undefined : (tab === 'failed' ? 'failed' : tab);
+    tab === 'all' ? undefined : (tab === 'failed' ? ColoringJobStatus.FAILED : (tab as ColoringJobStatus));
 
   // Fetch jobs
   const jobs = await getColoringJobs({
@@ -70,14 +74,14 @@ export default async AdminColoringJobsPage({
   const [allCount, processingCount, completedCount, failedCount] =
     await Promise.all([
       getColoringJobsCount(),
-      getColoringJobsCount({ status: 'processing' }),
-      getColoringJobsCount({ status: 'completed' }),
-      getColoringJobsCount({ status: 'failed' }),
+      getColoringJobsCount({ status: ColoringJobStatus.PROCESSING }),
+      getColoringJobsCount({ status: ColoringJobStatus.COMPLETED }),
+      getColoringJobsCount({ status: ColoringJobStatus.FAILED }),
     ]);
 
   const crumbs = [
     { title: t('list.crumbs.title'), href: '/admin' },
-    { title: t('list.crumbs.crumb.title'), href: '/admin/coloring' },
+    { title: t('list.crumb.title'), href: '/admin/coloring' },
     { title: t('list.title'), href: '/admin/coloring/jobs' },
   ];
 
@@ -161,7 +165,7 @@ export default async AdminColoringJobsPage({
                       <SelectValue placeholder={t('filters.status')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Status</SelectItem>
+                      <SelectItem value="all">All Status</SelectItem>
                       <SelectItem value="pending">Pending</SelectItem>
                       <SelectItem value="processing">Processing</SelectItem>
                       <SelectItem value="completed">Completed</SelectItem>
@@ -173,7 +177,7 @@ export default async AdminColoringJobsPage({
                       <SelectValue placeholder={t('filters.jobType')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Types</SelectItem>
+                      <SelectItem value="all">All Types</SelectItem>
                       <SelectItem value="manual">Manual</SelectItem>
                       <SelectItem value="scheduled">Scheduled</SelectItem>
                     </SelectContent>
@@ -206,8 +210,8 @@ export default async AdminColoringJobsPage({
                           <div className="text-sm">
                             <span className="text-muted-foreground">{job.totalKeywords} keywords</span>
                             <span className="mx-2">·</span>
-                            <span className="text-muted-foreground">{job.processedPages} pages</span>
-                            {job.failedPages > 0 && (
+                            <span className="text-muted-foreground">{job.processedPages ?? 0} pages</span>
+                            {(job.failedPages ?? 0) > 0 && (
                               <>
                                 <span className="mx-2">·</span>
                                 <span className="text-destructive">{job.failedPages} failed</span>

@@ -16,32 +16,34 @@ import { Clock, CheckCircle, XCircle, FileImage, ListTodo, Workflow } from 'luci
 import Link from 'next/link';
 
 interface PageProps {
-  params: { locale: string; jobId: string };
+  params: Promise<{ locale: string; jobId: string }>;
 }
 
-export default async AdminColoringJobDetailPage({
+export default async function AdminColoringJobDetailPage({
   params,
 }: PageProps) {
+  const { locale, jobId } = await params;
+
   await requirePermission({
     code: PERMISSIONS.COLORING_JOBS_READ,
     redirectUrl: '/admin/no-permission',
-    locale: params.locale,
+    locale,
   });
 
   const t = await getTranslations('admin.coloring.jobs');
   const tCommon = await getTranslations('admin.coloring.common');
 
-  const job = await findColoringJob({ id: params.jobId });
+  const job = await findColoringJob({ id: jobId });
 
   if (!job) {
-    redirect({ href: '/admin/coloring/jobs' });
+    redirect({ href: '/admin/coloring/jobs', locale });
   }
 
   const crumbs = [
     { title: t('list.crumbs.title'), href: '/admin' },
-    { title: t('list.crumbs.crumb.title'), href: '/admin/coloring' },
+    { title: t('list.crumb.title'), href: '/admin/coloring' },
     { title: t('list.title'), href: '/admin/coloring/jobs' },
-    { title: `Job ${params.jobId.slice(0, 8)}` },
+    { title: `Job ${jobId.slice(0, 8)}` },
   ];
 
   // Parse keywords data
@@ -49,6 +51,15 @@ export default async AdminColoringJobDetailPage({
   try {
     const keywordsData = JSON.parse(job.keywordsData || '{}');
     keywords = keywordsData.keywords || [];
+  } catch (e) {
+    // Invalid JSON
+  }
+
+  // Parse logs
+  let logs: Array<{ timestamp: string; level: string; message: string; data?: any }> = [];
+  try {
+    const logsData = JSON.parse((job as any).logs || '[]');
+    logs = logsData;
   } catch (e) {
     // Invalid JSON
   }
@@ -96,7 +107,7 @@ export default async AdminColoringJobDetailPage({
       <Header crumbs={crumbs} />
       <Main>
         <MainHeader
-          title={`${t('detail.title')} - ${params.jobId.slice(0, 8)}`}
+          title={`${t('detail.title')} - ${jobId.slice(0, 8)}`}
           actions={
             <div className="flex gap-2">
               <Button variant="outline" asChild>
@@ -300,12 +311,48 @@ export default async AdminColoringJobDetailPage({
         {job.errorMessage && (
           <Card className="border-destructive">
             <CardHeader>
-              <CardTitle className="text-destructive">Error</CardTitle>
+              <CardTitle className="text-destructive flex items-center gap-2">
+                <XCircle className="h-5 w-5" />
+                Error Details
+              </CardTitle>
+              <CardDescription>
+                This job failed during processing. See details below.
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              <pre className="text-sm text-destructive whitespace-pre-wrap">
-                {job.errorMessage}
-              </pre>
+            <CardContent className="space-y-4">
+              <div>
+                <div className="text-sm font-medium text-muted-foreground mb-2">Error Message</div>
+                <pre className="text-sm text-destructive whitespace-pre-wrap bg-destructive/10 p-3 rounded-lg">
+                  {job.errorMessage}
+                </pre>
+              </div>
+
+              {/* Troubleshooting Tips */}
+              <div>
+                <div className="text-sm font-medium text-muted-foreground mb-2">Common Causes</div>
+                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                  <li>R2 storage configuration missing or incorrect</li>
+                  <li>Image quality check too strict for placeholder images</li>
+                  <li>Sharp module not installed for image processing</li>
+                  <li>Database connection or schema issues</li>
+                  <li>File system permissions for temp/content directories</li>
+                </ul>
+              </div>
+
+              {/* Debug Info */}
+              <div>
+                <div className="text-sm font-medium text-muted-foreground mb-2">Debug Information</div>
+                <div className="text-sm space-y-1 bg-muted/50 p-3 rounded-lg">
+                  <div className="grid grid-cols-2 gap-2">
+                    <span className="text-muted-foreground">Keywords:</span>
+                    <span>{job.totalKeywords}</span>
+                    <span className="text-muted-foreground">Pages:</span>
+                    <span>{job.processedPages ?? 0}</span>
+                    <span className="text-muted-foreground">Failed:</span>
+                    <span className="text-destructive">{job.failedPages ?? 0}</span>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         )}
@@ -362,6 +409,59 @@ export default async AdminColoringJobDetailPage({
             </div>
           </CardContent>
         </Card>
+
+        {/* Execution Logs */}
+        {logs.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ListTodo className="h-5 w-5" />
+                Execution Logs
+                <Badge variant="outline">{logs.length}</Badge>
+              </CardTitle>
+              <CardDescription>
+                Detailed step-by-step execution logs
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-1 font-mono text-xs max-h-96 overflow-y-auto">
+                {logs.map((log, index) => {
+                  const levelColors = {
+                    info: 'text-foreground',
+                    error: 'text-destructive',
+                    warn: 'text-yellow-600 dark:text-yellow-400',
+                  };
+                  const levelBgColors = {
+                    info: 'bg-muted/30',
+                    error: 'bg-destructive/10',
+                    warn: 'bg-yellow-500/10',
+                  };
+                  return (
+                    <div
+                      key={index}
+                      className={`flex gap-2 p-2 rounded ${levelBgColors[log.level as keyof typeof levelBgColors] || levelBgColors.info}`}
+                    >
+                      <span className="text-muted-foreground shrink-0">
+                        {new Date(log.timestamp).toLocaleTimeString()}
+                      </span>
+                      <span className={`font-semibold shrink-0 uppercase ${levelColors[log.level as keyof typeof levelColors] || levelColors.info}`}>
+                        [{log.level}]
+                      </span>
+                      <span className={levelColors[log.level as keyof typeof levelColors] || levelColors.info}>
+                        {log.message}
+                      </span>
+                      {log.data && (
+                        <span className="text-muted-foreground ml-auto">
+                          {JSON.stringify(log.data)}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </Main>
     </>
   );
