@@ -273,6 +273,9 @@ importers:
       rough-notation:
         specifier: ^0.5.1
         version: 0.5.1
+      sharp:
+        specifier: ^0.33.5
+        version: 0.33.5
       simple-flakeid:
         specifier: ^0.0.5
         version: 0.0.5
@@ -373,9 +376,6 @@ importers:
       prettier-plugin-tailwindcss:
         specifier: ^0.7.1
         version: 0.7.2(@ianvs/prettier-plugin-sort-imports@4.7.1(prettier@3.8.1))(prettier@3.8.1)
-      sharp:
-        specifier: ^0.33.5
-        version: 0.33.5
       tailwindcss:
         specifier: ^4
         version: 4.1.18
