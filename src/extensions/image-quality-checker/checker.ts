@@ -3,7 +3,7 @@
  * Uses sharp for image analysis
  */
 
-import type sharp from 'sharp';
+import type { Stats as SharpStats } from 'sharp';
 import { promises as fs } from 'fs';
 import { envConfigs } from '@/config';
 import type {
@@ -255,7 +255,7 @@ export class ImageQualityChecker {
    */
   private async isLineArtImage(
     imagePath: string,
-    stats: sharp.Stats
+    stats: SharpStats
   ): Promise<boolean> {
     // For a coloring page, we expect:
     // 1. Low saturation (mostly black and white)
@@ -331,7 +331,7 @@ export class ImageQualityChecker {
   /**
    * Calculate brightness and contrast from image statistics
    */
-  private calculateBrightnessAndContrast(stats: sharp.Stats): {
+  private calculateBrightnessAndContrast(stats: SharpStats): {
     brightness: number;
     contrast: number;
   } {
