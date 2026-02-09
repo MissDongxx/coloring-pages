@@ -27,7 +27,7 @@ export function CategoryGrid({ categories, hideEmpty = true }: CategoryGridProps
       {filteredCategories.map((cat) => (
         <Link key={cat.slug} href={`/${cat.slug}/`}>
           <Card className="overflow-hidden rounded-xl shadow-sm hover:shadow-md transition-all duration-200 hover:border-primary group">
-            <div className="aspect-[4/3] p-4 bg-secondary/30 flex items-center justify-center border-b">
+            <div className="aspect-[4/3] bg-secondary/30 flex items-center justify-center border-b">
               {cat.imageSrc ? (
                 <img
                   src={cat.imageSrc}
