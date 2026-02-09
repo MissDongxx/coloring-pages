@@ -1,0 +1,249 @@
+[
+  {
+    "slug": "animals",
+    "name": "Animals",
+    "icon": "🐾",
+    "preview": "Bunny, Cat, Dog & More",
+    "description": "Explore our collection of adorable animal coloring pages. From farm animals to wild creatures, find the perfect coloring page for your child.",
+    "count": 0,
+    "subCategories": [
+      {
+        "slug": "bunny",
+        "name": "Bunny",
+        "description": "Adorable bunny and rabbit coloring pages for kids.",
+        "count": 0
+      },
+      {
+        "slug": "cat",
+        "name": "Cat",
+        "description": "Cute cat and kitten coloring pages for children.",
+        "count": 0
+      },
+      {
+        "slug": "dog",
+        "name": "Dog",
+        "description": "Fun dog and puppy coloring pages for kids.",
+        "count": 0
+      },
+      {
+        "slug": "butterfly",
+        "name": "Butterfly",
+        "description": "Beautiful butterfly coloring pages with intricate wing patterns.",
+        "count": 0
+      },
+      {
+        "slug": "elephant",
+        "name": "Elephant",
+        "description": "Majestic elephant coloring pages for all ages.",
+        "count": 0
+      },
+      {
+        "slug": "lion",
+        "name": "Lion",
+        "description": "Brave lion coloring pages for adventurous kids.",
+        "count": 0
+      }
+    ],
+    "imageSrc": "https://images.coloringpages.club/coloring-pages/2026/02/Surrealism_book_birds.png"
+  },
+  {
+    "slug": "nature",
+    "name": "Nature",
+    "icon": "🌸",
+    "preview": "Flowers, Trees & Landscapes",
+    "description": "Beautiful nature coloring pages featuring flowers, trees, landscapes, and more. Connect with nature through art!",
+    "count": 0,
+    "subCategories": [
+      {
+        "slug": "flowers",
+        "name": "Flowers",
+        "description": "Beautiful flower coloring pages including roses, sunflowers, and more.",
+        "count": 0
+      },
+      {
+        "slug": "trees",
+        "name": "Trees",
+        "description": "Relaxing tree coloring pages for nature lovers.",
+        "count": 0
+      },
+      {
+        "slug": "ocean",
+        "name": "Ocean",
+        "description": "Ocean and sea coloring pages with waves and marine life.",
+        "count": 0
+      },
+      {
+        "slug": "mountains",
+        "name": "Mountains",
+        "description": "Scenic mountain coloring pages for outdoor enthusiasts.",
+        "count": 0
+      }
+    ],
+    "imageSrc": "https://images.coloringpages.club/coloring-pages/2026/02/Nature_rose_flower.png"
+  },
+  {
+    "slug": "vehicles",
+    "name": "Vehicles",
+    "icon": "🚗",
+    "preview": "Cars, Trucks & Planes",
+    "description": "Fun vehicle coloring pages including cars, trucks, planes, and trains. Perfect for kids who love things that go!",
+    "count": 0,
+    "subCategories": [
+      {
+        "slug": "cars",
+        "name": "Cars",
+        "description": "Exciting car coloring pages including race cars and sports cars.",
+        "count": 0
+      },
+      {
+        "slug": "trucks",
+        "name": "Trucks",
+        "description": "Big truck coloring pages including fire trucks and monster trucks.",
+        "count": 0
+      },
+      {
+        "slug": "planes",
+        "name": "Planes",
+        "description": "Airplane coloring pages for kids who dream of flying.",
+        "count": 0
+      },
+      {
+        "slug": "trains",
+        "name": "Trains",
+        "description": "Train coloring pages for railway enthusiasts.",
+        "count": 0
+      }
+    ],
+    "imageSrc": "https://images.coloringpages.club/coloring-pages/2026/02/Vehicles_school_bus.png"
+  },
+  {
+    "slug": "fantasy",
+    "name": "Fantasy",
+    "icon": "🦄",
+    "preview": "Unicorns, Dragons & Fairies",
+    "description": "Magical fantasy coloring pages with unicorns, dragons, fairies, and more. Let your imagination run wild!",
+    "count": 0,
+    "subCategories": [
+      {
+        "slug": "unicorn",
+        "name": "Unicorn",
+        "description": "Magical unicorn coloring pages with beautiful designs.",
+        "count": 0
+      },
+      {
+        "slug": "dragon",
+        "name": "Dragon",
+        "description": "Epic dragon coloring pages for adventurous kids.",
+        "count": 0
+      },
+      {
+        "slug": "fairy",
+        "name": "Fairy",
+        "description": "Enchanting fairy coloring pages for dreamers.",
+        "count": 0
+      },
+      {
+        "slug": "mermaid",
+        "name": "Mermaid",
+        "description": "Beautiful mermaid coloring pages for ocean lovers.",
+        "count": 0
+      }
+    ],
+    "imageSrc": "https://images.coloringpages.club/coloring-pages/2026/02/Fantasy_unicorn_garden.png"
+  },
+  {
+    "slug": "holidays",
+    "name": "Holidays",
+    "icon": "🎄",
+    "preview": "Christmas, Easter & Halloween",
+    "description": "Festive holiday coloring pages for Christmas, Easter, Halloween, and more special occasions!",
+    "count": 0,
+    "subCategories": [
+      {
+        "slug": "christmas",
+        "name": "Christmas",
+        "description": "Festive Christmas coloring pages with Santa and holiday cheer.",
+        "count": 0
+      },
+      {
+        "slug": "easter",
+        "name": "Easter",
+        "description": "Easter coloring pages with bunnies, eggs, and spring themes.",
+        "count": 0
+      },
+      {
+        "slug": "halloween",
+        "name": "Halloween",
+        "description": "Spooky Halloween coloring pages for trick-or-treat fun.",
+        "count": 0
+      }
+    ]
+  },
+  {
+    "slug": "food",
+    "name": "Food",
+    "icon": "🍎",
+    "preview": "Fruits, Desserts & Meals",
+    "description": "Delicious food coloring pages featuring fruits, desserts, and favorite meals!",
+    "count": 0,
+    "subCategories": [
+      {
+        "slug": "fruits",
+        "name": "Fruits",
+        "description": "Colorful fruit coloring pages for healthy fun.",
+        "count": 0
+      },
+      {
+        "slug": "desserts",
+        "name": "Desserts",
+        "description": "Sweet dessert coloring pages with cakes and ice cream.",
+        "count": 0
+      }
+    ],
+    "imageSrc": "https://images.coloringpages.club/coloring-pages/2026/02/Fruits_smiling_apple.png"
+  },
+  {
+    "slug": "sports",
+    "name": "Sports",
+    "icon": "⚽",
+    "preview": "Soccer, Basketball & More",
+    "description": "Active sports coloring pages featuring soccer, basketball, and more athletic activities!",
+    "count": 0,
+    "subCategories": [
+      {
+        "slug": "soccer",
+        "name": "Soccer",
+        "description": "Soccer coloring pages for football fans.",
+        "count": 0
+      },
+      {
+        "slug": "basketball",
+        "name": "Basketball",
+        "description": "Basketball coloring pages for hoops enthusiasts.",
+        "count": 0
+      }
+    ]
+  },
+  {
+    "slug": "characters",
+    "name": "Characters",
+    "icon": "👧",
+    "preview": "Kids, Princess & People",
+    "description": "Fun character coloring pages featuring kids, people, and friendly faces!",
+    "count": 0,
+    "subCategories": [
+      {
+        "slug": "kids",
+        "name": "Kids",
+        "description": "Happy kids coloring pages with children at play.",
+        "count": 0
+      },
+      {
+        "slug": "princess",
+        "name": "Princess",
+        "description": "Beautiful princess coloring pages for royal fans.",
+        "count": 0
+      }
+    ]
+  }
+]
