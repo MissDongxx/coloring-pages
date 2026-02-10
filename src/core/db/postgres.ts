@@ -90,7 +90,7 @@ export function getPostgresDb() {
       ...connectionSchemaOptions,
     });
 
-    dbInstance = drizzle({ client });
+    dbInstance = drizzle(client);
     return dbInstance;
   }
 
@@ -104,7 +104,7 @@ export function getPostgresDb() {
     ...connectionSchemaOptions,
   });
 
-  return drizzle({ client: serverlessClient });
+  return drizzle(serverlessClient);
 }
 
 // Optional: Function to close database connection (useful for testing or graceful shutdown)

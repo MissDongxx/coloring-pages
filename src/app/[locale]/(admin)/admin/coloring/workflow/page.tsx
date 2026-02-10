@@ -92,11 +92,13 @@ export default async function AdminColoringWorkflowPage({
 
     const wordRoots = formData.get('wordRoots');
     const jobType = formData.get('jobType') || 'manual';
+    const provider = formData.get('provider') || 'kaggle';
 
     const workflowService = getWorkflowService();
     const jobId = await workflowService.runWorkflow({
       wordRoots: wordRoots ? (wordRoots as string).split(',').map((s) => s.trim()) : undefined,
       jobType: jobType as any,
+      provider: provider as any,
     });
 
     revalidatePath('/admin/coloring');
@@ -210,6 +212,18 @@ export default async function AdminColoringWorkflowPage({
                     <SelectContent>
                       <SelectItem value="manual">{t('type.manual')}</SelectItem>
                       <SelectItem value="scheduled">{t('type.scheduled')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="provider">Provider</Label>
+                  <Select name="provider" defaultValue="kaggle">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="kaggle">Kaggle (Mock/Local)</SelectItem>
+                      <SelectItem value="replicate">Replicate (AI)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

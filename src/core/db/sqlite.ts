@@ -26,7 +26,7 @@ export function getSqliteDb() {
       url: databaseUrl,
       ...options,
     });
-    return drizzle({ client });
+    return drizzle(client);
   }
 
   // Singleton mode: reuse existing instance
@@ -37,7 +37,7 @@ export function getSqliteDb() {
       url: databaseUrl,
       ...options,
     });
-    sqliteDbInstance = drizzle({ client });
+    sqliteDbInstance = drizzle(client);
     return sqliteDbInstance;
   }
 
@@ -46,5 +46,5 @@ export function getSqliteDb() {
     url: databaseUrl,
     ...options,
   });
-  return drizzle({ client });
+  return drizzle(client);
 }

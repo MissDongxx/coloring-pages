@@ -74,6 +74,12 @@ const MAX_PROMPT_LENGTH = 2000;
 
 const MODEL_OPTIONS = [
   {
+    value: 'renderartist/coloring-book-z-image-turbo-lora',
+    label: 'Z-Library',
+    provider: 'replicate',
+    scenes: ['text-to-image'],
+  },
+  {
     value: 'google/nano-banana-pro',
     label: 'Nano Banana Pro',
     provider: 'replicate',
@@ -86,46 +92,16 @@ const MODEL_OPTIONS = [
     scenes: ['text-to-image', 'image-to-image'],
   },
   {
-    value: 'fal-ai/nano-banana-pro',
-    label: 'Nano Banana Pro',
-    provider: 'fal',
-    scenes: ['text-to-image'],
-  },
-  {
-    value: 'fal-ai/nano-banana-pro/edit',
-    label: 'Nano Banana Pro',
-    provider: 'fal',
-    scenes: ['image-to-image'],
-  },
-  {
-    value: 'fal-ai/bytedance/seedream/v4/edit',
-    label: 'Seedream 4',
-    provider: 'fal',
-    scenes: ['image-to-image'],
-  },
-  {
-    value: 'fal-ai/z-image/turbo',
-    label: 'Z-Image Turbo',
-    provider: 'fal',
-    scenes: ['text-to-image'],
-  },
-  {
-    value: 'fal-ai/flux-2-flex',
-    label: 'Flux 2 Flex',
-    provider: 'fal',
-    scenes: ['text-to-image'],
-  },
-  {
     value: 'gemini-3-pro-image-preview',
     label: 'Gemini 3 Pro Image Preview',
     provider: 'gemini',
     scenes: ['text-to-image', 'image-to-image'],
   },
   {
-    value: 'nano-banana-pro',
-    label: 'Nano Banana Pro',
-    provider: 'kie',
-    scenes: ['text-to-image', 'image-to-image'],
+    value: 'renderartist/coloring-book-z-image-turbo-lora',
+    label: 'Z-Library (Fal)',
+    provider: 'fal',
+    scenes: ['text-to-image'],
   },
 ];
 
@@ -141,10 +117,6 @@ const PROVIDER_OPTIONS = [
   {
     value: 'gemini',
     label: 'Gemini',
-  },
-  {
-    value: 'kie',
-    label: 'Kie',
   },
 ];
 
@@ -215,8 +187,8 @@ export function ImageGenerator({
     useState<ImageGeneratorTab>('text-to-image');
 
   const [costCredits, setCostCredits] = useState<number>(2);
-  const [provider, setProvider] = useState(PROVIDER_OPTIONS[0]?.value ?? '');
-  const [model, setModel] = useState(MODEL_OPTIONS[0]?.value ?? '');
+  const [provider, setProvider] = useState('replicate');
+  const [model, setModel] = useState('renderartist/coloring-book-z-image-turbo-lora');
   const [prompt, setPrompt] = useState('');
   const [referenceImageItems, setReferenceImageItems] = useState<
     ImageUploaderValue[]

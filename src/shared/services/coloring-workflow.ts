@@ -25,6 +25,7 @@ interface WorkflowOptions {
   wordRoots?: string[];
   jobType: ColoringJobType;
   userId?: string;
+  provider?: 'replicate' | 'kaggle';
 }
 
 /**
@@ -153,12 +154,13 @@ export class ColoringWorkflowService {
   }
 
   /**
-   * Step 2: Generate images using AI (simplified - skip Kaggle for now)
+   * Step 2: Generate images using AI
+   * Supports 'replicate' (via API) or 'kaggle' (currently local placeholder/mock)
    */
-  private async generateImages(jobId: string, keywords: any[]): Promise<string> {
+  private async generateImages(jobId: string, keywords: any[], provider: 'replicate' | 'kaggle' = 'kaggle'): Promise<string> {
     await this.ensureTempDir();
 
-    await this.log(jobId, 'info', `Step 2: Generating images for ${keywords.length} keywords...`);
+    await this.log(jobId, 'info', `Step 2: Generating images for ${keywords.length} keywords using ${provider}...`);
 
     const imagesDir = path.join(this.tempDir, jobId, 'images');
     await fs.mkdir(imagesDir, { recursive: true });
@@ -168,45 +170,146 @@ export class ColoringWorkflowService {
     let successCount = 0;
     let failCount = 0;
 
-    // For now, create placeholder images using sharp
-    // In production, this would use Replicate AI or similar service
-    for (const kw of keywords) {
-      const filename = `${kw.category}-${kw.keyword}.png`;
-      const imagePath = path.join(imagesDir, filename);
+    if (provider === 'replicate') {
+      // Replicate Implementation
+      const { getAIService } = await import('@/shared/services/ai');
+      const { AIMediaType, AITaskStatus } = await import('@/extensions/ai/types');
+      const aiService = await getAIService();
+      
+      // Get Replicate provider
+      const replicateProvider = aiService.getProvider('replicate');
+      if (!replicateProvider) {
+        const error = new Error('Replicate provider not configured. Please set REPLICATE_API_TOKEN in your environment variables.');
+        await this.log(jobId, 'error', error.message);
+        throw error;
+      }
+      
+      const MODEL = 'stability-ai/sdxl';
+      const LORA_URL = 'https://huggingface.co/renderartist/Coloring-Book-Z-Image-Turbo-LoRA/resolve/main/coloring-book-z-image-turbo.safetensors';
+      
+      for (const kw of keywords) {
+        const filename = `${kw.category}-${kw.keyword}.png`;
+        const imagePath = path.join(imagesDir, filename);
+        
+        try {
+          await this.log(jobId, 'info', `Generating image for "${kw.keyword}"...`);
+  
+          // Construct prompt optimized for this LoRA
+          // Avoid "book" to prevent literal book generation
+          const prompt = `black and white cartoon, ${kw.keyword}, simple, cute, thick lines, white background, no shading, clean lines, kids style <lora:coloring-book-z-image-turbo:0.7>`;
+          
+          // Call Replicate
+          const { taskId, taskStatus } = await replicateProvider.generate({
+            params: {
+              mediaType: AIMediaType.IMAGE,
+              model: MODEL,
+              prompt: prompt,
+              options: {
+                lora_weights: LORA_URL,
+                lora_scale: 0.7,
+                negative_prompt: "shading, gradient, color, complex, realistic, photo, grayscale, gray, background, watermark, text",
+                num_inference_steps: 30,
+                guidance_scale: 7.5,
+                width: 1024,
+                height: 1024,
+                scheduler: "K_EULER", 
+              }
+            }
+          });
+  
+          if (taskStatus === AITaskStatus.FAILED) {
+               throw new Error('Task failed immediately');
+          }
+  
+          // Poll for completion
+          if (!replicateProvider.query) {
+               throw new Error('Provider does not support querying task status');
+          }
+  
+          let resultUrl = '';
+          let attempts = 0;
+          const maxAttempts = 60; // 2 minutes (2s interval)
+          
+          while (attempts < maxAttempts) {
+            await new Promise(r => setTimeout(r, 2000));
+            const result = await replicateProvider.query({ taskId, mediaType: AIMediaType.IMAGE });
+            
+            if (result.taskStatus === AITaskStatus.SUCCESS) {
+               const images = result.taskInfo?.images;
+               if (images && images.length > 0 && images[0].imageUrl) {
+                 resultUrl = images[0].imageUrl;
+               }
+               break;
+            } else if (result.taskStatus === AITaskStatus.FAILED || result.taskStatus === AITaskStatus.CANCELED) {
+               throw new Error(`Generation failed: ${result.taskInfo?.errorMessage || 'Unknown error'}`);
+            }
+            attempts++;
+          }
+  
+          if (!resultUrl) {
+             throw new Error('Timeout or no image URL returned');
+          }
+  
+          // Download and save image
+          await this.log(jobId, 'info', `Downloading image from ${resultUrl}...`);
+          const response = await fetch(resultUrl);
+          if (!response.ok) throw new Error(`Failed to download image: ${response.statusText}`);
+          
+          const arrayBuffer = await response.arrayBuffer();
+          const buffer = Buffer.from(arrayBuffer);
+          
+          await fs.writeFile(imagePath, buffer);
+          
+          await this.log(jobId, 'info', `Image saved: ${filename}`);
+          successCount++;
+          
+        } catch (error) {
+          await this.log(jobId, 'error', `Failed to generate ${kw.keyword}`, { error: error instanceof Error ? error.message : String(error) });
+          failCount++;
+        }
+      }
 
-      // Create a simple 512x512 coloring page placeholder (black outlines on white background)
-      // Design: A simple flower/butterfly shape with thick black outlines
-      const svgImage = `
-        <svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
-          <rect width="512" height="512" fill="white"/>
-          <!-- Simple coloring page design - flower or butterfly outline -->
-          <circle cx="256" cy="256" r="80" fill="none" stroke="black" stroke-width="4"/>
-          <circle cx="256" cy="256" r="40" fill="none" stroke="black" stroke-width="3"/>
-          <circle cx="256" cy="256" r="10" fill="black"/>
-          <!-- Petals/wings -->
-          <ellipse cx="176" cy="256" rx="60" ry="30" fill="none" stroke="black" stroke-width="3"/>
-          <ellipse cx="336" cy="256" rx="60" ry="30" fill="none" stroke="black" stroke-width="3"/>
-          <ellipse cx="256" cy="176" rx="30" ry="60" fill="none" stroke="black" stroke-width="3"/>
-          <ellipse cx="256" cy="336" rx="30" ry="60" fill="none" stroke="black" stroke-width="3"/>
-          <text x="50%" y="480" font-family="Arial" font-size="16" fill="black" text-anchor="middle">
-            ${kw.keyword}
-          </text>
-        </svg>
-      `;
-
-      try {
-        const sharpModule = await import('sharp');
-        const sharp = sharpModule.default || sharpModule;
-        const buffer = Buffer.from(svgImage);
-        await sharp(buffer)
-          .resize(512, 512)
-          .png()
-          .toFile(imagePath);
-        await this.log(jobId, 'info', `Created placeholder: ${filename}`);
-        successCount++;
-      } catch (error) {
-        await this.log(jobId, 'error', `Failed to create ${filename}`, { error: error instanceof Error ? error.message : String(error) });
-        failCount++;
+    } else {
+      // Kaggle / Mock Implementation (Restored)
+      // This is the "old" process (placeholder/mock)
+      for (const kw of keywords) {
+        const filename = `${kw.category}-${kw.keyword}.png`;
+        const imagePath = path.join(imagesDir, filename);
+  
+        // Create a simple 512x512 coloring page placeholder (black outlines on white background)
+        // Design: A simple flower/butterfly shape with thick black outlines
+        const svgImage = `
+          <svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+            <rect width="512" height="512" fill="white"/>
+            <!-- Simple coloring page design - flower or butterfly outline -->
+            <circle cx="256" cy="256" r="80" fill="none" stroke="black" stroke-width="4"/>
+            <circle cx="256" cy="256" r="40" fill="none" stroke="black" stroke-width="3"/>
+            <circle cx="256" cy="256" r="10" fill="black"/>
+            <!-- Petals/wings -->
+            <ellipse cx="176" cy="256" rx="60" ry="30" fill="none" stroke="black" stroke-width="3"/>
+            <ellipse cx="336" cy="256" rx="60" ry="30" fill="none" stroke="black" stroke-width="3"/>
+            <ellipse cx="256" cy="176" rx="30" ry="60" fill="none" stroke="black" stroke-width="3"/>
+            <ellipse cx="256" cy="336" rx="30" ry="60" fill="none" stroke="black" stroke-width="3"/>
+            <text x="50%" y="480" font-family="Arial" font-size="16" fill="black" text-anchor="middle">
+              ${kw.keyword}
+            </text>
+          </svg>
+        `;
+  
+        try {
+          const sharpModule = await import('sharp');
+          const sharp = sharpModule.default || sharpModule;
+          const buffer = Buffer.from(svgImage);
+          await sharp(buffer)
+            .resize(512, 512)
+            .png()
+            .toFile(imagePath);
+          await this.log(jobId, 'info', `Created placeholder: ${filename}`);
+          successCount++;
+        } catch (error) {
+          await this.log(jobId, 'error', `Failed to create ${filename}`, { error: error instanceof Error ? error.message : String(error) });
+          failCount++;
+        }
       }
     }
 
@@ -580,8 +683,8 @@ Print and color this beautiful ${keyword} design. Perfect for kids of all ages t
       const keywordsData = JSON.parse(job?.keywordsData || '{"keywords":[]}');
       const keywords = keywordsData.keywords || [];
 
-      // Step 2: Generate placeholder images (Kaggle integration skipped for now)
-      imagesDir = await this.generateImages(jobId, keywords);
+      // Step 2: Generate images
+      imagesDir = await this.generateImages(jobId, keywords, options.provider);
 
       // Step 3: Check image quality
       const qualityResult = await this.checkImageQuality(jobId, imagesDir);

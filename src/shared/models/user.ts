@@ -88,12 +88,18 @@ export async function getUserCredits(userId: string) {
 }
 
 export async function getSignUser() {
-  const auth = await getAuth();
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  try {
+    const auth = await getAuth();
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
 
-  return session?.user;
+    return session?.user;
+  } catch (error) {
+    // Gracefully handle session errors (e.g., malformed cookies, invalid sessions)
+    // Return null to allow the page to render normally
+    return null;
+  }
 }
 
 export async function isEmailVerified(email: string): Promise<boolean> {

@@ -60,15 +60,21 @@ export class FalProvider implements AIProvider {
       throw new Error('prompt is required');
     }
 
+    // Map custom model IDs to actual Fal endpoints
+    let actualModel = model;
+    if (model === 'renderartist/coloring-book-z-image-turbo-lora') {
+      actualModel = 'fal-ai/lams/z-image-turbo';
+    }
+
     // build request params
     const input = this.formatInput({
       mediaType,
-      model,
+      model, // Pass original model ID for formatting logic
       prompt,
       options,
     });
 
-    let apiUrl = `${this.baseUrl}/${model}`;
+    let apiUrl = `${this.baseUrl}/${actualModel}`;
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       Authorization: `Key ${this.configs.apiKey}`,
@@ -323,6 +329,25 @@ export class FalProvider implements AIProvider {
     let input: any = {
       prompt,
     };
+
+    // Specific handling for Color Book Z LoRA
+    if (model === 'renderartist/coloring-book-z-image-turbo-lora') {
+       input.prompt = `black and white cartoon, ${prompt}, simple, cute, thick lines, white background, no shading, clean lines, kids style`;
+       input.loras = [
+          {
+            path: 'https://huggingface.co/renderartist/Coloring-Book-Z-Image-Turbo-LoRA/resolve/main/coloring-book-z-image-turbo.safetensors',
+            scale: 0.7
+          }
+       ];
+       input.num_inference_steps = 8;
+       input.guidance_scale = 1.5;
+       input.seed = Math.floor(Math.random() * 1000000);
+       
+       if (options) {
+        // Merge allowed options
+       }
+       return input;
+    }
 
     if (!options) {
       return input;

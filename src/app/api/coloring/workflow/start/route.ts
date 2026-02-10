@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
       wordRoots,
       jobType: ColoringJobType.MANUAL,
       userId: userId || 'system',
+      provider: body.provider,
     });
 
     return NextResponse.json({

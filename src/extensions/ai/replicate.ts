@@ -83,7 +83,7 @@ export class ReplicateProvider implements AIProvider {
     console.log('replicate input', input);
 
     const output = await this.client.predictions.create({
-      model,
+      model: model === 'renderartist/coloring-book-z-image-turbo-lora' ? 'lucataco/z-image-turbo' : model,
       input,
       webhook: isValidCallbackUrl ? callbackUrl : undefined,
       webhook_events_filter: isValidCallbackUrl ? ['completed'] : undefined,
@@ -260,6 +260,25 @@ export class ReplicateProvider implements AIProvider {
     let input: any = {
       prompt,
     };
+
+    // Specific handling for Color Book Z LoRA
+    if (model === 'renderartist/coloring-book-z-image-turbo-lora') {
+       input.prompt = `black and white cartoon, ${prompt}, simple, cute, thick lines, white background, no shading, clean lines, kids style`;
+       input.lora = 'https://huggingface.co/renderartist/Coloring-Book-Z-Image-Turbo-LoRA/resolve/main/coloring-book-z-image-turbo.safetensors';
+       input.lora_scale = 0.7;
+       input.negative_prompt = "shading, gradient, color, complex, realistic, photo, grayscale, gray, background, watermark, text";
+       input.num_inference_steps = 8;
+       input.guidance_scale = 1.5;
+       input.seed = Math.floor(Math.random() * 1000000);
+       // Z-Image Turbo doesn't need scheduler or width/height if default is fine, 
+       // but we set standard 1024x1024 if supported.
+       // Note: lucataco/z-image-turbo typically supports 'lora' input for external LoRAs.
+       
+       if (options) {
+        // Merge allowed options
+       }
+       return input;
+    }
 
     if (!options) {
       return input;

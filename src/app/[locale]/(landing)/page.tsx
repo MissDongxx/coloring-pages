@@ -1,8 +1,10 @@
 import { setRequestLocale } from 'next-intl/server';
 import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
 import { CategoryGrid } from '@/features/coloring/components/category-grid';
 import { PopularGrid } from '@/features/coloring/components/popular-grid';
 import { getAllCategories, getPopularPages } from '@/features/coloring/lib/data';
+import { ImageGenerator } from '@/shared/blocks/generator';
 
 export const revalidate = 3600;
 
@@ -31,8 +33,12 @@ export default async function LandingPage({
     preview: cat.preview,
   }));
 
+  const t = await getTranslations('ai.image');
+
   return (
     <div className="container mx-auto px-4 pt-16 pb-8 md:pt-32 md:pb-8 max-w-6xl">
+
+
       {/* H1 - SEO优化标题 */}
       <h1 className="text-3xl md:text-4xl font-bold text-center mb-4">
         Free Printable Coloring Pages for Kids
@@ -42,10 +48,15 @@ export default async function LandingPage({
       </p>
 
       {/* 简短介绍 - SEO转化钩子 */}
-      <p className="text-center text-muted-foreground max-w-2xl mx-auto mb-24">
+      <p className="text-center text-muted-foreground max-w-2xl mx-auto mb-12">
         Download hundreds of free printable coloring pages in high-quality PDF format.
         Perfect for kids, parents, and teachers. No registration required.
       </p>
+
+      {/* Image Generator */}
+      <section className="mb-24">
+        <ImageGenerator srOnlyTitle="AI Coloring Page Generator" />
+      </section>
 
       {/* 分类入口 - 只显示前8个 */}
       <section className="py-12 mb-16">

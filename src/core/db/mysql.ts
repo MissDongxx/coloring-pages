@@ -40,7 +40,7 @@ export function getMysqlDb() {
       waitForConnections: true,
     });
 
-    return drizzle({ client });
+    return drizzle(client);
   }
 
   // Singleton mode: reuse existing connection (good for traditional servers and serverless warm starts)
@@ -58,7 +58,7 @@ export function getMysqlDb() {
       waitForConnections: true,
     });
 
-    dbInstance = drizzle({ client: pool });
+    dbInstance = drizzle(pool);
     return dbInstance;
   }
 
