@@ -36,37 +36,37 @@ export function Hero({
         <Link
           href={section.announcement.url || ''}
           target={section.announcement.target || '_self'}
-          className="hover:bg-background dark:hover:border-t-border bg-muted group mx-auto mb-8 flex w-fit items-center gap-4 rounded-full border p-1 pl-4 shadow-md shadow-zinc-950/5 transition-colors duration-300 dark:border-t-white/5 dark:shadow-zinc-950"
+          className="bg-accent text-accent-foreground group mx-auto mb-8 flex w-fit items-center gap-2 rounded-full px-4 py-1.5 shadow-sm transition-colors duration-300 hover:opacity-90"
         >
-          <span className="text-foreground text-sm">
+          <span className="flex size-4 items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-sparkles size-4"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" /><path d="M20 3v4" /><path d="M22 5h-4" /><path d="M4 17v2" /><path d="M5 18H3" /></svg>
+          </span>
+          <span className="text-sm font-medium">
             {section.announcement.title}
           </span>
-          <span className="dark:border-background block h-4 w-0.5 border-l bg-white dark:bg-zinc-700"></span>
-
-          <div className="bg-background group-hover:bg-muted size-6 overflow-hidden rounded-full duration-500">
-            <div className="flex w-12 -translate-x-1/2 duration-500 ease-in-out group-hover:translate-x-0">
-              <span className="flex size-6">
-                <ArrowRight className="m-auto size-3" />
-              </span>
-              <span className="flex size-6">
-                <ArrowRight className="m-auto size-3" />
-              </span>
-            </div>
-          </div>
         </Link>
       )}
 
-      <div className="relative mx-auto max-w-full px-4 text-center md:max-w-5xl">
+      {/* Decorative Pastel Circles */}
+      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute top-[10%] left-[15%] size-16 rounded-full bg-[#f6d7d4] blur-sm mix-blend-multiply opacity-80" />
+        <div className="absolute top-[40%] left-[5%] size-20 rounded-full bg-[#e1f0ec] blur-[2px] opacity-80" />
+        <div className="absolute top-[20%] right-[15%] size-24 rounded-full bg-[#e1f0ec] blur-[2px] opacity-80" />
+        <div className="absolute bottom-[20%] right-[10%] size-28 rounded-full bg-[#fae8df] blur-[2px] mix-blend-multiply opacity-80" />
+        <div className="absolute bottom-[20%] left-[20%] size-12 rounded-full bg-[#fcf0cd] blur-sm opacity-90" />
+      </div>
+
+      <div className="relative mx-auto max-w-full px-4 text-center md:max-w-5xl z-10">
         {texts && texts.length > 0 ? (
-          <h1 className="text-foreground text-4xl font-semibold text-balance sm:mt-12 sm:text-6xl">
+          <h1 className="text-foreground text-4xl font-bold text-balance sm:mt-12 sm:text-6xl tracking-tight leading-tight">
             {texts[0]}
-            <Highlighter action="underline" color="#FF9800">
-              {highlightText}
+            <Highlighter action="underline" color="#F9E58A">
+              <span className="text-primary">{highlightText}</span>
             </Highlighter>
             {texts[1]}
           </h1>
         ) : (
-          <h1 className="text-foreground text-4xl font-semibold text-balance sm:mt-12 sm:text-6xl">
+          <h1 className="text-foreground text-4xl font-bold text-balance sm:mt-12 sm:text-6xl tracking-tight leading-tight">
             {section.title}
           </h1>
         )}
@@ -77,18 +77,23 @@ export function Hero({
         />
 
         {section.buttons && (
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex items-center justify-center gap-6 mt-10">
             {section.buttons.map((button, idx) => (
               <Button
                 asChild
-                size={button.size || 'default'}
-                variant={button.variant || 'default'}
-                className="px-4 text-sm"
+                size="lg"
+                variant={idx === 0 ? 'default' : 'outline'}
+                className={cn(
+                  "px-8 py-6 text-base rounded-full shadow-sm gap-2",
+                  idx === 0
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                    : "bg-transparent text-secondary border-secondary/50 border-2 hover:bg-secondary/10"
+                )}
                 key={idx}
               >
                 <Link href={button.url ?? ''} target={button.target ?? '_self'}>
-                  {button.icon && <SmartIcon name={button.icon as string} />}
-                  <span>{button.title}</span>
+                  {button.icon && <SmartIcon name={button.icon as string} className="size-5" />}
+                  <span className="font-semibold">{button.title}</span>
                 </Link>
               </Button>
             ))}

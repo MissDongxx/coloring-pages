@@ -67,9 +67,11 @@ export function SocialProviders({
         onResponse: (ctx) => {
           // Do NOT reset loading here; navigation may not have completed yet.
         },
-        onSuccess: (ctx) => {
+        onSuccess: (_ctx) => {
           // Close modal if any; navigation will proceed.
           setIsShowSignModal(false);
+          // Refresh the page to update session state
+          router.refresh();
         },
         onError: (e: any) => {
           toast.error(e?.error?.message || 'sign in failed');

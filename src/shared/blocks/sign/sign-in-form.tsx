@@ -78,14 +78,15 @@ export function SignInForm({
           callbackURL: callbackUrl,
         },
         {
-          onRequest: (ctx) => {
+          onRequest: (_ctx) => {
             // loading is already set above; keep as no-op for safety
           },
-          onResponse: (ctx) => {
+          onResponse: (_ctx) => {
             // Do NOT reset loading here; navigation may not have completed yet.
           },
-          onSuccess: (ctx) => {
-            // Keep loading=true until navigation completes.
+          onSuccess: (_ctx) => {
+            // Refresh the page to update session state
+            router.refresh();
           },
           onError: (e: any) => {
             const status = e?.error?.status;

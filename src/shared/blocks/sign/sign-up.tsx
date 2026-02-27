@@ -109,13 +109,13 @@ export function SignUp({
           name,
         },
         {
-          onRequest: (ctx) => {
+          onRequest: (_ctx) => {
             // loading is already set above; keep as no-op for safety
           },
-          onResponse: (ctx) => {
+          onResponse: (_ctx) => {
             // Do NOT reset loading here; navigation may not have completed yet.
           },
-          onSuccess: (ctx) => {
+          onSuccess: (_ctx) => {
             // report affiliate
             reportAffiliate({ userEmail: email });
 
@@ -141,6 +141,8 @@ export function SignUp({
             }
 
             router.push(callbackUrl);
+            // Refresh the page to update session state
+            router.refresh();
           },
           onError: (e: any) => {
             toast.error(e?.error?.message || 'sign up failed');

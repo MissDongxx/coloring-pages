@@ -37,7 +37,7 @@ export function ColoringCard({
               unoptimized={unoptimized}
               alt={altText}
               fill
-              className="object-contain group-hover:scale-105 transition-transform duration-300"
+              className="object-contain group-hover:scale-105 transition-transform duration-500"
               loading="lazy"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />

@@ -228,35 +228,10 @@ export function ImageGenerator({
   const promptLength = prompt.trim().length;
   const remainingCredits = user?.credits?.remainingCredits ?? 0;
   const isPromptTooLong = promptLength > MAX_PROMPT_LENGTH;
-  const isTextToImageMode = activeTab === 'text-to-image';
+  const isTextToImageMode = referenceImageUrls.length === 0;
 
-  const handleTabChange = (value: string) => {
-    const tab = value as ImageGeneratorTab;
-    setActiveTab(tab);
-
-    setProvider('siliconflow');
-    setModel('Tongyi-MAI/Z-Image-Turbo');
-
-    if (tab === 'text-to-image') {
-      setCostCredits(2);
-    } else {
-      setCostCredits(4);
-    }
-  };
-
-  const handleProviderChange = (value: string) => {
-    setProvider(value);
-
-    const availableModels = MODEL_OPTIONS.filter(
-      (option) => option.scenes.includes(activeTab) && option.provider === value
-    );
-
-    if (availableModels.length > 0) {
-      setModel(availableModels[0].value);
-    } else {
-      setModel('');
-    }
-  };
+  // We determine cost based on whether it is text-to-image or image-to-image
+  const currentCostCredits = isTextToImageMode ? 2 : 4;
 
   const taskStatusLabel = useMemo(() => {
     if (!taskStatus) {
@@ -623,20 +598,21 @@ export function ImageGenerator({
       <div className="container">
         <div className="mx-auto max-w-6xl">
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-            <Card>
+            <Card className="rounded-3xl border-2 border-border/60 bg-white shadow-sm sm:p-2">
               <CardHeader>
                 {srOnlyTitle && <h2 className="sr-only">{srOnlyTitle}</h2>}
-                <CardTitle className="flex items-center gap-2 text-xl font-semibold">
+                <CardTitle className="flex items-center gap-2 text-base font-semibold text-foreground/80">
+                  <span className="text-primary"><Sparkles className="size-5" /></span>
                   {t('title')}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6 pb-8">
+              <CardContent className="space-y-6 pb-6">
                 <Tabs value={activeTab} onValueChange={handleTabChange}>
-                  <TabsList className="bg-primary/10 grid w-full grid-cols-2">
-                    <TabsTrigger value="text-to-image">
+                  <TabsList className="bg-muted/60 p-1 rounded-full grid w-full grid-cols-2">
+                    <TabsTrigger value="text-to-image" className="rounded-full data-[state=active]:shadow-sm">
                       {t('tabs.text-to-image')}
                     </TabsTrigger>
-                    <TabsTrigger value="image-to-image">
+                    <TabsTrigger value="image-to-image" className="rounded-full data-[state=active]:shadow-sm">
                       {t('tabs.image-to-image')}
                     </TabsTrigger>
                   </TabsList>
@@ -670,7 +646,7 @@ export function ImageGenerator({
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     placeholder={t('form.prompt_placeholder')}
-                    className="min-h-32"
+                    className="min-h-32 rounded-2xl bg-muted/50 border-border p-4 shadow-inner focus-visible:ring-primary/20 resize-none text-base"
                   />
                   <div className="text-muted-foreground flex items-center justify-between text-xs">
                     <span>
@@ -685,19 +661,19 @@ export function ImageGenerator({
                 </div>
 
                 {!isMounted ? (
-                  <Button className="w-full" disabled size="lg">
+                  <Button className="w-full rounded-full py-6 text-lg font-medium shadow-md shadow-primary/20" disabled size="lg">
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     {t('loading')}
                   </Button>
                 ) : isCheckSign ? (
-                  <Button className="w-full" disabled size="lg">
+                  <Button className="w-full rounded-full py-6 text-lg font-medium shadow-md shadow-primary/20" disabled size="lg">
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     {t('checking_account')}
                   </Button>
                 ) : user ? (
                   <Button
                     size="lg"
-                    className="w-full"
+                    className="w-full rounded-full py-6 text-lg font-medium shadow-md shadow-primary/20 hover:shadow-lg transition-all"
                     onClick={handleGenerate}
                     disabled={
                       isGenerating ||
@@ -722,7 +698,7 @@ export function ImageGenerator({
                 ) : (
                   <Button
                     size="lg"
-                    className="w-full"
+                    className="w-full rounded-full py-6 text-lg font-medium shadow-md shadow-primary/20 hover:shadow-lg transition-all"
                     onClick={() => setIsShowSignModal(true)}
                   >
                     <User className="mr-2 h-4 w-4" />
@@ -782,14 +758,14 @@ export function ImageGenerator({
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="rounded-3xl border-2 border-border/60 bg-white shadow-sm sm:p-2">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-xl font-semibold">
-                  <ImageIcon className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 text-base font-semibold text-foreground/80">
+                  <span className="text-secondary"><ImageIcon className="h-5 w-5" /></span>
                   {t('generated_images')}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pb-8">
+              <CardContent className="pb-6 h-full flex flex-col">
                 {generatedImages.length > 0 ? (
                   <div
                     className={
@@ -867,11 +843,11 @@ export function ImageGenerator({
                     ))}
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-16 text-center">
-                    <div className="bg-muted mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-                      <ImageIcon className="text-muted-foreground h-10 w-10" />
+                  <div className="flex flex-col items-center justify-center py-24 text-center rounded-3xl border-2 border-dashed border-border/80 bg-muted/30 flex-1 min-h-[400px]">
+                    <div className="text-border mb-4">
+                      <Sparkles className="h-10 w-10 mx-auto opacity-70" />
                     </div>
-                    <p className="text-muted-foreground">
+                    <p className="text-muted-foreground text-sm font-medium px-8">
                       {isGenerating
                         ? t('ready_to_generate')
                         : t('no_images_generated')}
