@@ -336,6 +336,26 @@ export async function grantCreditsForNewUser(user: User) {
     return;
   }
 
+  // anti-abuse: check if this email has ever received initial credits before
+  // this prevents users from deleting their account and re-registering to get free credits again
+  const [existingCredit] = await db()
+    .select()
+    .from(credit)
+    .where(
+      and(
+        eq(credit.userEmail, user.email),
+        eq(credit.transactionType, CreditTransactionType.GRANT),
+        eq(credit.transactionScene, CreditTransactionScene.GIFT)
+      )
+    )
+    .limit(1);
+
+  if (existingCredit) {
+    // this email has already received initial credits before, skip
+    console.log(`Email ${user.email} has already received initial credits before, skipping.`);
+    return;
+  }
+
   const creditsValidDays =
     parseInt(configs.initial_credits_valid_days as string) || 0;
 

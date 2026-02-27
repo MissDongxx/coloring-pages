@@ -1,3 +1,5 @@
+import { AIMediaType, AITaskStatus } from '@/extensions/ai';
+import { createColoringPageFromGenerated } from '@/shared/lib/coloring-helper';
 import { respData, respErr } from '@/shared/lib/resp';
 import {
   findAITaskById,
@@ -6,6 +8,37 @@ import {
 } from '@/shared/models/ai_task';
 import { getUserInfo } from '@/shared/models/user';
 import { getAIService } from '@/shared/services/ai';
+
+/**
+ * Extract image URLs from task info
+ */
+function extractImageUrlsFromTaskInfo(taskInfoStr: string | null): string[] {
+  if (!taskInfoStr) return [];
+  try {
+    const taskInfo = JSON.parse(taskInfoStr);
+    const images = taskInfo.images ?? taskInfo.output ?? taskInfo.data;
+    if (!images) return [];
+    if (typeof images === 'string') return [images];
+    if (Array.isArray(images)) {
+      return images
+        .map((item: any) => {
+          if (typeof item === 'string') return item;
+          if (typeof item === 'object') {
+            return item.url ?? item.uri ?? item.image ?? item.src ?? item.imageUrl;
+          }
+          return null;
+        })
+        .filter(Boolean) as string[];
+    }
+    if (typeof images === 'object') {
+      const url = images.url ?? images.uri ?? images.image ?? images.src ?? images.imageUrl;
+      return url ? [url] : [];
+    }
+    return [];
+  } catch {
+    return [];
+  }
+}
 
 export async function POST(req: Request) {
   try {
@@ -71,7 +104,45 @@ export async function POST(req: Request) {
     task.taskInfo = updateAITask.taskInfo ?? task.taskInfo ?? null;
     task.taskResult = updateAITask.taskResult ?? task.taskResult ?? null;
 
-    return respData(task);
+    // ── Feature 1 & 4: Upload to R2 + Create coloring page for async providers ──
+    // When task completes successfully, upload image to R2 and create coloring page
+    let coloringPageData = null;
+    if (
+      result.taskStatus === AITaskStatus.SUCCESS &&
+      task.mediaType === 'image' &&
+      task.scene === 'text-to-image' &&
+      task.prompt
+    ) {
+      const taskInfoStr = updateAITask.taskInfo ?? task.taskInfo;
+      const imageUrls = extractImageUrlsFromTaskInfo(taskInfoStr);
+
+      if (imageUrls.length > 0) {
+        try {
+          const pageResult = await createColoringPageFromGenerated({
+            userId: task.userId,
+            prompt: task.prompt,
+            imageUrl: imageUrls[0],
+          });
+          if (pageResult.success && pageResult.coloringPage) {
+            coloringPageData = {
+              id: pageResult.coloringPage.id,
+              slug: pageResult.coloringPage.slug,
+              title: pageResult.coloringPage.title,
+              category: pageResult.coloringPage.category,
+              imageUrl: pageResult.coloringPage.imageUrl,
+            };
+          }
+        } catch (e) {
+          // Non-blocking
+          console.error('[query] Failed to create coloring page:', e);
+        }
+      }
+    }
+
+    return respData({
+      ...task,
+      coloringPage: coloringPageData,
+    });
   } catch (e: any) {
     console.log('ai query failed', e);
     return respErr(e.message);

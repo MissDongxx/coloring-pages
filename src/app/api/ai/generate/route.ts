@@ -1,11 +1,46 @@
 import { envConfigs } from '@/config';
 import { AIMediaType, AITaskStatus } from '@/extensions/ai';
 import { getUuid } from '@/shared/lib/hash';
+import {
+  checkPromptCache,
+  createColoringPageFromGenerated,
+} from '@/shared/lib/coloring-helper';
 import { respData, respErr } from '@/shared/lib/resp';
 import { createAITask, NewAITask } from '@/shared/models/ai_task';
 import { getRemainingCredits } from '@/shared/models/credit';
 import { getUserInfo } from '@/shared/models/user';
 import { getAIService } from '@/shared/services/ai';
+
+/**
+ * Extract image URLs from task info for R2 upload
+ */
+function extractImageUrlsFromTaskInfo(taskInfo: any): string[] {
+  if (!taskInfo) return [];
+
+  const images = taskInfo.images ?? taskInfo.output ?? taskInfo.data;
+  if (!images) return [];
+
+  if (typeof images === 'string') return [images];
+
+  if (Array.isArray(images)) {
+    return images
+      .map((item: any) => {
+        if (typeof item === 'string') return item;
+        if (typeof item === 'object') {
+          return item.url ?? item.uri ?? item.image ?? item.src ?? item.imageUrl;
+        }
+        return null;
+      })
+      .filter(Boolean) as string[];
+  }
+
+  if (typeof images === 'object') {
+    const url = images.url ?? images.uri ?? images.image ?? images.src ?? images.imageUrl;
+    return url ? [url] : [];
+  }
+
+  return [];
+}
 
 export async function POST(request: Request) {
   try {
@@ -20,6 +55,40 @@ export async function POST(request: Request) {
       throw new Error('prompt or options is required');
     }
 
+    // Auth check FIRST — reject unauthenticated users immediately
+    const user = await getUserInfo();
+    if (!user) {
+      throw new Error('no auth, please sign in');
+    }
+
+    // ── Feature 2: Prompt Cache Check ──
+    // For text-to-image, check if same prompt already has a cached result
+    if (
+      mediaType === AIMediaType.IMAGE &&
+      scene === 'text-to-image' &&
+      prompt
+    ) {
+      const cachedPage = await checkPromptCache(prompt);
+      if (cachedPage) {
+        // Return cached result — no credits consumed
+        return respData({
+          id: `cache-${cachedPage.id}`,
+          status: AITaskStatus.SUCCESS,
+          cached: true,
+          coloringPage: {
+            id: cachedPage.id,
+            slug: cachedPage.slug,
+            title: cachedPage.title,
+            category: cachedPage.category,
+            imageUrl: cachedPage.imageUrl,
+          },
+          taskInfo: JSON.stringify({
+            images: [{ imageUrl: cachedPage.imageUrl }],
+          }),
+        });
+      }
+    }
+
     const aiService = await getAIService();
 
     // check generate type
@@ -31,12 +100,6 @@ export async function POST(request: Request) {
     const aiProvider = aiService.getProvider(provider);
     if (!aiProvider) {
       throw new Error('invalid provider');
-    }
-
-    // get current user
-    const user = await getUserInfo();
-    if (!user) {
-      throw new Error('no auth, please sign in');
     }
 
     // todo: get cost credits from settings
@@ -129,7 +192,43 @@ export async function POST(request: Request) {
     };
     await createAITask(newAITask);
 
-    return respData(newAITask);
+    // ── Feature 1 & 4: Upload to R2 + Auto-categorize (for sync providers) ──
+    // If generation succeeded immediately (sync provider), upload to R2 and create coloring page
+    let coloringPageData = null;
+    if (
+      result.taskStatus === AITaskStatus.SUCCESS &&
+      mediaType === AIMediaType.IMAGE &&
+      scene === 'text-to-image' &&
+      prompt
+    ) {
+      const imageUrls = extractImageUrlsFromTaskInfo(result.taskInfo);
+      if (imageUrls.length > 0) {
+        try {
+          const pageResult = await createColoringPageFromGenerated({
+            userId: user.id,
+            prompt,
+            imageUrl: imageUrls[0],
+          });
+          if (pageResult.success && pageResult.coloringPage) {
+            coloringPageData = {
+              id: pageResult.coloringPage.id,
+              slug: pageResult.coloringPage.slug,
+              title: pageResult.coloringPage.title,
+              category: pageResult.coloringPage.category,
+              imageUrl: pageResult.coloringPage.imageUrl,
+            };
+          }
+        } catch (e) {
+          // Non-blocking: log but don't fail the generation
+          console.error('[generate] Failed to create coloring page:', e);
+        }
+      }
+    }
+
+    return respData({
+      ...newAITask,
+      coloringPage: coloringPageData,
+    });
   } catch (e: any) {
     console.log('generate failed', e);
     return respErr(e.message);

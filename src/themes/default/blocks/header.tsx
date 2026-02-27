@@ -94,11 +94,10 @@ export function Header({ header }: { header: HeaderType }) {
                   <Link
                     href={item.url || ''}
                     target={item.target || '_self'}
-                    className={`flex flex-row items-center gap-2 px-4 py-1.5 text-sm ${
-                      item.is_active || pathname.endsWith(item.url as string)
-                        ? 'bg-muted/40 text-muted-foreground'
-                        : ''
-                    }`}
+                    className={`flex flex-row items-center gap-2 px-4 py-1.5 text-sm ${item.is_active || pathname.endsWith(item.url as string)
+                      ? 'bg-muted/40 text-muted-foreground'
+                      : ''
+                      }`}
                   >
                     {item.icon && <SmartIcon name={item.icon as string} />}
                     {item.title}
@@ -253,10 +252,10 @@ export function Header({ header }: { header: HeaderType }) {
       >
         <div
           className={cn(
-            'absolute inset-x-0 top-0 z-50 h-18 border-transparent ring-1 ring-transparent transition-all duration-300',
+            'absolute inset-x-0 top-0 z-50 h-18 border-transparent ring-1 ring-transparent transition-all duration-300 max-lg:-top-1',
             'in-data-scrolled:border-foreground/5 in-data-scrolled:bg-background/75 in-data-scrolled:border-b in-data-scrolled:backdrop-blur',
             'has-data-[state=open]:ring-foreground/5 has-data-[state=open]:bg-card/75 has-data-[state=open]:h-[calc(var(--navigation-menu-viewport-height)+3.4rem)] has-data-[state=open]:border-b has-data-[state=open]:shadow-lg has-data-[state=open]:shadow-black/10 has-data-[state=open]:backdrop-blur',
-            'max-lg:in-data-[state=active]:bg-background/75 max-lg:h-14 max-lg:overflow-hidden max-lg:border-b max-lg:in-data-[state=active]:h-screen max-lg:in-data-[state=active]:backdrop-blur'
+            'max-lg:in-data-[state=active]:bg-background/75 max-lg:h-12 max-lg:overflow-hidden max-lg:border-b max-lg:in-data-[state=active]:h-screen max-lg:in-data-[state=active]:backdrop-blur'
           )}
         >
           <div className="container">

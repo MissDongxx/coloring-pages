@@ -49,6 +49,10 @@ export class SiliconflowProvider implements AIProvider {
     }
 
     // As SiliconFlow is typically synchronous for images, we just call the API directly and return success if it works.
+    // Retry up to 2 times for transient 500 errors.
+    const MAX_RETRIES = 2;
+    const RETRY_DELAY_MS = 2000;
+
     try {
       const requestBody = {
         model,
@@ -61,23 +65,47 @@ export class SiliconflowProvider implements AIProvider {
       console.log('Siliconflow request:', JSON.stringify(requestBody));
       console.log('Siliconflow API Key (masked):', this.configs.apiKey ? `${this.configs.apiKey.substring(0, 6)}...${this.configs.apiKey.substring(this.configs.apiKey.length - 4)}` : 'NOT SET');
 
-      const response = await fetch('https://api.siliconflow.com/v1/images/generations', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.configs.apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestBody)
-      });
+      let response: Response | null = null;
+      let lastError = '';
 
-      if (!response.ok) {
+      for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+        if (attempt > 0) {
+          console.log(`Siliconflow retry attempt ${attempt}/${MAX_RETRIES} after ${RETRY_DELAY_MS}ms...`);
+          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
+        }
+
+        response = await fetch('https://api.siliconflow.com/v1/images/generations', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${this.configs.apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestBody)
+        });
+
+        if (response.ok) {
+          break; // Success
+        }
+
+        // Parse error
         let errorMsg = response.statusText;
         try {
           const body = await response.json();
           errorMsg = body.error?.message || body.error || body.message || errorMsg;
         } catch (e) { }
-        console.error(`Siliconflow API error: ${response.status} ${errorMsg}`);
-        throw new Error(`Siliconflow API error: ${response.status} ${errorMsg}`);
+        lastError = `Siliconflow API error: ${response.status} ${errorMsg}`;
+        console.error(lastError);
+
+        // Only retry on 500/502/503/504 errors
+        if (response.status >= 500 && attempt < MAX_RETRIES) {
+          continue;
+        }
+
+        throw new Error(lastError);
+      }
+
+      if (!response || !response.ok) {
+        throw new Error(lastError || 'Siliconflow request failed');
       }
 
       const data = await response.json();

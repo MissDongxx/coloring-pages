@@ -6,6 +6,7 @@ import {
   Download,
   ImageIcon,
   Loader2,
+  Palette,
   Sparkles,
   User,
 } from 'lucide-react';
@@ -48,12 +49,21 @@ interface ImageGeneratorProps {
   className?: string;
 }
 
+interface ColoringPageInfo {
+  id: string;
+  slug: string;
+  title: string;
+  category: string;
+  imageUrl: string;
+}
+
 interface GeneratedImage {
   id: string;
   url: string;
   provider?: string;
   model?: string;
   prompt?: string;
+  coloringPage?: ColoringPageInfo;
 }
 
 interface BackendTask {
@@ -195,6 +205,7 @@ export function ImageGenerator({
   >([]);
   const [referenceImageUrls, setReferenceImageUrls] = useState<string[]>([]);
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
+  const [coloringPageInfo, setColoringPageInfo] = useState<ColoringPageInfo | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [taskId, setTaskId] = useState<string | null>(null);
@@ -358,6 +369,7 @@ export function ImageGenerator({
           if (imageUrls.length === 0) {
             toast.error('The provider returned no images. Please retry.');
           } else {
+            const cpInfo = (data as any).coloringPage || null;
             setGeneratedImages(
               imageUrls.map((url, index) => ({
                 id: `${task.id}-${index}`,
@@ -365,8 +377,12 @@ export function ImageGenerator({
                 provider: task.provider,
                 model: task.model,
                 prompt: task.prompt ?? undefined,
+                coloringPage: cpInfo || undefined,
               }))
             );
+            if (cpInfo) {
+              setColoringPageInfo(cpInfo);
+            }
             toast.success('Image generated successfully');
           }
 
@@ -438,7 +454,9 @@ export function ImageGenerator({
   }, [taskId, isGenerating, pollTaskStatus]);
 
   const handleGenerate = async () => {
+    // Immediate auth check — show sign-in modal right away, no progress bar
     if (!user) {
+      toast.error('Please sign in first to generate images.');
       setIsShowSignModal(true);
       return;
     }
@@ -464,8 +482,9 @@ export function ImageGenerator({
       return;
     }
 
+    // Start generating — show spinner but no progress yet
     setIsGenerating(true);
-    setProgress(15);
+    setProgress(0);
     setTaskStatus(AITaskStatus.PENDING);
     setGeneratedImages([]);
     setGenerationStartTime(Date.now());
@@ -501,16 +520,39 @@ export function ImageGenerator({
         throw new Error(message || 'Failed to create an image task');
       }
 
+      // API accepted the request — now show progress
+      setProgress(15);
+
+      // ── Feature 2: Handle cached result ──
+      if (data.cached && data.coloringPage) {
+        const cachedImageUrl = data.coloringPage.imageUrl;
+        setGeneratedImages([{
+          id: `cached-${data.coloringPage.id}`,
+          url: cachedImageUrl,
+          provider,
+          model,
+          prompt: trimmedPrompt,
+          coloringPage: data.coloringPage,
+        }]);
+        setColoringPageInfo(data.coloringPage);
+        toast.success('Found cached result — no credits consumed!');
+        setProgress(100);
+        resetTaskState();
+        return;
+      }
+
       const newTaskId = data?.id;
       if (!newTaskId) {
         throw new Error('Task id missing in response');
       }
 
+      // ── Feature 1 & 3: Handle sync provider success with coloring page ──
       if (data.status === AITaskStatus.SUCCESS && data.taskInfo) {
         const parsedResult = parseTaskResult(data.taskInfo);
         const imageUrls = extractImageUrls(parsedResult);
 
         if (imageUrls.length > 0) {
+          const cpInfo = data.coloringPage || null;
           setGeneratedImages(
             imageUrls.map((url, index) => ({
               id: `${newTaskId}-${index}`,
@@ -518,8 +560,12 @@ export function ImageGenerator({
               provider,
               model,
               prompt: trimmedPrompt,
+              coloringPage: cpInfo || undefined,
             }))
           );
+          if (cpInfo) {
+            setColoringPageInfo(cpInfo);
+          }
           toast.success('Image generated successfully');
           setProgress(100);
           resetTaskState();
@@ -771,11 +817,26 @@ export function ImageGenerator({
                             }
                           />
 
-                          <div className="absolute right-2 bottom-2 flex justify-end text-sm">
+                          <div className="absolute right-2 bottom-2 flex gap-1 text-sm">
+                            {/* Feature 3: Color This Page button */}
+                            {image.coloringPage && (
+                              <Link
+                                href={`/coloring/generated/${image.coloringPage.id}`}
+                              >
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  className="bg-primary/90 hover:bg-primary text-white shadow-lg backdrop-blur-sm"
+                                >
+                                  <Palette className="mr-1 h-4 w-4" />
+                                  Color It
+                                </Button>
+                              </Link>
+                            )}
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="ml-auto"
+                              className="backdrop-blur-sm"
                               onClick={() => handleDownloadImage(image)}
                               disabled={downloadingImageId === image.id}
                             >
@@ -791,6 +852,17 @@ export function ImageGenerator({
                             </Button>
                           </div>
                         </div>
+                        {/* Feature 4: Show category badge */}
+                        {image.coloringPage && (
+                          <div className="flex items-center gap-2">
+                            <span className="bg-primary/10 text-primary inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize">
+                              {image.coloringPage.category}
+                            </span>
+                            <span className="text-muted-foreground truncate text-xs">
+                              {image.coloringPage.title}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
