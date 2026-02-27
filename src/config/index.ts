@@ -78,4 +78,5 @@ export const envConfigs: ConfigMap = {
   r2_bucket_name: process.env.R2_BUCKET_NAME ?? '',
   r2_domain: process.env.R2_DOMAIN ?? '',
   siliconflow_api_key: process.env.SILICONFLOW_API_KEY ?? '',
+  runware_api_key: process.env.RUNWARE_API_KEY ?? '',
 };

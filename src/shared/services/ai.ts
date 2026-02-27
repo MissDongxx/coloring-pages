@@ -5,6 +5,7 @@ import {
   KieProvider,
   ReplicateProvider,
   SiliconflowProvider,
+  RunwareProvider,
 } from '@/extensions/ai';
 import { Configs, getAllConfigs } from '@/shared/models/config';
 
@@ -53,6 +54,14 @@ export function getAIManagerWithConfigs(configs: Configs) {
     aiManager.addProvider(
       new SiliconflowProvider({
         apiKey: configs.siliconflow_api_key,
+      })
+    );
+  }
+
+  if (configs.runware_api_key) {
+    aiManager.addProvider(
+      new RunwareProvider({
+        apiKey: configs.runware_api_key,
       })
     );
   }

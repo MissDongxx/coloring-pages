@@ -15,6 +15,7 @@ export function LazyImage({
   fill,
   priority,
   sizes,
+  wrapperClassName,
 }: {
   src: string;
   alt: string;
@@ -26,6 +27,7 @@ export function LazyImage({
   fill?: boolean;
   priority?: boolean;
   sizes?: string;
+  wrapperClassName?: string;
 }) {
   return (
     <LazyLoadImage
@@ -36,6 +38,7 @@ export function LazyImage({
       effect="blur" // 支持 blur、opacity 等
       placeholderSrc={placeholderSrc} // 可选
       className={className}
+      wrapperClassName={wrapperClassName || "w-full h-full"} // 确保包裹它的 span 不会塌陷
     />
   );
 }

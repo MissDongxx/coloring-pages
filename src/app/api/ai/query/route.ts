@@ -1,6 +1,7 @@
-import { AIMediaType, AITaskStatus } from '@/extensions/ai';
+import { AITaskStatus } from '@/extensions/ai';
 import { createColoringPageFromGenerated } from '@/shared/lib/coloring-helper';
 import { respData, respErr } from '@/shared/lib/resp';
+import { ColoringPageStatus } from '@/shared/models/coloring_page';
 import {
   findAITaskById,
   UpdateAITask,
@@ -110,7 +111,7 @@ export async function POST(req: Request) {
     if (
       result.taskStatus === AITaskStatus.SUCCESS &&
       task.mediaType === 'image' &&
-      task.scene === 'text-to-image' &&
+      (task.scene === 'text-to-image' || task.scene === 'image-to-image') &&
       task.prompt
     ) {
       const taskInfoStr = updateAITask.taskInfo ?? task.taskInfo;
@@ -118,17 +119,29 @@ export async function POST(req: Request) {
 
       if (imageUrls.length > 0) {
         try {
+          // For image-to-image, use DRAFT status (private to user)
+          // For text-to-image, use PUBLISHED status (public)
+          const pageStatus = task.scene === 'image-to-image'
+            ? ColoringPageStatus.DRAFT
+            : ColoringPageStatus.PUBLISHED;
+
+          // Use a default prompt for image-to-image if none provided
+          const finalPrompt = task.prompt || 'coloring book page, white background';
+
           const pageResult = await createColoringPageFromGenerated({
             userId: task.userId,
-            prompt: task.prompt,
+            prompt: finalPrompt,
             imageUrl: imageUrls[0],
+            status: pageStatus,
+            // Pass task ID as unique ID for image-to-image to avoid conflicts
+            uniqueId: task.scene === 'image-to-image' ? task.id : undefined,
           });
           if (pageResult.success && pageResult.coloringPage) {
             coloringPageData = {
               id: pageResult.coloringPage.id,
-              slug: pageResult.coloringPage.slug,
-              title: pageResult.coloringPage.title,
-              category: pageResult.coloringPage.category,
+              // slug: pageResult.coloringPage.slug,
+              // title: pageResult.coloringPage.title,
+              // category: pageResult.coloringPage.category,
               imageUrl: pageResult.coloringPage.imageUrl,
             };
           }

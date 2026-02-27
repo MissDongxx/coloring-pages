@@ -1,8 +1,8 @@
 import type { ColoringPage, Category, ColoringCardData } from "@/features/coloring/types/coloring-page";
 import pagesData from "@/data/coloring/pages/all-pages.json";
 
-// 类型断言
-const allPages = pagesData as ColoringPage[];
+// 类型断言 - 确保数据正确导入
+const allPages: ColoringPage[] = Array.isArray(pagesData) ? pagesData as ColoringPage[] : [];
 
 /**
  * 获取所有涂色页数据
@@ -188,6 +188,47 @@ export function getAllPageSlugs(): string[] {
  */
 export function getPopularPages(limit: number = 8): ColoringCardData[] {
   return allPages.slice(0, limit).map((page) => ({
+    title: page.title,
+    slug: page.slug,
+    imageSrc: page.image.png,
+  }));
+}
+
+/**
+ * 根据当前页面获取相关推荐页面
+ * 优先推荐同分类、同子分类的页面
+ */
+export function getRecommendedPages(currentSlug: string, category: string, subCategory?: string, limit: number = 6): ColoringCardData[] {
+  // 排除当前页面
+  const otherPages = allPages.filter((page) => page.slug !== currentSlug);
+
+  // 1. 优先推荐同子分类的页面
+  let recommended = otherPages.filter((page) =>
+    page.category === category && (subCategory ? page.subCategory === subCategory : true)
+  );
+
+  // 2. 如果同子分类的页面不够，补充同分类的其他页面
+  if (recommended.length < limit) {
+    const sameCategoryPages = otherPages.filter((page) => page.category === category);
+    for (const page of sameCategoryPages) {
+      if (!recommended.find((r) => r.slug === page.slug)) {
+        recommended.push(page);
+      }
+    }
+  }
+
+  // 3. 如果还不够，从热门页面中补充
+  if (recommended.length < limit) {
+    const popularPages = getPopularPages(limit * 2);
+    for (const page of allPages) {
+      if (recommended.length >= limit) break;
+      if (!recommended.find((r) => r.slug === page.slug)) {
+        recommended.push(page);
+      }
+    }
+  }
+
+  return recommended.slice(0, limit).map((page) => ({
     title: page.title,
     slug: page.slug,
     imageSrc: page.image.png,

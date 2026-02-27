@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
 import { Metadata } from 'next';
-import { getPageBySlug, getAllPageSlugs } from '@/features/coloring/lib/data';
-import { ColoringCanvas } from '@/features/coloring/components/coloring-canvas';
+import { getPageBySlug, getAllPageSlugs, getRecommendedPages } from '@/features/coloring/lib/data';
+import { ColoringCanvasWithProviders } from '@/features/coloring/components/coloring-canvas-with-providers';
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>;
@@ -49,14 +49,18 @@ export default async function ColoringPage({ params }: Props) {
     notFound();
   }
 
+  // Get recommended pages from the same category
+  const relatedPages = getRecommendedPages(page.slug, page.category, page.subCategory);
+
   return (
     <div className="min-h-screen">
-      <ColoringCanvas
+      <ColoringCanvasWithProviders
         pageId={page.slug}
         imageSrc={page.image.png}
         title={page.title}
         description={page.description}
         category={page.category}
+        relatedPages={relatedPages}
       />
     </div>
   );

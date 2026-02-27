@@ -29,10 +29,14 @@ export async function addColoringPage(data: NewColoringPage) {
  * Create a new coloring page with generated ID
  */
 export async function createColoringPage(data: Omit<NewColoringPage, 'id'>) {
-  return addColoringPage({
+  const id = nanoid();
+  console.log('[coloring_page] Creating page with ID:', id, 'for userId:', data.userId, 'slug:', data.slug);
+  const result = await addColoringPage({
     ...data,
-    id: nanoid(),
+    id,
   });
+  console.log('[coloring_page] Page created successfully:', result.id);
+  return result;
 }
 
 /**
@@ -92,21 +96,25 @@ export async function findColoringPage({
   category?: string;
   keyword?: string;
 }) {
+  const conditions = [
+    id ? eq(coloringPage.id, id) : undefined,
+    slug ? eq(coloringPage.slug, slug) : undefined,
+    userId ? eq(coloringPage.userId, userId) : undefined,
+    jobId ? eq(coloringPage.jobId, jobId) : undefined,
+    status ? eq(coloringPage.status, status) : undefined,
+    category ? eq(coloringPage.category, category) : undefined,
+    keyword ? eq(coloringPage.keyword, keyword) : undefined
+  ].filter(Boolean);
+
+  console.log('[coloring_page] Finding page with conditions:', { id, slug, conditions });
+
   const [result] = await db()
     .select()
     .from(coloringPage)
-    .where(
-      and(
-        id ? eq(coloringPage.id, id) : undefined,
-        slug ? eq(coloringPage.slug, slug) : undefined,
-        userId ? eq(coloringPage.userId, userId) : undefined,
-        jobId ? eq(coloringPage.jobId, jobId) : undefined,
-        status ? eq(coloringPage.status, status) : undefined,
-        category ? eq(coloringPage.category, category) : undefined,
-        keyword ? eq(coloringPage.keyword, keyword) : undefined
-      )
-    )
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
     .limit(1);
+
+  console.log('[coloring_page] Find result:', result ? { id: result.id, slug: result.slug, title: result.title } : null);
 
   return result;
 }

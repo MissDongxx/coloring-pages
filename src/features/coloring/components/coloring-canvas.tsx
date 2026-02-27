@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { Button } from "@/shared/components/ui/button";
-import { Redo, Undo, Trash2, Heart, Share2, Sparkles, Plus, Minus, RotateCcw, Crosshair, ChevronLeft, Shuffle, Volume2, VolumeX } from "lucide-react";
+import { Redo, Undo, Trash2, Heart, Share2, Sparkles, Plus, Minus, RotateCcw, Crosshair, ChevronLeft, Shuffle, Volume2, VolumeX, Wand2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -11,8 +12,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shared/components/ui/dialog";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/shared/components/ui/breadcrumb";
 import { ColorPickerDialog } from "@/features/coloring/components/color-picker-dialog";
 import { DownloadDialog } from "@/features/coloring/components/download-dialog";
+import { ColoringCard } from "@/features/coloring/components/coloring-card";
 import { useTheme } from "@/features/coloring/contexts/theme-context";
 import { useSound } from "@/features/coloring/contexts/sound-context";
 import { getProxyUrl } from "@/features/coloring/lib/utils";
@@ -40,6 +50,33 @@ const NEON_GRADIENTS = [
   { id: 12, colors: ["#A855F7", "#3B82F6"], name: "Purple Blue" },
 ];
 
+// All solid colors combined from multiple palettes
+const ALL_SOLID_COLORS = [
+  // Soft Pastels
+  ...PASTEL_COLORS,
+  // Earth Tones
+  "#8B4513", "#A0522D", "#D2691E", "#CD853F", "#DEB887",
+  "#F4A460", "#D2B48C", "#BC8F8F", "#A0826D", "#8B7355",
+  // Ocean Blues
+  "#0077B6", "#00B4D8", "#90E0EF", "#CAF0F8", "#023E8A",
+  "#48CAE4", "#ADE8F4", "#03045E", "#0096C7",
+  // Forest Greens
+  "#2D6A4F", "#40916C", "#52B788", "#74C69D", "#95D5B2",
+  "#B7E4C7", "#D8F3DC", "#1B4332", "#081C15", "#344E41",
+  // Sunset
+  "#FF6B6B", "#FF8E53", "#FFA07A", "#FFB347", "#FFCC5C",
+  "#FFDF96", "#FFEDA3", "#FFE5B4", "#FFDAB9", "#FFC0CB",
+  // Berry Blends
+  "#C9184A", "#FF4D6D", "#FF758F", "#FF8FA3", "#FFB3C1",
+  "#FFCCD5", "#FFF0F3", "#800F2F", "#A4133C", "#D90429",
+  // Rainbow
+  "#FF0000", "#FF7F00", "#FFFF00", "#00FF00", "#0000FF",
+  "#4B0082", "#9400D3", "#FF1493", "#00CED1", "#FFD700",
+];
+
+// Remove duplicates
+const UNIQUE_SOLID_COLORS = [...new Set(ALL_SOLID_COLORS)];
+
 // Color Palette Interface
 interface ColorPalette {
   id: string;
@@ -48,6 +85,48 @@ interface ColorPalette {
   isGradient?: boolean;
   gradients?: { id: number; colors: string[]; name: string }[];
 }
+
+// Gradient Categories
+const GRADIENT_CATEGORIES = [
+  { id: "all", name: "All Gradients" },
+  { id: "neon", name: "Neon" },
+  { id: "pastel", name: "Pastel" },
+  { id: "nature", name: "Nature" },
+  { id: "sunset", name: "Sunset" },
+  { id: "cool", name: "Cool Tones" },
+];
+
+// Pastel gradients
+const PASTEL_GRADIENTS = [
+  { id: 101, colors: ["#FFB3BA", "#BAE1FF"], name: "Pink Blue" },
+  { id: 102, colors: ["#FFFFBA", "#BAFFC9"], name: "Yellow Green" },
+  { id: 103, colors: ["#E0BBE4", "#FDFD96"], name: "Purple Yellow" },
+  { id: 104, colors: ["#B39EB5", "#FFB347"], name: "Lavender Orange" },
+];
+
+// Nature gradients
+const NATURE_GRADIENTS = [
+  { id: 201, colors: ["#2D6A4F", "#95D5B2"], name: "Forest" },
+  { id: 202, colors: ["#0077B6", "#CAF0F8"], name: "Ocean" },
+  { id: 203, colors: ["#8B4513", "#DEB887"], name: "Earth" },
+  { id: 204, colors: ["#52B788", "#B7E4C7"], name: "Mint" },
+];
+
+// Sunset gradients
+const SUNSET_GRADIENTS = [
+  { id: 301, colors: ["#FF6B6B", "#FFCC5C"], name: "Coral Gold" },
+  { id: 302, colors: ["#FF4D6D", "#FFB347"], name: "Pink Orange" },
+  { id: 303, colors: ["#A4133C", "#FFEDA3"], name: "Red Cream" },
+  { id: 304, colors: ["#C9184A", "#FFDF96"], name: "Rose Yellow" },
+];
+
+// Cool tone gradients
+const COOL_GRADIENTS = [
+  { id: 401, colors: ["#3B82F6", "#A855F7"], name: "Blue Purple" },
+  { id: 402, colors: ["#06B6D4", "#3B82F6"], name: "Cyan Blue" },
+  { id: 403, colors: ["#00CCFF", "#7928CA"], name: "Sky Violet" },
+  { id: 404, colors: ["#7C3AED", "#00DFD8"], name: "Electric" },
+];
 
 // Predefined Palettes
 const PREDEFINED_PALETTES: ColorPalette[] = [
@@ -113,15 +192,79 @@ const PREDEFINED_PALETTES: ColorPalette[] = [
   },
 ];
 
+// AI Palette generation helpers
+function hexToHsl(hex: string): { h: number; s: number; l: number } {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0;
+  const l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+    }
+  }
+  return { h: h * 360, s: s * 100, l: l * 100 };
+}
+
+function hslToHex(h: number, s: number, l: number): string {
+  h = ((h % 360) + 360) % 360;
+  s = Math.max(0, Math.min(100, s)) / 100;
+  l = Math.max(0, Math.min(100, l)) / 100;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * color).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
+function generateAIPalette(baseColor: string): string[] {
+  const { h, s, l } = hexToHsl(baseColor);
+  return [
+    baseColor,
+    // Complementary
+    hslToHex(h + 180, s, l),
+    // Analogous
+    hslToHex(h + 30, s, l),
+    hslToHex(h - 30, s, l),
+    // Triadic
+    hslToHex(h + 120, s, l),
+    hslToHex(h + 240, s, l),
+    // Split complementary
+    hslToHex(h + 150, s, l),
+    hslToHex(h + 210, s, l),
+    // Lighter/darker variants
+    hslToHex(h, s, Math.min(l + 20, 90)),
+    hslToHex(h, s, Math.max(l - 20, 10)),
+    // Saturation variants
+    hslToHex(h, Math.min(s + 20, 100), l),
+    hslToHex(h, Math.max(s - 30, 10), l),
+  ];
+}
+
+interface RelatedPageItem {
+  title: string;
+  slug: string;
+  imageSrc: string;
+}
+
 interface ColoringCanvasProps {
   imageSrc: string;
   pageId?: string;
   title?: string;
   description?: string;
   category?: string;
+  relatedPages?: RelatedPageItem[];
 }
 
-export function ColoringCanvas({ imageSrc, pageId, title, description, category }: ColoringCanvasProps) {
+export function ColoringCanvas({ imageSrc, pageId, title, description, category, relatedPages }: ColoringCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [selectedColor, setSelectedColor] = useState("#FF0000");
   const [history, setHistory] = useState<ImageData[]>([]);
@@ -152,6 +295,25 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category 
   const originalImageDataRef = useRef<Uint8ClampedArray | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [aiPalette, setAiPalette] = useState<string[]>([]);
+  const [aiPaletteBase, setAiPaletteBase] = useState<string>("");
+  const [activeSolidCategory, setActiveSolidCategory] = useState<string>("pastels");
+  const [activeGradientCategory, setActiveGradientCategory] = useState<string>("neon");
+  const [aiPaletteType, setAiPaletteType] = useState<"solid" | "gradient">("solid");
+
+  // Generate AI palette when a color is selected
+  const handleGenerateAIPalette = useCallback(() => {
+    if (selectedColor && selectedColor !== aiPaletteBase) {
+      setAiPalette(generateAIPalette(selectedColor));
+      setAiPaletteBase(selectedColor);
+    }
+  }, [selectedColor, aiPaletteBase]);
+
+  // Format category name for display
+  const formatCategoryName = (slug?: string) => {
+    if (!slug) return '';
+    return slug.split(/[-_]/).map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+  };
 
   const handleGradientSelect = (gradient: typeof NEON_GRADIENTS[0]) => {
     setSelectedGradient(gradient);
@@ -781,239 +943,255 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category 
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 w-full items-start">
-      {/* Main Canvas Area (Left) */}
-      <div className="flex-1 flex flex-col gap-3">
-        {/* Canvas Area - This determines the height */}
-        <div
-          ref={containerRef}
-          id="canvas-container"
-          className="relative w-full border rounded-lg overflow-hidden bg-white shadow-inner touch-none flex items-center justify-center p-4"
-          style={{
-            aspectRatio,
-            cursor: isDragging ? 'grabbing' : 'grab'
-          }}
-          onWheel={handleWheel}
-          onMouseDown={handlePanStart}
-          onMouseMove={handlePanMove}
-          onMouseUp={handlePanEnd}
-          onMouseLeave={handlePanEnd}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
-          <canvas
-            ref={canvasRef}
-            className="max-w-full max-h-full origin-center"
+    <div className="flex flex-col w-full items-start px-6 md:px-12 lg:px-16 xl:px-20">
+      {/* Breadcrumb */}
+      <Breadcrumb className="mb-4 w-full mt-16 lg:mt-0">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/">Home</BreadcrumbLink>
+          </BreadcrumbItem>
+          {category && (
+            <>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink href={`/${category}`}>{formatCategoryName(category)}</BreadcrumbLink>
+              </BreadcrumbItem>
+            </>
+          )}
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{title || 'Coloring Page'}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <div className="flex flex-col lg:flex-row gap-4 w-full items-start">
+        {/* Main Canvas Area (Left) */}
+        <div className="flex-1 flex flex-col gap-3 lg:max-w-2xl">
+          {/* Canvas Area - This determines the height */}
+          <div
+            ref={containerRef}
+            id="canvas-container"
+            className="relative w-full border rounded-lg overflow-hidden bg-white shadow-inner touch-none flex items-center justify-center"
             style={{
-              transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
-              transition: isDragging ? 'none' : 'transform 200ms ease-out',
-              cursor: isDragging ? 'grabbing' : (isOverFillableArea ? 'crosshair' : 'not-allowed')
+              aspectRatio,
+              cursor: isDragging ? 'grabbing' : 'grab'
             }}
-            onClick={handleCanvasClick}
-            onMouseMove={handleCanvasMouseMove}
-          />
+            onWheel={handleWheel}
+            onMouseDown={handlePanStart}
+            onMouseMove={handlePanMove}
+            onMouseUp={handlePanEnd}
+            onMouseLeave={handlePanEnd}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <canvas
+              ref={canvasRef}
+              className="w-full h-full origin-center"
+              style={{
+                transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
+                transition: isDragging ? 'none' : 'transform 200ms ease-out',
+                cursor: isDragging ? 'grabbing' : (isOverFillableArea ? 'crosshair' : 'not-allowed')
+              }}
+              onClick={handleCanvasClick}
+              onMouseMove={handleCanvasMouseMove}
+            />
 
-          {/* Zoom Controls - Top Left/Right */}
-          <div className="absolute top-4 left-4 flex gap-1">
-            <Button
-              variant="outline"
-              size="icon"
-              className="rounded-full shadow-lg bg-white hover:bg-gray-50"
-              onClick={zoomOut}
-            >
-              <Minus className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="rounded-full shadow-lg bg-white hover:bg-gray-50"
-              onClick={zoomIn}
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
-          </div>
+            {/* Zoom Controls - Top Left/Right */}
+            <div className="absolute top-4 left-4 flex gap-1">
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-full shadow-lg bg-white hover:bg-gray-50"
+                onClick={zoomOut}
+              >
+                <Minus className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-full shadow-lg bg-white hover:bg-gray-50"
+                onClick={zoomIn}
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
 
-          {/* View Controls - Bottom Left/Right */}
-          <div className="absolute bottom-4 right-4 flex gap-1">
-            <Button
-              variant="outline"
-              size="icon"
-              className="rounded-full shadow-lg bg-white hover:bg-gray-50"
-              onClick={centerView}
-              title="Center View"
-            >
-              <Crosshair className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="rounded-full shadow-lg bg-white hover:bg-gray-50"
-              onClick={resetView}
-              title="Reset View"
-            >
-              <RotateCcw className="w-4 h-4" />
-            </Button>
-          </div>
+            {/* View Controls - Bottom Left/Right */}
+            <div className="absolute bottom-4 right-4 flex gap-1">
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-full shadow-lg bg-white hover:bg-gray-50"
+                onClick={centerView}
+                title="Center View"
+              >
+                <Crosshair className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-full shadow-lg bg-white hover:bg-gray-50"
+                onClick={resetView}
+                title="Reset View"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </Button>
+            </div>
 
-          {/* Floating Action Buttons */}
-          <div className="absolute bottom-4 left-4 flex flex-col gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              className="rounded-full shadow-lg bg-white hover:bg-pink-50 hover:border-pink-300"
-              onClick={() => setIsFavorited(!isFavorited)}
-            >
-              <Heart className={`w-5 h-5 ${isFavorited ? "fill-pink-500 text-pink-500" : ""}`} />
-            </Button>
-            <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="rounded-full shadow-lg bg-white hover:bg-blue-50 hover:border-blue-300"
-                >
-                  <Share2 className="w-5 h-5" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-sm">
-                <DialogHeader>
-                  <DialogTitle>Share this Coloring Page</DialogTitle>
-                  <DialogDescription>
-                    Share this fun coloring activity with friends and family!
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-3">
+            {/* Floating Action Buttons */}
+            <div className="absolute bottom-4 left-4 flex flex-col gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-full shadow-lg bg-white hover:bg-pink-50 hover:border-pink-300"
+                onClick={() => setIsFavorited(!isFavorited)}
+              >
+                <Heart className={`w-5 h-5 ${isFavorited ? "fill-pink-500 text-pink-500" : ""}`} />
+              </Button>
+              <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+                <DialogTrigger asChild>
                   <Button
                     variant="outline"
-                    className="w-full justify-start gap-2"
-                    onClick={() => {
-                      navigator.clipboard.writeText(window.location.href);
-                      alert("Link copied to clipboard!");
-                    }}
+                    size="icon"
+                    className="rounded-full shadow-lg bg-white hover:bg-blue-50 hover:border-blue-300"
                   >
-                    <Share2 className="w-4 h-4" />
-                    Copy Link
+                    <Share2 className="w-5 h-5" />
                   </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start gap-2"
-                    onClick={() => {
-                      if (navigator.share) {
-                        navigator.share({
-                          title: "Coloring Page",
-                          url: window.location.href,
-                        });
-                      } else {
+                </DialogTrigger>
+                <DialogContent className="max-w-sm">
+                  <DialogHeader>
+                    <DialogTitle>Share this Coloring Page</DialogTitle>
+                    <DialogDescription>
+                      Share this fun coloring activity with friends and family!
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-3">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start gap-2"
+                      onClick={() => {
                         navigator.clipboard.writeText(window.location.href);
                         alert("Link copied to clipboard!");
-                      }
-                    }}
-                  >
-                    <Share2 className="w-4 h-4" />
-                    Share via...
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+                      }}
+                    >
+                      <Share2 className="w-4 h-4" />
+                      Copy Link
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start gap-2"
+                      onClick={() => {
+                        if (navigator.share) {
+                          navigator.share({
+                            title: "Coloring Page",
+                            url: window.location.href,
+                          });
+                        } else {
+                          navigator.clipboard.writeText(window.location.href);
+                          alert("Link copied to clipboard!");
+                        }
+                      }}
+                    >
+                      <Share2 className="w-4 h-4" />
+                      Share via...
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
 
-            {/* Sound Toggle */}
+              {/* Sound Toggle */}
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-full shadow-lg bg-white hover:bg-purple-50 hover:border-purple-300"
+                onClick={toggleMute}
+                title={isMuted ? "Unmute Sounds" : "Mute Sounds"}
+              >
+                {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+              </Button>
+            </div>
+          </div>
+
+          {/* Save Status */}
+          <div className="text-center text-sm text-muted-foreground">
+            {saveStatus === "saved" && "✓ Progress saved automatically!"}
+            {saveStatus === "saving" && "Saving..."}
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-wrap gap-2 justify-center">
+            {/* Previous Image */}
             <Button
               variant="outline"
-              size="icon"
-              className="rounded-full shadow-lg bg-white hover:bg-purple-50 hover:border-purple-300"
-              onClick={toggleMute}
-              title={isMuted ? "Unmute Sounds" : "Mute Sounds"}
+              size="sm"
+              className="gap-2"
+              onClick={() => window.history.back()}
             >
-              {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+              <ChevronLeft className="w-4 h-4" />
+              Previous
+            </Button>
+
+            {/* Generate New Image */}
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => window.location.href = "/"}
+            >
+              <Shuffle className="w-4 h-4" />
+              New Page
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={undo}
+              disabled={historyIndex <= 0}
+              className="gap-2"
+            >
+              <Undo className="w-4 h-4" />
+              Undo
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={redo}
+              disabled={historyIndex >= history.length - 1}
+              className="gap-2"
+            >
+              <Redo className="w-4 h-4" />
+              Redo
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clearCanvas}
+              className="gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              Clear
+            </Button>
+            <DownloadDialog onDownload={downloadCanvas} />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleZoom}
+              className="gap-2"
+            >
+              <span className="font-bold">{Math.round(zoom * 100)}%</span>
+              Zoom
             </Button>
           </div>
         </div>
 
-        {/* Save Status */}
-        <div className="text-center text-sm text-muted-foreground">
-          {saveStatus === "saved" && "✓ Progress saved automatically!"}
-          {saveStatus === "saving" && "Saving..."}
-        </div>
-
-        {/* Actions */}
-        <div className="flex flex-wrap gap-2 justify-center">
-          {/* Previous Image */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2"
-            onClick={() => window.history.back()}
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Previous
-          </Button>
-
-          {/* Generate New Image */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2"
-            onClick={() => window.location.href = "/"}
-          >
-            <Shuffle className="w-4 h-4" />
-            New Page
-          </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={undo}
-            disabled={historyIndex <= 0}
-            className="gap-2"
-          >
-            <Undo className="w-4 h-4" />
-            Undo
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={redo}
-            disabled={historyIndex >= history.length - 1}
-            className="gap-2"
-          >
-            <Redo className="w-4 h-4" />
-            Redo
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={clearCanvas}
-            className="gap-2"
-          >
-            <Trash2 className="w-4 h-4" />
-            Clear
-          </Button>
-          <DownloadDialog onDownload={downloadCanvas} />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={toggleZoom}
-            className="gap-2"
-          >
-            <span className="font-bold">{Math.round(zoom * 100)}%</span>
-            Zoom
-          </Button>
-        </div>
-      </div>
-
-      {/* Right Toolbar - Unified Management Panel */}
-      <div className="w-full lg:w-96 flex flex-col gap-3">
-        <div className={`border rounded-lg shadow-sm overflow-hidden flex flex-col h-full transition-colors duration-300 ${theme === 'night' ? 'bg-slate-800 border-slate-700' : 'bg-background border-gray-200'
-        }`}>
-          {/* Scrollable Content */}
-          <div className="overflow-y-auto flex-1 p-4 space-y-4 custom-scrollbar" style={{ maxHeight: 'calc(100vh - 200px)' }}>
-            <hr className="border-border" />
-
-            {/* Color Selection */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Colors</h3>
-
+        {/* Right Toolbar - Color Panel */}
+        <div className="w-full lg:w-96 flex flex-col gap-3">
+          <div className={`border rounded-lg shadow-sm overflow-hidden flex flex-col h-full transition-colors duration-300 ${theme === 'night' ? 'bg-slate-800 border-slate-700' : 'bg-background border-gray-200'
+            }`}>
+            {/* Scrollable Content */}
+            <div className="overflow-y-auto flex-1 p-4 space-y-4 custom-scrollbar" style={{ maxHeight: 'calc(100vh - 200px)' }}>
               {/* Magic Mode Toggle */}
               <div className="flex gap-2">
                 <Button
@@ -1048,110 +1226,187 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category 
                 </div>
               )}
 
-              {/* Magic Mode Color History */}
-              {magicMode && magicColorHistory.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="text-xs font-medium text-muted-foreground">Magic History</h4>
-                  <div className="grid grid-cols-5 gap-2">
-                    {magicColorHistory.map((gradient) => (
-                      <button
-                        key={gradient.id}
-                        className={`aspect-square rounded-lg border-2 transition-all hover:scale-105 ${selectedGradient?.id === gradient.id
-                          ? "border-primary ring-2 ring-primary ring-offset-2"
-                          : "border-gray-200"
-                          }`}
-                        style={{
-                          background: `linear-gradient(135deg, ${gradient.colors[0]}, ${gradient.colors[1]})`
-                        }}
-                        onClick={() => handleGradientSelect(gradient)}
-                        aria-label={`Select gradient ${gradient.name}`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {/* Color Picker Dialog */}
               <ColorPickerDialog
                 color={selectedColor}
                 onChange={setSelectedColor}
               />
 
-              {/* Palette Tabs */}
-              <div className="flex gap-1 overflow-x-auto pb-2 custom-scrollbar">
-                {palettes.map((palette) => (
-                  <button
-                    key={palette.id}
-                    className={`px-3 py-1 text-xs whitespace-nowrap rounded-full transition-all ${activePaletteId === palette.id
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground hover:bg-muted-foreground/10"
-                      }`}
-                    onClick={() => setActivePaletteId(palette.id)}
+              {/* ============ AI Palette Section (Moved up) ============ */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">AI Palette</h3>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5 text-xs h-7"
+                    onClick={handleGenerateAIPalette}
                   >
-                    {palette.name}
-                  </button>
-                ))}
-              </div>
-
-              {/* Active Palette Colors */}
-              {(() => {
-                const activePalette = palettes.find(p => p.id === activePaletteId);
-                if (!activePalette) return null;
-
-                if (activePalette.isGradient && activePalette.gradients) {
-                  return (
-                    <div className="space-y-2">
-                      <div className="grid grid-cols-5 gap-2">
-                        {activePalette.gradients.map((gradient) => (
+                    <Wand2 className="w-3 h-3" />
+                    Generate
+                  </Button>
+                </div>
+                {aiPalette.length > 0 ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs text-muted-foreground">Based on <span className="inline-block w-3 h-3 rounded-sm align-middle border" style={{ backgroundColor: selectedColor }} /> {selectedColor}</p>
+                      {/* Solid/Gradient Toggle Switch */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-600">{aiPaletteType === "solid" ? "Solid" : "Gradient"}</span>
+                        <button
+                          onClick={() => setAiPaletteType(aiPaletteType === "solid" ? "gradient" : "solid")}
+                          className={`relative w-14 h-7 rounded-full transition-colors duration-200 ${
+                            aiPaletteType === "solid" ? "bg-orange-500" : "bg-gradient-to-r from-blue-400 to-blue-600"
+                          }`}
+                        >
+                          <span
+                            className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${
+                              aiPaletteType === "solid" ? "left-1" : "left-8"
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </div>
+                    {aiPaletteType === "solid" ? (
+                      <div className="grid grid-cols-8 gap-1.5">
+                        {aiPalette.map((color, i) => (
                           <button
-                            key={gradient.id}
-                            className={`aspect-square rounded-lg border-2 transition-all hover:scale-105 ${selectedGradient?.id === gradient.id && magicMode
+                            key={`${color}-${i}`}
+                            className={`aspect-square rounded-md border-2 transition-all hover:scale-110 ${selectedColor === color && !selectedGradient
+                              ? "border-primary ring-2 ring-primary ring-offset-1"
+                              : "border-transparent hover:border-gray-300"
+                              }`}
+                            style={{ backgroundColor: color }}
+                            onClick={() => { setSelectedColor(color); setSelectedGradient(null); }}
+                            aria-label={`Select AI color ${color}`}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-4 gap-2">
+                        {aiPalette.slice(0, Math.floor(aiPalette.length / 2)).map((color, i) => (
+                          <button
+                            key={`gradient-${i}`}
+                            className={`aspect-[2/1] rounded-lg border-2 transition-all hover:scale-105 ${selectedGradient?.id === -i - 1
                               ? "border-primary ring-2 ring-primary ring-offset-2"
                               : "border-gray-200"
                               }`}
                             style={{
-                              background: `linear-gradient(135deg, ${gradient.colors[0]}, ${gradient.colors[1]})`
+                              background: `linear-gradient(135deg, ${color}, ${aiPalette[i + Math.floor(aiPalette.length / 2)] || color})`
                             }}
-                            onClick={() => handleGradientSelect(gradient)}
-                            aria-label={`Select gradient ${gradient.name}`}
+                            onClick={() => {
+                              const gradient = { id: -i - 1, colors: [color, aiPalette[i + Math.floor(aiPalette.length / 2)] || color], name: `AI Gradient ${i + 1}` };
+                              handleGradientSelect(gradient);
+                            }}
+                            aria-label={`Select AI gradient ${i + 1}`}
                           />
                         ))}
                       </div>
-                    </div>
-                  );
-                }
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">Select a color and click Generate to create a harmonious palette.</p>
+                )}
+              </div>
 
-                return (
-                  <div className="space-y-2">
-                    <div className="grid grid-cols-5 gap-2">
-                      {activePalette.colors.map((color) => (
-                        <button
-                          key={color}
-                          className={`aspect-square rounded-lg border-2 transition-all hover:scale-105 ${selectedColor === color && !magicMode
+              <hr className="border-border" />
+
+              {/* ============ Solid Colors Section ============ */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Solid Colors</h3>
+                </div>
+                {/* Category Selector for Solid Colors - Horizontal Scroll */}
+                <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                  {PREDEFINED_PALETTES.filter(p => !p.isGradient).map((palette) => (
+                    <Button
+                      key={palette.id}
+                      variant={activeSolidCategory === palette.id ? "default" : "outline"}
+                      size="sm"
+                      className="text-xs h-7 px-3 whitespace-nowrap flex-shrink-0"
+                      onClick={() => setActiveSolidCategory(palette.id)}
+                    >
+                      {palette.name}
+                    </Button>
+                  ))}
+                </div>
+                <div className="grid grid-cols-8 gap-1.5">
+                  {PREDEFINED_PALETTES.find(p => p.id === activeSolidCategory)?.colors.map((color, idx) => (
+                    <button
+                      key={typeof color === 'string' ? color : `${color}-${idx}`}
+                      className={`aspect-square rounded-md border-2 transition-all hover:scale-110 ${selectedColor === color && !selectedGradient
+                        ? "border-primary ring-2 ring-primary ring-offset-1"
+                        : "border-transparent hover:border-gray-300"
+                        }`}
+                      style={{ backgroundColor: color }}
+                      onClick={() => { setSelectedColor(color); setSelectedGradient(null); }}
+                      aria-label={`Select color ${color}`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <hr className="border-border" />
+
+              {/* ============ Gradient Colors Section ============ */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Gradients</h3>
+                </div>
+                {/* Category Selector for Gradients - Horizontal Scroll */}
+                <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                  {GRADIENT_CATEGORIES.filter(cat => cat.id !== "all").map((cat) => (
+                    <Button
+                      key={cat.id}
+                      variant={activeGradientCategory === cat.id ? "default" : "outline"}
+                      size="sm"
+                      className="text-xs h-7 px-3 whitespace-nowrap flex-shrink-0"
+                      onClick={() => setActiveGradientCategory(cat.id)}
+                    >
+                      {cat.name}
+                    </Button>
+                  ))}
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {(activeGradientCategory === "neon"
+                    ? NEON_GRADIENTS
+                    : activeGradientCategory === "pastel"
+                      ? PASTEL_GRADIENTS
+                      : activeGradientCategory === "nature"
+                        ? NATURE_GRADIENTS
+                        : activeGradientCategory === "sunset"
+                          ? SUNSET_GRADIENTS
+                          : COOL_GRADIENTS
+                  ).map((gradient) => (
+                    <button
+                      key={gradient.id}
+                      className={`aspect-[2/1] rounded-lg border-2 transition-all hover:scale-105 ${selectedGradient?.id === gradient.id
                         ? "border-primary ring-2 ring-primary ring-offset-2"
                         : "border-gray-200"
                         }`}
-                          style={{ backgroundColor: color }}
-                          onClick={() => setSelectedColor(color)}
-                          aria-label={`Select color ${color}`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                );
-              })()}
+                      style={{
+                        background: `linear-gradient(135deg, ${gradient.colors[0]}, ${gradient.colors[1]})`
+                      }}
+                      onClick={() => handleGradientSelect(gradient)}
+                      aria-label={`Select gradient ${gradient.name}`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <hr className="border-border" />
 
               {/* Recently Used */}
               {recentlyUsed.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="text-xs font-medium text-muted-foreground">Recently Used</h4>
-                  <div className="grid grid-cols-5 gap-2">
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Recently Used</h3>
+                  <div className="grid grid-cols-8 gap-1.5">
                     {recentlyUsed.map((color) => (
                       <button
                         key={color}
-                        className={`aspect-square rounded-lg border-2 transition-all hover:scale-105 ${selectedColor === color
-                          ? "border-primary ring-2 ring-primary ring-offset-2"
-                          : "border-gray-200"
+                        className={`aspect-square rounded-md border-2 transition-all hover:scale-110 ${selectedColor === color
+                          ? "border-primary ring-2 ring-primary ring-offset-1"
+                          : "border-transparent hover:border-gray-300"
                           }`}
                         style={{ backgroundColor: color }}
                         onClick={() => setSelectedColor(color)}
@@ -1162,61 +1417,73 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category 
                 </div>
               )}
             </div>
-          </div>
 
-          {/* Outline Settings */}
-          <hr className="border-border" />
-          <div className="space-y-3 px-2">
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Outline Settings</h3>
+            {/* Outline Settings */}
+            <hr className="border-border" />
+            <div className="space-y-3 px-2">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Outline Settings</h3>
 
-            {/* Show/Hide Outlines Toggle */}
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Show Outlines</span>
-              <Button
-                variant={showOutlines ? "default" : "outline"}
-                size="sm"
-                onClick={() => setShowOutlines(!showOutlines)}
-              >
-                {showOutlines ? "ON" : "OFF"}
-              </Button>
-            </div>
-
-            {/* Outline Color Picker */}
-            <div className="space-y-2">
+              {/* Show/Hide Outlines Toggle */}
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Outline Color</span>
-                <div
-                  className="relative w-8 h-8 rounded border border-gray-300 cursor-pointer hover:scale-105 transition-transform overflow-hidden"
-                  style={{ backgroundColor: outlineColor }}
+                <span className="text-sm text-muted-foreground">Show Outlines</span>
+                <Button
+                  variant={showOutlines ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setShowOutlines(!showOutlines)}
                 >
-                  <input
-                    type="color"
-                    value={outlineColor}
-                    onChange={(e) => setOutlineColor(e.target.value)}
-                    className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
-                  />
+                  {showOutlines ? "ON" : "OFF"}
+                </Button>
+              </div>
+
+              {/* Outline Color Picker */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Outline Color</span>
+                  <div
+                    className="relative w-8 h-8 rounded border border-gray-300 cursor-pointer hover:scale-105 transition-transform overflow-hidden"
+                    style={{ backgroundColor: outlineColor }}
+                  >
+                    <input
+                      type="color"
+                      value={outlineColor}
+                      onChange={(e) => setOutlineColor(e.target.value)}
+                      className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Outline Opacity Slider */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Outline Opacity</span>
-                <span className="text-xs text-muted-foreground">{outlineOpacity}%</span>
+              {/* Outline Opacity Slider */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Outline Opacity</span>
+                  <span className="text-xs text-muted-foreground">{outlineOpacity}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={outlineOpacity}
+                  onChange={(e) => setOutlineOpacity(parseInt(e.target.value))}
+                  className="w-full"
+                />
               </div>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={outlineOpacity}
-                onChange={(e) => setOutlineOpacity(parseInt(e.target.value))}
-                className="w-full"
-              />
             </div>
           </div>
         </div>
-      </div>
+      </div>{/* end flex row */}
+
+      {/* Related Coloring Pages */}
+      {relatedPages && relatedPages.length > 0 && (
+        <div className="w-full mt-8">
+          <h2 className="text-xl font-bold mb-4">More Coloring Pages You May Like</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {relatedPages.map((item) => (
+              <ColoringCard key={item.slug} title={item.title} slug={item.slug} imageSrc={item.imageSrc} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -94,18 +94,44 @@ export function categorizeByPrompt(prompt: string): {
 }
 
 // ─── Generate Slug from Prompt ──────────────────────────────────────────────
+/**
+ * Generate slug from prompt:
+ * - Short prompts (≤ 7 words): use full prompt
+ * - Long prompts (> 7 words): extract key words
+ */
 export function generateSlug(prompt: string): string {
-    const slug = prompt
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '') // remove special chars
-        .replace(/\s+/g, '-')         // spaces to dashes
-        .replace(/-+/g, '-')          // collapse dashes
-        .replace(/^-|-$/g, '')        // trim dashes
-        .slice(0, 60);                // max length
+    // Clean the prompt: remove style additions and special characters
+    const cleaned = prompt
+        .replace(/,?\s*(black and white|white background|coloring page|classic style|thick lines|simple|cute|kids style).*$/gi, '')
+        .replace(/[^a-zA-Z0-9\s-]/g, '') // remove special chars except spaces and hyphens
+        .trim();
 
-    // Add a short hash suffix for uniqueness
-    const hash = md5(prompt).slice(0, 6);
-    return `${slug}-${hash}`;
+    const words = cleaned.split(/\s+/).filter(w => w.length > 0);
+
+    let slugWords: string[];
+    const WORD_THRESHOLD = 7; // Threshold for short vs long prompts
+
+    if (words.length <= WORD_THRESHOLD) {
+        // Short prompt: use all words
+        slugWords = words;
+    } else {
+        // Long prompt: extract key words
+        // First, try to find category keywords
+        const { keyword } = categorizeByPrompt(prompt);
+
+        // Use category keyword + first 2 meaningful words from prompt
+        const firstWords = words.slice(0, 2);
+        slugWords = [keyword, ...firstWords].filter((w, i, arr) => arr.indexOf(w) === i); // dedupe
+    }
+
+    const slug = slugWords
+        .map(w => w.toLowerCase())
+        .join('-');
+
+    // Add a short hash suffix for uniqueness (avoid conflicts with same prompt)
+    const hash = md5(prompt).slice(0, 4);
+    const baseSlug = slug || 'coloring-page';
+    return `${baseSlug}-${hash}`;
 }
 
 // ─── Generate Title from Prompt ─────────────────────────────────────────────
@@ -171,16 +197,20 @@ export async function uploadGeneratedImageToR2(
         const storageService = await getStorageService();
 
         const slug = generateSlug(prompt);
-        const key = `coloring-pages/generated/${slug}.png`;
+        // Use absolute path (starting with /) to avoid adding uploadPath prefix
+        const key = `/coloring-pages/generated/${slug}.png`;
 
         // Check if already uploaded
         const exists = await storageService.exists({ key });
         if (exists) {
             const publicUrl = storageService.getPublicUrl({ key });
             if (publicUrl) {
+                console.log('[coloring-helper] R2 cache hit:', key);
                 return { success: true, r2Url: publicUrl };
             }
         }
+
+        console.log('[coloring-helper] Uploading to R2:', key);
 
         // Download and upload to R2
         const result = await storageService.downloadAndUpload({
@@ -195,6 +225,51 @@ export async function uploadGeneratedImageToR2(
             return { success: false, error: result.error };
         }
 
+        console.log('[coloring-helper] R2 upload success:', result.url);
+        return { success: true, r2Url: result.url };
+    } catch (error: any) {
+        console.error('[coloring-helper] Upload error:', error.message);
+        return { success: false, error: error.message };
+    }
+}
+
+// ─── Upload Generated Image to R2 with Custom Slug ───────────────────────────
+export async function uploadGeneratedImageToR2WithSlug(
+    imageUrl: string,
+    slug: string
+): Promise<{ success: boolean; r2Url?: string; error?: string }> {
+    try {
+        const storageService = await getStorageService();
+
+        // Use absolute path (starting with /) to avoid adding uploadPath prefix
+        const key = `/coloring-pages/generated/${slug}.png`;
+
+        // Check if already uploaded
+        const exists = await storageService.exists({ key });
+        if (exists) {
+            const publicUrl = storageService.getPublicUrl({ key });
+            if (publicUrl) {
+                console.log('[coloring-helper] R2 cache hit:', key);
+                return { success: true, r2Url: publicUrl };
+            }
+        }
+
+        console.log('[coloring-helper] Uploading to R2:', key);
+
+        // Download and upload to R2
+        const result = await storageService.downloadAndUpload({
+            url: imageUrl,
+            key,
+            contentType: 'image/png',
+            disposition: 'inline',
+        });
+
+        if (!result.success) {
+            console.error('[coloring-helper] R2 upload failed:', result.error);
+            return { success: false, error: result.error };
+        }
+
+        console.log('[coloring-helper] R2 upload success:', result.url);
         return { success: true, r2Url: result.url };
     } catch (error: any) {
         console.error('[coloring-helper] Upload error:', error.message);
@@ -207,15 +282,20 @@ export async function createColoringPageFromGenerated(params: {
     userId: string;
     prompt: string;
     imageUrl: string;
+    status?: ColoringPageStatus;
+    uniqueId?: string; // Optional unique ID to avoid conflicts (e.g., taskId for image-to-image)
 }): Promise<{
     success: boolean;
     coloringPage?: any;
     error?: string;
 }> {
     try {
-        const { userId, prompt, imageUrl } = params;
+        const { userId, prompt, imageUrl, status = ColoringPageStatus.PUBLISHED, uniqueId } = params;
 
-        const slug = generateSlug(prompt);
+        // Generate slug with optional unique ID suffix to avoid conflicts
+        const baseSlug = generateSlug(prompt);
+        const slug = uniqueId ? `${baseSlug}-${uniqueId.slice(0, 8)}` : baseSlug;
+
         const title = generateTitle(prompt);
         const { category, keyword } = categorizeByPrompt(prompt);
         const description = generateSEODescription(title, category, keyword);
@@ -226,8 +306,8 @@ export async function createColoringPageFromGenerated(params: {
             return { success: true, coloringPage: existing };
         }
 
-        // Upload to R2
-        const uploadResult = await uploadGeneratedImageToR2(imageUrl, prompt);
+        // Upload to R2 with the unique slug
+        const uploadResult = await uploadGeneratedImageToR2WithSlug(imageUrl, slug);
         const finalImageUrl = uploadResult.r2Url || imageUrl;
 
         // Create coloring page
@@ -240,7 +320,7 @@ export async function createColoringPageFromGenerated(params: {
             keyword,
             prompt,
             imageUrl: finalImageUrl,
-            status: ColoringPageStatus.PUBLISHED,
+            status,
             sort: 0,
         });
 

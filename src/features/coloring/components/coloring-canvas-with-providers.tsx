@@ -4,12 +4,19 @@ import { ColoringCanvas } from "@/features/coloring/components/coloring-canvas";
 import { ThemeProvider } from "@/features/coloring/contexts/theme-context";
 import { SoundProvider } from "@/features/coloring/contexts/sound-context";
 
+interface RelatedPageItem {
+  title: string;
+  slug: string;
+  imageSrc: string;
+}
+
 interface ColoringCanvasWithProvidersProps {
   pageId: string;
   imageSrc: string;
   title: string;
   description: string;
   category: string;
+  relatedPages?: RelatedPageItem[];
 }
 
 export function ColoringCanvasWithProviders({
@@ -18,6 +25,7 @@ export function ColoringCanvasWithProviders({
   title,
   description,
   category,
+  relatedPages,
 }: ColoringCanvasWithProvidersProps) {
   return (
     <ThemeProvider>
@@ -28,6 +36,7 @@ export function ColoringCanvasWithProviders({
           title={title}
           description={description}
           category={category}
+          relatedPages={relatedPages}
         />
       </SoundProvider>
     </ThemeProvider>

@@ -23,14 +23,14 @@ export function ColoringCard({
   const altText = imageAlt || `${title} coloring page - free printable`;
 
   // 构建链接（使用新的 URL 结构）
-  const href = `/${slug}/`;
+  const href = `/coloring/${slug}/`;
   const proxiedSrc = imageSrc.startsWith("/") ? imageSrc : `/api/image-proxy?url=${encodeURIComponent(imageSrc)}`;
   const unoptimized = !imageSrc.startsWith("/");
 
   return (
     <Link href={href} prefetch={false}>
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow group">
-        <CardContent className="p-0">
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow group h-full flex flex-col">
+        <CardContent className="p-0 flex-1 flex flex-col">
           <div className="relative aspect-square bg-secondary">
             <Image
               src={proxiedSrc}
@@ -42,7 +42,7 @@ export function ColoringCard({
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
           </div>
-          <div className="p-3">
+          <div className="p-3 flex-1 flex flex-col justify-end">
             {/* 分类标签 */}
             {category && (
               <span className="text-xs text-primary uppercase tracking-wide mb-1 block">

@@ -14,6 +14,7 @@ import {
   getPagesByCategory,
   getPagesBySubCategory,
   getAllCategories,
+  getRelatedPages,
 } from '@/features/coloring/lib/data';
 import {
   Breadcrumb,
@@ -256,7 +257,7 @@ export default async function DynamicPage({
       }));
 
       return (
-        <div className="container mx-auto px-4 pt-28 pb-8 md:pt-32 md:pb-8 max-w-6xl">
+        <div className="container mx-auto px-4 pt-16 pb-8 md:pt-20 md:pb-8 max-w-6xl">
           <Breadcrumb className="mb-8">
             <BreadcrumbList>
               <BreadcrumbItem>
@@ -325,7 +326,7 @@ export default async function DynamicPage({
         }));
 
         return (
-          <div className="container mx-auto px-4 pt-28 pb-8 md:pt-32 md:pb-8 max-w-6xl">
+          <div className="container mx-auto px-4 pt-16 pb-8 md:pt-20 md:pb-8 max-w-6xl">
             <Breadcrumb className="mb-8">
               <BreadcrumbList>
                 <BreadcrumbItem>
@@ -380,14 +381,18 @@ export default async function DynamicPage({
   const coloringPage = getPageBySlug(staticPageSlug);
 
   if (coloringPage) {
+    const relatedPages = getRelatedPages(coloringPage.related || []);
     return (
-      <ColoringCanvasWithProviders
-        pageId={coloringPage.slug}
-        imageSrc={coloringPage.image.png}
-        title={coloringPage.title}
-        description={coloringPage.description}
-        category={coloringPage.category}
-      />
+      <div className="pt-6 md:pt-10 pb-8">
+        <ColoringCanvasWithProviders
+          pageId={coloringPage.slug}
+          imageSrc={coloringPage.image.png}
+          title={coloringPage.title}
+          description={coloringPage.description}
+          category={coloringPage.category}
+          relatedPages={relatedPages}
+        />
+      </div>
     );
   }
 

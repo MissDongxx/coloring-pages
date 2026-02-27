@@ -4,9 +4,12 @@ import { AITaskStatus } from '@/extensions/ai';
 import { AudioPlayer, Empty, LazyImage } from '@/shared/blocks/common';
 import { TableCard } from '@/shared/blocks/table';
 import { AITask, getAITasks, getAITasksCount } from '@/shared/models/ai_task';
+import { getColoringPages } from '@/shared/models/coloring_page';
 import { getUserInfo } from '@/shared/models/user';
-import { Button, Tab } from '@/shared/types/blocks/common';
+import { Button } from '@/shared/types/blocks/common';
 import { type Table } from '@/shared/types/blocks/table';
+import { Link } from '@/core/i18n/navigation';
+import { generateSlug } from '@/shared/lib/coloring-helper';
 
 export default async function AiTasksPage({
   searchParams,
@@ -35,6 +38,18 @@ export default async function AiTasksPage({
     userId: user.id,
     mediaType: type,
   });
+
+  // Fetch all coloring pages for this user to create a slug-based lookup map
+  // Note: We use slug because AI task imageUrl differs from coloring page imageUrl (R2 upload)
+  const coloringPages = await getColoringPages({
+    userId: user.id,
+    limit: 1000,
+  });
+
+  // Create a map of prompt slug to coloring page for quick lookup
+  const coloringPageBySlug = new Map(
+    coloringPages.map((page) => [page.slug, page])
+  );
 
   const table: Table = {
     title: t('list.title'),
@@ -79,14 +94,37 @@ export default async function AiTasksPage({
             } else if (taskInfo.images && taskInfo.images.length > 0) {
               return (
                 <div className="flex flex-col gap-2">
-                  {taskInfo.images.map((image: any, index: number) => (
-                    <LazyImage
-                      key={index}
-                      src={image.imageUrl}
-                      alt="Generated image"
-                      className="h-32 w-auto"
-                    />
-                  ))}
+                  {taskInfo.images.map((image: any, index: number) => {
+                    const imageUrl = image.imageUrl || image.url || image;
+                    // Try to find coloring page by generating slug from prompt
+                    const slug = item.prompt ? generateSlug(item.prompt) : null;
+                    const matchingPage = slug ? coloringPageBySlug.get(slug) : null;
+
+                    if (matchingPage) {
+                      return (
+                        <Link
+                          key={index}
+                          href={`/coloring/generated/${matchingPage.id}`}
+                          className="block cursor-pointer"
+                        >
+                          <LazyImage
+                            src={matchingPage.imageUrl}
+                            alt="Generated image"
+                            className="h-32 w-auto hover:opacity-80 transition-opacity"
+                          />
+                        </Link>
+                      );
+                    }
+
+                    return (
+                      <LazyImage
+                        key={index}
+                        src={imageUrl}
+                        alt="Generated image"
+                        className="h-32 w-auto"
+                      />
+                    );
+                  })}
                 </div>
               );
             } else {
@@ -129,48 +167,9 @@ export default async function AiTasksPage({
     },
   };
 
-  const tabs: Tab[] = [
-    {
-      name: 'all',
-      title: t('list.tabs.all'),
-      url: '/activity/ai-tasks',
-      is_active: !type || type === 'all',
-    },
-    {
-      name: 'music',
-      title: t('list.tabs.music'),
-      url: '/activity/ai-tasks?type=music',
-      is_active: type === 'music',
-    },
-    {
-      name: 'image',
-      title: t('list.tabs.image'),
-      url: '/activity/ai-tasks?type=image',
-      is_active: type === 'image',
-    },
-    {
-      name: 'video',
-      title: t('list.tabs.video'),
-      url: '/activity/ai-tasks?type=video',
-      is_active: type === 'video',
-    },
-    {
-      name: 'audio',
-      title: t('list.tabs.audio'),
-      url: '/activity/ai-tasks?type=audio',
-      is_active: type === 'audio',
-    },
-    {
-      name: 'text',
-      title: t('list.tabs.text'),
-      url: '/activity/ai-tasks?type=text',
-      is_active: type === 'text',
-    },
-  ];
-
   return (
     <div className="space-y-8">
-      <TableCard title={t('list.title')} tabs={tabs} table={table} />
+      <TableCard title={t('list.title')} table={table} />
     </div>
   );
 }

@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
 import { Metadata } from 'next';
 import { findColoringPage } from '@/shared/models/coloring_page';
+import { ColoringPageStatus } from '@/shared/models/coloring_page';
+import { getUserInfo } from '@/shared/models/user';
 import { ColoringCanvasWithProviders } from '@/features/coloring/components/coloring-canvas-with-providers';
 
 interface Props {
@@ -45,6 +47,14 @@ export default async function GeneratedColoringPage({ params }: Props) {
         notFound();
     }
 
+    // For DRAFT pages, only the owner can access
+    if (page.status === ColoringPageStatus.DRAFT) {
+        const user = await getUserInfo();
+        if (!user || user.id !== page.userId) {
+            notFound();
+        }
+    }
+
     return (
         <div className="min-h-screen">
             <ColoringCanvasWithProviders
@@ -57,4 +67,3 @@ export default async function GeneratedColoringPage({ params }: Props) {
         </div>
     );
 }
-

@@ -244,6 +244,12 @@ export async function getSettingGroups() {
       tab: 'ai',
     },
     {
+      name: 'runware',
+      title: 'Runware',
+      description: `Custom <a href="https://runware.ai" class="text-primary" target="_blank">Runware</a> settings`,
+      tab: 'ai',
+    },
+    {
       name: 'adsense',
       title: t('groups.adsense'),
       description: 'custom your adsense settings',
@@ -852,6 +858,15 @@ export async function getSettings() {
       placeholder: 'sk-xxx',
       group: 'siliconflow',
       tip: 'Siliconflow API Key',
+      tab: 'ai',
+    },
+    {
+      name: 'runware_api_key',
+      title: 'Runware API Key',
+      type: 'password',
+      placeholder: 'xxx',
+      group: 'runware',
+      tip: 'Runware API Key',
       tab: 'ai',
     },
     {

@@ -54,9 +54,13 @@ export class R2Provider implements StorageProvider {
   getPublicUrl = (options: { key: string; bucket?: string }) => {
     const uploadBucket = options.bucket || this.configs.bucket;
     const uploadPath = this.getUploadPath();
-    const url = `${this.getEndpoint()}/${uploadBucket}/${uploadPath}/${options.key}`;
+    // Support absolute keys (starting with /) - don't add uploadPath
+    const isAbsoluteKey = options.key.startsWith('/');
+    const normalizedKey = isAbsoluteKey ? options.key.slice(1) : options.key;
+    const keyPath = isAbsoluteKey ? normalizedKey : `${uploadPath}/${options.key}`;
+    const url = `${this.getEndpoint()}/${uploadBucket}/${keyPath}`;
     return this.configs.publicDomain
-      ? `${this.configs.publicDomain}/${uploadPath}/${options.key}`
+      ? `${this.configs.publicDomain}/${keyPath}`
       : url;
   };
 
@@ -65,7 +69,11 @@ export class R2Provider implements StorageProvider {
       const uploadBucket = options.bucket || this.configs.bucket;
       if (!uploadBucket) return false;
       const uploadPath = this.getUploadPath();
-      const url = `${this.getEndpoint()}/${uploadBucket}/${uploadPath}/${options.key}`;
+      // Support absolute keys (starting with /) - don't add uploadPath
+      const isAbsoluteKey = options.key.startsWith('/');
+      const normalizedKey = isAbsoluteKey ? options.key.slice(1) : options.key;
+      const keyPath = isAbsoluteKey ? normalizedKey : `${uploadPath}/${options.key}`;
+      const url = `${this.getEndpoint()}/${uploadBucket}/${keyPath}`;
 
       const { AwsClient } = await import('aws4fetch');
       const client = new AwsClient({
@@ -106,9 +114,14 @@ export class R2Provider implements StorageProvider {
 
       const uploadPath = this.getUploadPath();
 
+      // Support absolute keys (starting with /) - don't add uploadPath
+      const isAbsoluteKey = options.key.startsWith('/');
+      const normalizedKey = isAbsoluteKey ? options.key.slice(1) : options.key;
+      const keyPath = isAbsoluteKey ? normalizedKey : `${uploadPath}/${options.key}`;
+
       // R2 endpoint format: https://<accountId>.r2.cloudflarestorage.com
       // Use custom endpoint if provided, otherwise use default
-      const url = `${this.getEndpoint()}/${uploadBucket}/${uploadPath}/${options.key}`;
+      const url = `${this.getEndpoint()}/${uploadBucket}/${keyPath}`;
 
       const { AwsClient } = await import('aws4fetch');
 

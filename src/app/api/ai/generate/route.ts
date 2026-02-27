@@ -10,6 +10,7 @@ import { createAITask, NewAITask } from '@/shared/models/ai_task';
 import { getRemainingCredits } from '@/shared/models/credit';
 import { getUserInfo } from '@/shared/models/user';
 import { getAIService } from '@/shared/services/ai';
+import { ColoringPageStatus } from '@/shared/models/coloring_page';
 
 /**
  * Extract image URLs from task info for R2 upload
@@ -51,8 +52,17 @@ export async function POST(request: Request) {
       throw new Error('invalid params');
     }
 
-    if (!prompt && !options) {
-      throw new Error('prompt or options is required');
+    // For image-to-image mode, prompt is optional (will use default prompt in provider)
+    const isImageToImage = mediaType === AIMediaType.IMAGE && scene === 'image-to-image';
+    const hasImageInput = options?.image_input && options.image_input.length > 0;
+
+    if (!prompt && !isImageToImage) {
+      throw new Error('prompt is required for text-to-image mode');
+    }
+
+    // For image-to-image mode without prompt, require image_input
+    if (isImageToImage && !prompt && !hasImageInput) {
+      throw new Error('prompt or reference image is required');
     }
 
     // Auth check FIRST — reject unauthenticated users immediately
@@ -198,16 +208,27 @@ export async function POST(request: Request) {
     if (
       result.taskStatus === AITaskStatus.SUCCESS &&
       mediaType === AIMediaType.IMAGE &&
-      scene === 'text-to-image' &&
-      prompt
+      (scene === 'text-to-image' || scene === 'image-to-image')
     ) {
       const imageUrls = extractImageUrlsFromTaskInfo(result.taskInfo);
       if (imageUrls.length > 0) {
         try {
+          // For image-to-image, use DRAFT status (private to user)
+          // For text-to-image, use PUBLISHED status (public)
+          const pageStatus = scene === 'image-to-image'
+            ? ColoringPageStatus.DRAFT
+            : ColoringPageStatus.PUBLISHED;
+
+          // Use a default prompt for image-to-image if none provided
+          const finalPrompt = prompt || 'coloring book page, white background';
+
           const pageResult = await createColoringPageFromGenerated({
             userId: user.id,
-            prompt,
+            prompt: finalPrompt,
             imageUrl: imageUrls[0],
+            status: pageStatus,
+            // Pass task ID as unique ID for image-to-image to avoid conflicts
+            uniqueId: scene === 'image-to-image' ? newAITask.id : undefined,
           });
           if (pageResult.success && pageResult.coloringPage) {
             coloringPageData = {

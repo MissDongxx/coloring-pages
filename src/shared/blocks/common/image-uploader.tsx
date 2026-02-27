@@ -453,7 +453,7 @@ export function ImageUploader({
       className={cn(
         'relative focus:outline-none',
         isDragActive &&
-          'ring-primary/70 ring-offset-background ring-2 ring-offset-2',
+        'ring-primary/70 ring-offset-background ring-2 ring-offset-2',
         className
       )}
       tabIndex={0}
@@ -492,82 +492,73 @@ export function ImageUploader({
       <div
         className={cn(
           'flex flex-wrap gap-4',
-          allowMultiple ? 'flex-wrap' : 'flex-nowrap'
+          allowMultiple ? 'flex-wrap' : 'flex-col'
         )}
       >
         {items.map((item) => (
           <div
             key={item.id}
-            className="group border-border bg-muted/50 hover:border-border hover:bg-muted relative overflow-hidden rounded-xl border p-1 shadow-sm transition"
+            className="group w-full min-h-20 relative rounded-2xl bg-muted/30 border-primary/30 border p-3 shadow-inner overflow-hidden"
           >
-            <div className="relative overflow-hidden rounded-lg">
+            <div className="relative w-full h-20 flex items-center justify-center">
               <img
                 src={item.preview}
                 alt="Reference"
-                className="h-32 w-32 rounded-lg object-cover"
+                className="max-h-full max-w-full object-contain"
               />
-              {item.size && (
-                <span className="bg-background text-muted-foreground absolute bottom-2 left-2 rounded-md px-2 py-1 text-[10px] font-medium">
-                  {formatBytes(item.size)}
-                </span>
-              )}
-              {item.status !== 'uploading' && (
-                <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/35 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="secondary"
-                    className="bg-background/50 text-foreground hover:bg-background/50 h-10 w-10 rounded-full shadow-sm backdrop-blur focus-visible:ring-2 focus-visible:ring-white/70"
-                    onClick={() => openReplacePicker(item.id)}
-                    aria-label="Upload a new image to replace"
-                  >
-                    <IconRefresh className="h-5 w-5" />
-                  </Button>
-                </div>
-              )}
               {item.status === 'uploading' && (
-                <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/60 text-xs font-medium text-white">
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/60 text-xs font-medium text-white rounded-2xl">
                   Uploading...
                 </div>
               )}
               {item.status === 'error' && (
-                <div className="absolute inset-0 z-10 flex items-center justify-center bg-red-500/70 text-xs font-medium text-white">
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-red-500/70 text-xs font-medium text-white rounded-2xl">
                   Failed
                 </div>
+              )}
+            </div>
+            <div className="absolute top-2 right-2 z-20 flex gap-1">
+              {item.status !== 'uploading' && (
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="secondary"
+                  className="bg-background/80 text-foreground hover:bg-background h-7 w-7 rounded-full shadow-sm backdrop-blur"
+                  onClick={() => openReplacePicker(item.id)}
+                  aria-label="Upload a new image to replace"
+                >
+                  <IconRefresh className="h-3 w-3" />
+                </Button>
               )}
               <Button
                 size="icon"
                 variant="destructive"
-                className="absolute top-2 right-2 z-20 h-7 w-7"
+                className="h-7 w-7 rounded-full"
                 onClick={() => handleRemove(item.id)}
                 aria-label="Remove image"
               >
-                <IconX className="h-4 w-4" />
+                <IconX className="h-3 w-3" />
               </Button>
             </div>
           </div>
         ))}
 
         {items.length < maxCount && (
-          <div className="group border-border bg-muted/50 hover:border-border hover:bg-muted relative overflow-hidden rounded-xl border border-dashed p-1 shadow-sm transition">
-            <div className="relative overflow-hidden rounded-lg">
-              <button
-                type="button"
-                className="flex h-32 w-32 flex-col items-center justify-center gap-2"
-                onClick={openFilePicker}
-              >
-                <div className="border-border flex h-10 w-10 items-center justify-center rounded-full border border-dashed">
-                  <IconUpload className="h-5 w-5" />
-                </div>
-                <span className="text-xs font-medium">Upload</span>
-                <span className="text-primary text-xs">Max {maxSizeMB}MB</span>
-              </button>
-            </div>
-          </div>
+          <button
+            type="button"
+            className="group min-h-20 w-full rounded-2xl bg-muted/30 border-primary/30 border p-3 shadow-inner hover:bg-muted/40 transition flex flex-col items-center justify-center gap-2"
+            onClick={openFilePicker}
+          >
+            <IconUpload className="h-6 w-6 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground text-center">
+              Drop image here or click to upload<br />
+              JPG, PNG, WEBP
+            </span>
+          </button>
         )}
       </div>
 
-      {!title && (
+      {!title && emptyHint && (
         <div className="text-muted-foreground text-xs">{emptyHint}</div>
       )}
     </div>

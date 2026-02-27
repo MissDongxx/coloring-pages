@@ -113,6 +113,18 @@ const MODEL_OPTIONS = [
     provider: 'fal',
     scenes: ['text-to-image'],
   },
+  {
+    value: 'Tongyi-MAI/Z-Image-Turbo',
+    label: 'Tongyi Z-Image',
+    provider: 'siliconflow',
+    scenes: ['text-to-image'],
+  },
+  {
+    value: 'runware:400@2',
+    label: 'Runware',
+    provider: 'runware',
+    scenes: ['text-to-image', 'image-to-image'],
+  },
 ];
 
 const PROVIDER_OPTIONS = [
@@ -127,6 +139,14 @@ const PROVIDER_OPTIONS = [
   {
     value: 'gemini',
     label: 'Gemini',
+  },
+  {
+    value: 'runware',
+    label: 'Runware',
+  },
+  {
+    value: 'siliconflow',
+    label: 'SiliconFlow',
   },
 ];
 
@@ -193,10 +213,7 @@ export function ImageGenerator({
 }: ImageGeneratorProps) {
   const t = useTranslations('ai.image.generator');
 
-  const [activeTab, setActiveTab] =
-    useState<ImageGeneratorTab>('text-to-image');
 
-  const [costCredits, setCostCredits] = useState<number>(2);
   const [provider, setProvider] = useState('siliconflow');
   const [model, setModel] = useState('Tongyi-MAI/Z-Image-Turbo');
   const [prompt, setPrompt] = useState('');
@@ -436,13 +453,14 @@ export function ImageGenerator({
       return;
     }
 
-    if (remainingCredits < costCredits) {
+    if (remainingCredits < currentCostCredits) {
       toast.error('Insufficient credits. Please top up to keep creating.');
       return;
     }
 
     const trimmedPrompt = prompt.trim();
-    if (!trimmedPrompt) {
+    // For image-to-image mode, prompt is optional (will use default prompt in backend)
+    if (!trimmedPrompt && isTextToImageMode) {
       toast.error('Please enter a prompt before generating.');
       return;
     }
@@ -455,6 +473,18 @@ export function ImageGenerator({
     if (!isTextToImageMode && referenceImageUrls.length === 0) {
       toast.error('Please upload reference images before generating.');
       return;
+    }
+
+    let currentProvider = provider;
+    let currentModel = model;
+
+    // Default overrides
+    if (isTextToImageMode) {
+      currentProvider = 'siliconflow';
+      currentModel = 'Tongyi-MAI/Z-Image-Turbo';
+    } else {
+      currentProvider = 'runware';
+      currentModel = 'runware:400@2';
     }
 
     // Start generating — show spinner but no progress yet
@@ -479,8 +509,8 @@ export function ImageGenerator({
         body: JSON.stringify({
           mediaType: AIMediaType.IMAGE,
           scene: isTextToImageMode ? 'text-to-image' : 'image-to-image',
-          provider,
-          model,
+          provider: currentProvider,
+          model: currentModel,
           prompt: trimmedPrompt,
           options,
         }),
@@ -504,8 +534,8 @@ export function ImageGenerator({
         setGeneratedImages([{
           id: `cached-${data.coloringPage.id}`,
           url: cachedImageUrl,
-          provider,
-          model,
+          provider: currentProvider,
+          model: currentModel,
           prompt: trimmedPrompt,
           coloringPage: data.coloringPage,
         }]);
@@ -532,8 +562,8 @@ export function ImageGenerator({
             imageUrls.map((url, index) => ({
               id: `${newTaskId}-${index}`,
               url,
-              provider,
-              model,
+              provider: currentProvider,
+              model: currentModel,
               prompt: trimmedPrompt,
               coloringPage: cpInfo || undefined,
             }))
@@ -594,90 +624,100 @@ export function ImageGenerator({
   };
 
   return (
-    <section className={cn('py-16 md:py-24', className)}>
+    <section className={cn('py-10 md:py-16', className)}>
       <div className="container">
         <div className="mx-auto max-w-6xl">
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-            <Card className="rounded-3xl border-2 border-border/60 bg-white shadow-sm sm:p-2">
-              <CardHeader>
-                {srOnlyTitle && <h2 className="sr-only">{srOnlyTitle}</h2>}
-                <CardTitle className="flex items-center gap-2 text-base font-semibold text-foreground/80">
-                  <span className="text-primary"><Sparkles className="size-5" /></span>
-                  {t('title')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6 pb-6">
-                <Tabs value={activeTab} onValueChange={handleTabChange}>
-                  <TabsList className="bg-muted/60 p-1 rounded-full grid w-full grid-cols-2">
-                    <TabsTrigger value="text-to-image" className="rounded-full data-[state=active]:shadow-sm">
-                      {t('tabs.text-to-image')}
-                    </TabsTrigger>
-                    <TabsTrigger value="image-to-image" className="rounded-full data-[state=active]:shadow-sm">
-                      {t('tabs.image-to-image')}
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
-
-                {/* Removed Provider and Model Select */}
-
-                {!isTextToImageMode && (
-                  <div className="space-y-4">
-                    <ImageUploader
-                      title={t('form.reference_image')}
-                      allowMultiple={allowMultipleImages}
-                      maxImages={allowMultipleImages ? maxImages : 1}
-                      maxSizeMB={maxSizeMB}
-                      onChange={handleReferenceImagesChange}
-                      emptyHint={t('form.reference_image_placeholder')}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <div className="flex flex-col gap-4">
+              <Card className="rounded-2xl border-2 border-border/60 bg-white shadow-sm overflow-hidden">
+                <CardHeader className="bg-white py-1.5 px-4">
+                  {srOnlyTitle && <h2 className="sr-only">{srOnlyTitle}</h2>}
+                  <CardTitle className="flex items-center gap-2 text-sm font-semibold text-foreground/80">
+                    <span className="text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-wand-2 size-4"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z" /><path d="m14 7 3 3" /><path d="M5 6v4" /><path d="M19 14v4" /><path d="M10 2v2" /><path d="M7 8H3" /><path d="M21 16h-4" /><path d="M11 3H9" /></svg></span>
+                    Describe the image you want
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 px-4 pb-4">
+                  <div className="relative">
+                    <Textarea
+                      id="image-prompt"
+                      value={prompt}
+                      onChange={(e) => setPrompt(e.target.value)}
+                      placeholder="e.g., a cute bunny hopping in the garden, surrounded by butterflies..."
+                      className="min-h-20 rounded-2xl bg-muted/30 border-primary/30 p-3 shadow-inner focus-visible:ring-primary/20 resize-none text-sm w-full"
                     />
-
-                    {hasReferenceUploadError && (
-                      <p className="text-destructive text-xs">
-                        {t('form.some_images_failed_to_upload')}
-                      </p>
-                    )}
                   </div>
-                )}
-
-                <div className="space-y-2">
-                  <Label htmlFor="image-prompt">{t('form.prompt')}</Label>
-                  <Textarea
-                    id="image-prompt"
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    placeholder={t('form.prompt_placeholder')}
-                    className="min-h-32 rounded-2xl bg-muted/50 border-border p-4 shadow-inner focus-visible:ring-primary/20 resize-none text-base"
-                  />
-                  <div className="text-muted-foreground flex items-center justify-between text-xs">
-                    <span>
-                      {promptLength} / {MAX_PROMPT_LENGTH}
-                    </span>
+                  <div className="text-muted-foreground flex items-center justify-end text-xs mt-1 gap-2">
                     {isPromptTooLong && (
                       <span className="text-destructive">
                         {t('form.prompt_too_long')}
                       </span>
                     )}
+                    <span>
+                      {promptLength} / {MAX_PROMPT_LENGTH}
+                    </span>
                   </div>
-                </div>
+
+                  <div className="space-y-1">
+                    <span className="text-xs text-foreground/60">Quick select:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {['Cute Kitten', 'Magic Castle', 'Undersea World', 'Space Adventure', 'Forest Sprite', 'Dinosaur'].map((tag) => (
+                        <button
+                          key={tag}
+                          onClick={() => setPrompt(tag)}
+                          className="bg-accent/70 text-accent-foreground hover:bg-accent px-3 py-1 rounded-full text-xs font-medium transition-colors border border-transparent hover:border-accent-foreground/10 shadow-sm"
+                        >
+                          {tag}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-2xl border-2 border-border/60 bg-white shadow-sm overflow-hidden">
+                <CardHeader className="bg-white py-1.5 px-4">
+                  <CardTitle className="flex items-center gap-2 text-sm font-semibold text-foreground/80">
+                    <span className="text-secondary"><ImageIcon className="size-4" /></span>
+                    Or upload an image
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 pb-4 space-y-2">
+                  <ImageUploader
+                    title=""
+                    allowMultiple={false}
+                    maxImages={1}
+                    maxSizeMB={maxSizeMB}
+                    onChange={handleReferenceImagesChange}
+                  />
+                  {hasReferenceUploadError && (
+                    <p className="text-destructive text-xs mt-1 text-center">
+                      {t('form.some_images_failed_to_upload')}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
+              <div className="space-y-3">
 
                 {!isMounted ? (
-                  <Button className="w-full rounded-full py-6 text-lg font-medium shadow-md shadow-primary/20" disabled size="lg">
+                  <Button className="w-full rounded-full py-4 text-base font-medium shadow-md shadow-primary/20" disabled size="lg">
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     {t('loading')}
                   </Button>
                 ) : isCheckSign ? (
-                  <Button className="w-full rounded-full py-6 text-lg font-medium shadow-md shadow-primary/20" disabled size="lg">
+                  <Button className="w-full rounded-full py-4 text-base font-medium shadow-md shadow-primary/20" disabled size="lg">
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     {t('checking_account')}
                   </Button>
                 ) : user ? (
                   <Button
                     size="lg"
-                    className="w-full rounded-full py-6 text-lg font-medium shadow-md shadow-primary/20 hover:shadow-lg transition-all"
+                    className="w-full rounded-full py-4 text-base font-medium shadow-md shadow-primary/20 hover:shadow-lg transition-all"
                     onClick={handleGenerate}
                     disabled={
                       isGenerating ||
-                      !prompt.trim() ||
+                      (isTextToImageMode && !prompt.trim()) ||
                       isPromptTooLong ||
                       isReferenceUploading ||
                       hasReferenceUploadError
@@ -698,7 +738,7 @@ export function ImageGenerator({
                 ) : (
                   <Button
                     size="lg"
-                    className="w-full rounded-full py-6 text-lg font-medium shadow-md shadow-primary/20 hover:shadow-lg transition-all"
+                    className="w-full rounded-full py-4 text-base font-medium shadow-md shadow-primary/20 hover:shadow-lg transition-all"
                     onClick={() => setIsShowSignModal(true)}
                   >
                     <User className="mr-2 h-4 w-4" />
@@ -709,14 +749,14 @@ export function ImageGenerator({
                 {!isMounted ? (
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-primary">
-                      {t('credits_cost', { credits: costCredits })}
+                      {t('credits_cost', { credits: currentCostCredits })}
                     </span>
                     <span>{t('credits_remaining', { credits: 0 })}</span>
                   </div>
                 ) : user && remainingCredits > 0 ? (
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-primary">
-                      {t('credits_cost', { credits: costCredits })}
+                      {t('credits_cost', { credits: currentCostCredits })}
                     </span>
                     <span>
                       {t('credits_remaining', { credits: remainingCredits })}
@@ -726,14 +766,14 @@ export function ImageGenerator({
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-primary">
-                        {t('credits_cost', { credits: costCredits })}
+                        {t('credits_cost', { credits: currentCostCredits })}
                       </span>
                       <span>
                         {t('credits_remaining', { credits: remainingCredits })}
                       </span>
                     </div>
                     <Link href="/pricing">
-                      <Button variant="outline" className="w-full" size="lg">
+                      <Button variant="outline" className="w-full py-4 text-base rounded-full" size="lg">
                         <CreditCard className="mr-2 h-4 w-4" />
                         {t('buy_credits')}
                       </Button>
@@ -755,17 +795,17 @@ export function ImageGenerator({
                     )}
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
-            <Card className="rounded-3xl border-2 border-border/60 bg-white shadow-sm sm:p-2">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base font-semibold text-foreground/80">
-                  <span className="text-secondary"><ImageIcon className="h-5 w-5" /></span>
+            <Card className="rounded-2xl border-2 border-border/60 bg-white shadow-sm sm:p-1 h-full">
+              <CardHeader className="pb-2 pt-4 px-4">
+                <CardTitle className="flex items-center gap-2 text-sm font-semibold text-foreground/80">
+                  <span className="text-secondary"><ImageIcon className="h-4 w-4" /></span>
                   {t('generated_images')}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pb-6 h-full flex flex-col">
+              <CardContent className="pb-4 px-4 h-full flex flex-col">
                 {generatedImages.length > 0 ? (
                   <div
                     className={
@@ -779,18 +819,14 @@ export function ImageGenerator({
                         <div
                           className={
                             generatedImages.length === 1
-                              ? 'relative overflow-hidden rounded-lg border'
-                              : 'relative aspect-square overflow-hidden rounded-lg border'
+                              ? 'relative aspect-square overflow-hidden rounded-lg border bg-muted/20'
+                              : 'relative aspect-square overflow-hidden rounded-lg border bg-muted/20'
                           }
                         >
                           <LazyImage
                             src={image.url}
                             alt={image.prompt || 'Generated image'}
-                            className={
-                              generatedImages.length === 1
-                                ? 'h-auto w-full'
-                                : 'h-full w-full object-cover'
-                            }
+                            className="h-full w-full object-contain bg-muted/10"
                           />
 
                           <div className="absolute right-2 bottom-2 flex gap-1 text-sm">
@@ -843,7 +879,7 @@ export function ImageGenerator({
                     ))}
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-24 text-center rounded-3xl border-2 border-dashed border-border/80 bg-muted/30 flex-1 min-h-[400px]">
+                  <div className="flex flex-col items-center justify-center py-16 text-center rounded-2xl border-2 border-dashed border-border/80 bg-muted/30 flex-1 min-h-[300px]">
                     <div className="text-border mb-4">
                       <Sparkles className="h-10 w-10 mx-auto opacity-70" />
                     </div>
