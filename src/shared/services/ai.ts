@@ -4,6 +4,7 @@ import {
   GeminiProvider,
   KieProvider,
   ReplicateProvider,
+  SiliconflowProvider,
 } from '@/extensions/ai';
 import { Configs, getAllConfigs } from '@/shared/models/config';
 
@@ -44,6 +45,14 @@ export function getAIManagerWithConfigs(configs: Configs) {
     aiManager.addProvider(
       new GeminiProvider({
         apiKey: configs.gemini_api_key,
+      })
+    );
+  }
+
+  if (configs.siliconflow_api_key) {
+    aiManager.addProvider(
+      new SiliconflowProvider({
+        apiKey: configs.siliconflow_api_key,
       })
     );
   }

@@ -44,20 +44,32 @@ export async function POST(req: Request) {
       return respErr('query ai task failed');
     }
 
-    // update ai task
+    // update ai task — only overwrite taskInfo/taskResult if the provider returned new data
+    // Synchronous providers (like Siliconflow) return undefined taskInfo/taskResult from query()
+    // because the real data was already stored during generate(). We must not overwrite it.
     const updateAITask: UpdateAITask = {
       status: result.taskStatus,
-      taskInfo: result.taskInfo ? JSON.stringify(result.taskInfo) : null,
-      taskResult: result.taskResult ? JSON.stringify(result.taskResult) : null,
       creditId: task.creditId, // credit consumption record id
     };
-    if (updateAITask.taskInfo !== task.taskInfo) {
+
+    // Only update taskInfo if the provider returned actual new data
+    if (result.taskInfo !== undefined && result.taskInfo !== null) {
+      updateAITask.taskInfo = JSON.stringify(result.taskInfo);
+    }
+    // Only update taskResult if the provider returned actual new data
+    if (result.taskResult !== undefined && result.taskResult !== null) {
+      updateAITask.taskResult = JSON.stringify(result.taskResult);
+    }
+
+    const hasTaskInfoChanged = updateAITask.taskInfo !== undefined && updateAITask.taskInfo !== task.taskInfo;
+    const hasStatusChanged = updateAITask.status !== task.status;
+    if (hasTaskInfoChanged || hasStatusChanged) {
       await updateAITaskById(task.id, updateAITask);
     }
 
-    task.status = updateAITask.status || '';
-    task.taskInfo = updateAITask.taskInfo || null;
-    task.taskResult = updateAITask.taskResult || null;
+    task.status = updateAITask.status || task.status || '';
+    task.taskInfo = updateAITask.taskInfo ?? task.taskInfo ?? null;
+    task.taskResult = updateAITask.taskResult ?? task.taskResult ?? null;
 
     return respData(task);
   } catch (e: any) {

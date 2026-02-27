@@ -1,5 +1,5 @@
 import { envConfigs } from '@/config';
-import { AIMediaType } from '@/extensions/ai';
+import { AIMediaType, AITaskStatus } from '@/extensions/ai';
 import { getUuid } from '@/shared/lib/hash';
 import { respData, respErr } from '@/shared/lib/resp';
 import { createAITask, NewAITask } from '@/shared/models/ai_task';
@@ -87,14 +87,31 @@ export async function POST(request: Request) {
     };
 
     // generate content
-    const result = await aiProvider.generate({ params });
+    let result;
+    try {
+      result = await aiProvider.generate({ params });
+    } catch (genError: any) {
+      console.error('AI generation error:', genError.message);
+      throw new Error(genError.message || 'Image generation failed');
+    }
+
     if (!result?.taskId) {
       throw new Error(
         `ai generate failed, mediaType: ${mediaType}, provider: ${provider}, model: ${model}`
       );
     }
 
-    // create ai task
+    // For synchronous providers that return SUCCESS immediately (e.g. Siliconflow),
+    // verify that the result actually contains images before consuming credits.
+    if (result.taskStatus === AITaskStatus.SUCCESS) {
+      const hasImages = result.taskInfo?.images && result.taskInfo.images.length > 0
+        && result.taskInfo.images.some((img: any) => img.imageUrl);
+      if (!hasImages) {
+        throw new Error('Generation completed but no images were returned');
+      }
+    }
+
+    // create ai task (this also consumes credits in a transaction)
     const newAITask: NewAITask = {
       id: getUuid(),
       userId: user.id,

@@ -187,8 +187,8 @@ export function ImageGenerator({
     useState<ImageGeneratorTab>('text-to-image');
 
   const [costCredits, setCostCredits] = useState<number>(2);
-  const [provider, setProvider] = useState('replicate');
-  const [model, setModel] = useState('renderartist/coloring-book-z-image-turbo-lora');
+  const [provider, setProvider] = useState('siliconflow');
+  const [model, setModel] = useState('Tongyi-MAI/Z-Image-Turbo');
   const [prompt, setPrompt] = useState('');
   const [referenceImageItems, setReferenceImageItems] = useState<
     ImageUploaderValue[]
@@ -223,15 +223,8 @@ export function ImageGenerator({
     const tab = value as ImageGeneratorTab;
     setActiveTab(tab);
 
-    const availableModels = MODEL_OPTIONS.filter(
-      (option) => option.scenes.includes(tab) && option.provider === provider
-    );
-
-    if (availableModels.length > 0) {
-      setModel(availableModels[0].value);
-    } else {
-      setModel('');
-    }
+    setProvider('siliconflow');
+    setModel('Tongyi-MAI/Z-Image-Turbo');
 
     if (tab === 'text-to-image') {
       setCostCredits(2);
@@ -603,46 +596,7 @@ export function ImageGenerator({
                   </TabsList>
                 </Tabs>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>{t('form.provider')}</Label>
-                    <Select
-                      value={provider}
-                      onValueChange={handleProviderChange}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder={t('form.select_provider')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {PROVIDER_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>{t('form.model')}</Label>
-                    <Select value={model} onValueChange={setModel}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder={t('form.select_model')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {MODEL_OPTIONS.filter(
-                          (option) =>
-                            option.scenes.includes(activeTab) &&
-                            option.provider === provider
-                        ).map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+                {/* Removed Provider and Model Select */}
 
                 {!isTextToImageMode && (
                   <div className="space-y-4">

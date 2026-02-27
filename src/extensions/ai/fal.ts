@@ -332,21 +332,21 @@ export class FalProvider implements AIProvider {
 
     // Specific handling for Color Book Z LoRA
     if (model === 'renderartist/coloring-book-z-image-turbo-lora') {
-       input.prompt = `black and white cartoon, ${prompt}, simple, cute, thick lines, white background, no shading, clean lines, kids style`;
-       input.loras = [
-          {
-            path: 'https://huggingface.co/renderartist/Coloring-Book-Z-Image-Turbo-LoRA/resolve/main/coloring-book-z-image-turbo.safetensors',
-            scale: 0.7
-          }
-       ];
-       input.num_inference_steps = 8;
-       input.guidance_scale = 1.5;
-       input.seed = Math.floor(Math.random() * 1000000);
-       
-       if (options) {
+      input.prompt = `${prompt},classic style, white background coloring page, contrast black and white, thin thickness lines playful design`;
+      input.loras = [
+        {
+          path: 'https://huggingface.co/renderartist/Coloring-Book-Z-Image-Turbo-LoRA/resolve/main/coloring-book-z-image-turbo.safetensors',
+          scale: 0.7
+        }
+      ];
+      input.num_inference_steps = 8;
+      input.guidance_scale = 1.5;
+      input.seed = Math.floor(Math.random() * 1000000);
+
+      if (options) {
         // Merge allowed options
-       }
-       return input;
+      }
+      return input;
     }
 
     if (!options) {
