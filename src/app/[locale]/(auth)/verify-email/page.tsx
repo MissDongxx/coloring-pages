@@ -1,6 +1,6 @@
+import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 
-import { redirect } from '@/core/i18n/navigation';
 import { envConfigs } from '@/config';
 import { defaultLocale } from '@/config/locale';
 import { VerifyEmailPage } from '@/shared/blocks/sign/verify-email';
@@ -40,7 +40,7 @@ export default async function VerifyEmailRoute({
   // If user lands here without required context (e.g. direct navigation),
   // send them to sign-in instead of showing an incomplete verify page.
   if (!email && !callbackUrl) {
-    redirect({ href: '/sign-in', locale });
+    redirect(`/${locale}/sign-in`);
   }
   return (
     <VerifyEmailPage email={email} callbackUrl={callbackUrl} sent={sent} />

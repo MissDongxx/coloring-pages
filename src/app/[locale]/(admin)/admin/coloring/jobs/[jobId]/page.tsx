@@ -7,7 +7,7 @@ import { Header, Main, MainHeader } from '@/shared/blocks/dashboard';
 import { PERMISSIONS, requirePermission } from '@/core/rbac';
 import { getTranslations } from 'next-intl/server';
 import { findColoringJob } from '@/shared/models/coloring_job';
-import { redirect } from '@/core/i18n/navigation';
+import { redirect } from 'next/navigation';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
@@ -36,7 +36,7 @@ export default async function AdminColoringJobDetailPage({
   const job = await findColoringJob({ id: jobId });
 
   if (!job) {
-    redirect({ href: '/admin/coloring/jobs', locale });
+    redirect(`/${locale}/admin/coloring/jobs`);
   }
 
   const crumbs = [

@@ -83,7 +83,7 @@ export default async function AdminColoringWorkflowPage({
     const { requirePermission } = await import('@/core/rbac');
     const { getTranslations } = await import('next-intl/server');
     const { getWorkflowService } = await import('@/shared/services/coloring-workflow');
-    const { redirect } = await import('@/core/i18n/navigation');
+    const { redirect } = await import('next/navigation');
 
     await requirePermission({
       code: PERMISSIONS.COLORING_WORKFLOW_WRITE,
@@ -102,7 +102,9 @@ export default async function AdminColoringWorkflowPage({
     });
 
     revalidatePath('/admin/coloring');
-    redirect({ href: `/admin/coloring/jobs/${jobId}`, locale });
+    // Note: Server actions use native redirect without locale prefix
+    // The locale will be handled by middleware
+    redirect(`/admin/coloring/jobs/${jobId}`);
   }
 
   // Format duration

@@ -1,8 +1,8 @@
+import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 
 import { envConfigs } from '@/config';
 import { defaultLocale } from '@/config/locale';
-import { redirect } from '@/core/i18n/navigation';
 import { SignIn } from '@/shared/blocks/sign/sign-in';
 import { getConfigs } from '@/shared/models/config';
 import { getSignUser } from '@/shared/models/user';
@@ -59,7 +59,7 @@ export default async function SignInPage({
   const sessionUser = await getSignUser();
   if (sessionUser) {
     const target = stripLocalePrefix(safeInternalPath(callbackUrl), locale);
-    redirect({ href: target || '/', locale });
+    redirect(`/${locale}${target === '/' ? '' : target}`);
   }
 
   const configs = await getConfigs();

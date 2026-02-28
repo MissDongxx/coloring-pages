@@ -1,6 +1,6 @@
+import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 
-import { redirect } from '@/core/i18n/navigation';
 import { AITaskStatus } from '@/extensions/ai';
 import { Empty } from '@/shared/blocks/common';
 import { findAITaskById, updateAITaskById } from '@/shared/models/ai_task';
@@ -46,5 +46,5 @@ export default async function RefreshAITaskPage({
     }
   }
 
-  redirect({ href: `/activity/ai-tasks`, locale });
+  redirect(`/${locale}/activity/ai-tasks`);
 }

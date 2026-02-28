@@ -1,4 +1,4 @@
-import { redirect } from '@/core/i18n/navigation';
+import { redirect } from 'next/navigation';
 
 export default async function AdminPage({
   params,
@@ -7,5 +7,6 @@ export default async function AdminPage({
 }) {
   const { locale } = await params;
 
-  redirect({ href: '/admin/users', locale });
+  // Use native Next.js redirect in Server Component to avoid production errors
+  redirect(`/${locale}/admin/users`);
 }

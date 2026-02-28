@@ -1,4 +1,4 @@
-import { redirect } from '@/core/i18n/navigation';
+import { redirect } from 'next/navigation';
 import { getSignUser } from '@/shared/models/user';
 import {
   hasAllPermissions,
@@ -106,7 +106,8 @@ export async function requirePermission({
 
   if (!user) {
     if (redirectUrl) {
-      redirect({ href: redirectUrl, locale: locale || '' });
+      const loc = locale || 'en';
+      redirect(`/${loc}${redirectUrl.startsWith('/') ? redirectUrl : `/${redirectUrl}`}`);
     }
     throw new PermissionDeniedError('User not authenticated');
   }
@@ -115,7 +116,8 @@ export async function requirePermission({
 
   if (!allowed) {
     if (redirectUrl) {
-      redirect({ href: redirectUrl, locale: locale || '' });
+      const loc = locale || 'en';
+      redirect(`/${loc}${redirectUrl.startsWith('/') ? redirectUrl : `/${redirectUrl}`}`);
     }
     throw new PermissionDeniedError(`Permission required: ${code}`);
   }
@@ -137,7 +139,8 @@ export async function requireAnyPermission({
 
   if (!user) {
     if (redirectUrl) {
-      redirect({ href: redirectUrl, locale: locale || '' });
+      const loc = locale || 'en';
+      redirect(`/${loc}${redirectUrl.startsWith('/') ? redirectUrl : `/${redirectUrl}`}`);
     }
     throw new PermissionDeniedError('User not authenticated');
   }
@@ -146,7 +149,8 @@ export async function requireAnyPermission({
 
   if (!allowed) {
     if (redirectUrl) {
-      redirect({ href: redirectUrl, locale: locale || '' });
+      const loc = locale || 'en';
+      redirect(`/${loc}${redirectUrl.startsWith('/') ? redirectUrl : `/${redirectUrl}`}`);
     }
     throw new PermissionDeniedError(
       `Any of these permissions required: ${codes.join(', ')}`
@@ -170,7 +174,8 @@ export async function requireAllPermissions({
 
   if (!user) {
     if (redirectUrl) {
-      redirect({ href: redirectUrl, locale: locale || '' });
+      const loc = locale || 'en';
+      redirect(`/${loc}${redirectUrl.startsWith('/') ? redirectUrl : `/${redirectUrl}`}`);
     }
     throw new PermissionDeniedError('User not authenticated');
   }
@@ -179,7 +184,8 @@ export async function requireAllPermissions({
 
   if (!allowed) {
     if (redirectUrl) {
-      redirect({ href: redirectUrl, locale: locale || '' });
+      const loc = locale || 'en';
+      redirect(`/${loc}${redirectUrl.startsWith('/') ? redirectUrl : `/${redirectUrl}`}`);
     }
     throw new PermissionDeniedError(
       `All of these permissions required: ${codes.join(', ')}`
@@ -203,7 +209,8 @@ export async function requireRole({
 
   if (!user) {
     if (redirectUrl) {
-      redirect({ href: redirectUrl, locale: locale || '' });
+      const loc = locale || 'en';
+      redirect(`/${loc}${redirectUrl.startsWith('/') ? redirectUrl : `/${redirectUrl}`}`);
     }
     throw new PermissionDeniedError('User not authenticated');
   }
@@ -212,7 +219,8 @@ export async function requireRole({
 
   if (!allowed) {
     if (redirectUrl) {
-      redirect({ href: redirectUrl, locale: locale || '' });
+      const loc = locale || 'en';
+      redirect(`/${loc}${redirectUrl.startsWith('/') ? redirectUrl : `/${redirectUrl}`}`);
     }
     throw new PermissionDeniedError(`Role required: ${roleName}`);
   }
@@ -234,7 +242,8 @@ export async function requireAnyRole({
 
   if (!user) {
     if (redirectUrl) {
-      redirect({ href: redirectUrl, locale: locale || '' });
+      const loc = locale || 'en';
+      redirect(`/${loc}${redirectUrl.startsWith('/') ? redirectUrl : `/${redirectUrl}`}`);
     }
     throw new PermissionDeniedError('User not authenticated');
   }
@@ -243,7 +252,8 @@ export async function requireAnyRole({
 
   if (!allowed) {
     if (redirectUrl) {
-      redirect({ href: redirectUrl, locale: locale || '' });
+      const loc = locale || 'en';
+      redirect(`/${loc}${redirectUrl.startsWith('/') ? redirectUrl : `/${redirectUrl}`}`);
     }
     throw new PermissionDeniedError(
       `Any of these roles required: ${roleNames.join(', ')}`
@@ -264,13 +274,16 @@ export async function requireAdminAccess({
   const user = await getSignUser();
 
   if (!user) {
-    redirect({ href: '/sign-in', locale: locale || '' });
+    const loc = locale || 'en';
+    redirect(`/${loc}/sign-in`);
   }
 
   const allowed = await canAccessAdmin(user!.id);
 
   if (!allowed) {
-    redirect({ href: redirectUrl || '', locale: locale || '' });
+    const loc = locale || 'en';
+    const url = redirectUrl || '';
+    redirect(`/${loc}${url.startsWith('/') ? url : `/${url}`}`);
   }
 }
 
@@ -280,10 +293,8 @@ export async function requireAdminAccess({
  */
 export async function getCurrentUserWithPermission({
   code,
-  locale,
 }: {
   code: string;
-  locale?: string;
 }): Promise<{ id: string; email: string; name: string } | null> {
   const user = await getSignUser();
   if (!user) return null;
@@ -300,10 +311,8 @@ export async function getCurrentUserWithPermission({
  */
 export async function checkPageAccess({
   codes,
-  locale,
 }: {
   codes: string[];
-  locale?: string;
 }): Promise<boolean> {
   const user = await getSignUser();
   if (!user) return false;
@@ -318,14 +327,12 @@ export function withPermission<T extends (...args: any[]) => any>(
   handler: T,
   {
     code,
-    locale,
   }: {
     code: string;
-    locale?: string;
   }
 ): T {
   return (async (...args: Parameters<T>) => {
-    await requirePermission({ code, locale });
+    await requirePermission({ code });
     return handler(...args);
   }) as T;
 }
@@ -337,14 +344,12 @@ export function withRole<T extends (...args: any[]) => any>(
   handler: T,
   {
     roleName,
-    locale,
   }: {
     roleName: string;
-    locale?: string;
   }
 ): T {
   return (async (...args: Parameters<T>) => {
-    await requireRole({ roleName, locale });
+    await requireRole({ roleName });
     return handler(...args);
   }) as T;
 }
