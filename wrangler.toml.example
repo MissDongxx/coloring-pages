@@ -1,37 +1,87 @@
-name = "your-app-name"
+name = "coloring-pages"
 main = ".open-next/worker.js"
-compatibility_date = "2025-03-01"
+compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
+
+# Custom domain routes - update with your domain
+routes = [
+  { pattern = "yourdomain.com/*", zone_name = "yourdomain.com" },
+  { pattern = "www.yourdomain.com/*", zone_name = "yourdomain.com" }
+]
 
 [assets]
 binding = "ASSETS"
 directory = ".open-next/assets"
 
+# Cloudflare Hyperdrive configuration
+# 1. Create Hyperdrive config: wrangler hyperdrive create supabase-db --connection-string="postgresql://user:pass@host:port/db"
+# 2. Set HYPERDRIVE_ID and HYPERDRIVE_CONNECTION_STRING as secrets
 [[hyperdrive]]
 binding = "HYPERDRIVE"
-id = ""
-localConnectionString = ""
+id = "${HYPERDRIVE_ID}"
+localConnectionString = "${HYPERDRIVE_CONNECTION_STRING}"
 
 [observability]
 enabled = true
 
 [vars]
-# app
-NEXT_PUBLIC_APP_URL = "http://localhost:3000"
+# Application
+NEXT_PUBLIC_APP_URL = "https://yourdomain.com"
 NEXT_PUBLIC_APP_NAME = "Your App Name"
+NEXT_PUBLIC_SUPABASE_URL = "https://your-project.supabase.co"
 
-# theme
+# Theme & Appearance
 NEXT_PUBLIC_THEME = "default"
-
-# appearance
 NEXT_PUBLIC_APPEARANCE = "system"
 
-# database
+# Auth URL
+AUTH_URL = "https://yourdomain.com"
+
+# Database Configuration
 DATABASE_PROVIDER = "postgresql"
-DATABASE_URL = ""
 DB_SINGLETON_ENABLED = "true"
 DB_MAX_CONNECTIONS = "1"
+DB_SCHEMA = "public"
 
-# auth secret
-# openssl rand -base64 32
-AUTH_SECRET = ""
+# Migrations
+DB_MIGRATIONS_TABLE = "__drizzle_migrations"
+DB_MIGRATIONS_SCHEMA = "drizzle"
+
+# Cloudflare R2
+R2_PUBLIC_DOMAIN = "https://images.yourdomain.com"
+R2_BUCKET_NAME = "your-bucket-name"
+
+# Coloring Workflow Configuration
+COLORING_WORKFLOW_ENABLED = "true"
+COLORING_WORKFLOW_SCHEDULE_TIME = "02:00"
+COLORING_WORKFLOW_MAX_DAILY = "100"
+COLORING_MDX_PATH = "content/coloring-pages"
+COLORING_R2_PATH = "coloring-pages"
+
+# Image Quality Settings
+COLORING_MIN_IMAGE_WIDTH = "512"
+COLORING_MAX_IMAGE_WIDTH = "4096"
+COLORING_MIN_IMAGE_SIZE = "10240"
+COLORING_MAX_IMAGE_SIZE = "5242880"
+COLORING_MIN_QUALITY_SCORE = "70"
+COLORING_USE_AI_VALIDATION = "true"
+COLORING_AI_VALIDATION_MODEL = "openai"
+
+# R2 Bucket for Incremental Cache
+[[r2_buckets]]
+binding = "NEXT_INC_CACHE_R2_BUCKET"
+bucket_name = "your-bucket-name"
+
+# ============================================
+# Required Secrets (set via Cloudflare dashboard):
+# ============================================
+# - DATABASE_URL: PostgreSQL connection string
+# - AUTH_SECRET: JWT secret (openssl rand -base64 32)
+# - CF_R2_ACCOUNT_ID: Cloudflare R2 account ID
+# - HYPERDRIVE_ID: Your Hyperdrive config ID
+# - HYPERDRIVE_CONNECTION_STRING: Local dev connection string
+# - KAGGLE_USERNAME: Kaggle username
+# - KAGGLE_KEY: Kaggle API key
+#
+# Set secrets via:
+# wrangler secret put DATABASE_URL
