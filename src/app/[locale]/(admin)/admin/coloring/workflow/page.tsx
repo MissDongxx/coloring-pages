@@ -93,12 +93,14 @@ export default async function AdminColoringWorkflowPage({
     const wordRoots = formData.get('wordRoots');
     const jobType = formData.get('jobType') || 'manual';
     const provider = formData.get('provider') || 'kaggle';
+    const count = parseInt((formData.get('count') as string) || '100');
 
     const workflowService = getWorkflowService();
     const jobId = await workflowService.runWorkflow({
       wordRoots: wordRoots ? (wordRoots as string).split(',').map((s) => s.trim()) : undefined,
       jobType: jobType as any,
       provider: provider as any,
+      count,
     });
 
     revalidatePath('/admin/coloring');
@@ -203,6 +205,18 @@ export default async function AdminColoringWorkflowPage({
                     name="wordRoots"
                     placeholder={t('form.wordRootsPlaceholder')}
                     required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="count">Count (per root)</Label>
+                  <Input
+                    id="count"
+                    name="count"
+                    type="number"
+                    min="1"
+                    max="500"
+                    defaultValue="100"
+                    placeholder="e.g. 100"
                   />
                 </div>
                 <div className="space-y-2">

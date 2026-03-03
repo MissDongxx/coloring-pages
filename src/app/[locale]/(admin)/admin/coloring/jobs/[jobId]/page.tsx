@@ -48,9 +48,11 @@ export default async function AdminColoringJobDetailPage({
 
   // Parse keywords data
   let keywords: any[] = [];
+  let csvContent = '';
   try {
     const keywordsData = JSON.parse(job.keywordsData || '{}');
     keywords = keywordsData.keywords || [];
+    csvContent = keywordsData.csvContent || '';
   } catch (e) {
     // Invalid JSON
   }
@@ -278,11 +280,20 @@ export default async function AdminColoringJobDetailPage({
         {/* Keywords Generated */}
         {keywords.length > 0 && (
           <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>{t('detail.keywords')}</CardTitle>
-              <CardDescription>
-                AI-generated keywords from word roots
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between pr-6">
+              <div>
+                <CardTitle>{t('detail.keywords')}</CardTitle>
+                <CardDescription>
+                  AI-generated keywords from word roots
+                </CardDescription>
+              </div>
+              {csvContent && (
+                <Button variant="outline" size="sm" asChild>
+                  <a href={`data:text/csv;charset=utf-8,${encodeURIComponent(csvContent)}`} download={`keywords-${jobId}.csv`}>
+                    Download CSV
+                  </a>
+                </Button>
+              )}
             </CardHeader>
             <CardContent>
               <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">

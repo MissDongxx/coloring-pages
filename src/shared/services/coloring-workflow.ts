@@ -16,13 +16,13 @@ import {
   ColoringJobStatus,
   ColoringJobType,
 } from '@/shared/models/coloring_job';
-import {
-  batchCreateColoringPages,
-  ColoringPageStatus,
-} from '@/shared/models/coloring_page';
+import { batchCreateColoringPages, ColoringPageStatus } from '@/shared/models/coloring_page';
+import { KaggleClient } from '@/shared/services/kaggle';
+import AdmZip from 'adm-zip';
 
 interface WorkflowOptions {
   wordRoots?: string[];
+  count?: number;
   jobType: ColoringJobType;
   userId?: string;
   provider?: 'replicate' | 'kaggle';
@@ -111,9 +111,10 @@ export class ColoringWorkflowService {
   /**
    * Step 1: Generate keywords using AI
    */
-  private async generateKeywords(jobId: string, wordRoots?: string[]): Promise<{
+  private async generateKeywords(jobId: string, wordRoots?: string[], count?: number): Promise<{
     csvPath: string;
     keywordsCount: number;
+    csvContent: string;
   }> {
     await this.ensureTempDir();
 
@@ -123,6 +124,7 @@ export class ColoringWorkflowService {
       const result = await this.keywordGenerator.generate({
         source: wordRoots ? 'word_roots' : 'auto_generated',
         wordRoots,
+        count,
       });
 
       await this.log(jobId, 'info', 'Keywords generated successfully', {
@@ -136,6 +138,7 @@ export class ColoringWorkflowService {
         keywordsData: JSON.stringify({
           keywords: result.keywords,
           csvPath: result.csvPath,
+          csvContent: result.csvContent, // Store CSV content directly
         }),
         totalKeywords: result.keywords.length,
       });
@@ -143,6 +146,7 @@ export class ColoringWorkflowService {
       return {
         csvPath: result.csvPath,
         keywordsCount: result.keywords.length,
+        csvContent: result.csvContent,
       };
     } catch (error) {
       await this.log(jobId, 'error', 'Failed to generate keywords', { error: error instanceof Error ? error.message : String(error) });
@@ -270,46 +274,85 @@ export class ColoringWorkflowService {
       }
 
     } else {
-      // Kaggle / Mock Implementation (Restored)
-      // This is the "old" process (placeholder/mock)
-      for (const kw of keywords) {
-        const filename = `${kw.category}-${kw.keyword}.png`;
-        const imagePath = path.join(imagesDir, filename);
+      // Kaggle REST API Integration
+      this.log(jobId, 'info', 'Initializing Kaggle Client...');
+      try {
+        const kaggle = new KaggleClient();
 
-        // Create a simple 512x512 coloring page placeholder (black outlines on white background)
-        // Design: A simple flower/butterfly shape with thick black outlines
-        const svgImage = `
-          <svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
-            <rect width="512" height="512" fill="white"/>
-            <!-- Simple coloring page design - flower or butterfly outline -->
-            <circle cx="256" cy="256" r="80" fill="none" stroke="black" stroke-width="4"/>
-            <circle cx="256" cy="256" r="40" fill="none" stroke="black" stroke-width="3"/>
-            <circle cx="256" cy="256" r="10" fill="black"/>
-            <!-- Petals/wings -->
-            <ellipse cx="176" cy="256" rx="60" ry="30" fill="none" stroke="black" stroke-width="3"/>
-            <ellipse cx="336" cy="256" rx="60" ry="30" fill="none" stroke="black" stroke-width="3"/>
-            <ellipse cx="256" cy="176" rx="30" ry="60" fill="none" stroke="black" stroke-width="3"/>
-            <ellipse cx="256" cy="336" rx="30" ry="60" fill="none" stroke="black" stroke-width="3"/>
-            <text x="50%" y="480" font-family="Arial" font-size="16" fill="black" text-anchor="middle">
-              ${kw.keyword}
-            </text>
-          </svg>
-        `;
+        // 1. Batch Keywords (100 per chunk per user request)
+        const batchSize = 100;
+        const numBatches = Math.ceil(keywords.length / batchSize);
 
-        try {
-          const sharpModule = await import('sharp');
-          const sharp = sharpModule.default || sharpModule;
-          const buffer = Buffer.from(svgImage);
-          await sharp(buffer)
-            .resize(512, 512)
-            .png()
-            .toFile(imagePath);
-          await this.log(jobId, 'info', `Created placeholder: ${filename}`);
-          successCount++;
-        } catch (error) {
-          await this.log(jobId, 'error', `Failed to create ${filename}`, { error: error instanceof Error ? error.message : String(error) });
-          failCount++;
+        for (let batchIdx = 0; batchIdx < numBatches; batchIdx++) {
+          const batchKeywords = keywords.slice(batchIdx * batchSize, (batchIdx + 1) * batchSize);
+          await this.log(jobId, 'info', `Processing Kaggle Batch ${batchIdx + 1} / ${numBatches} (${batchKeywords.length} keywords)`);
+
+          // Generate CSV content for this batch
+          const header = 'keyword,category\n';
+          const csvRows = batchKeywords.map((kw: any) => `"${kw.keyword}","${kw.category}"`).join('\n');
+          const batchCsvContent = header + csvRows;
+
+          // Upload to Dataset
+          await this.log(jobId, 'info', `Uploading Dataset...`);
+          await kaggle.uploadKeywordsDataset(batchCsvContent);
+
+          // Small delay to allow Kaggle backend to stabilize dataset version
+          await new Promise(r => setTimeout(r, 5000));
+
+          // Trigger Notebook
+          await this.log(jobId, 'info', `Triggering Notebook execution...`);
+          await kaggle.triggerNotebook();
+
+          // Poll for completion (Kaggle can take 15-30+ mins)
+          await this.log(jobId, 'info', `Polling Kernel Status...`);
+          let isComplete = false;
+          let pollAttempts = 0;
+          const maxPolls = 120; // e.g., 120 * 30s = 60 mins max
+
+          while (!isComplete && pollAttempts < maxPolls) {
+            await new Promise(r => setTimeout(r, 30000)); // 30 sec poll interval
+            const statusObj = await kaggle.getNotebookStatus();
+            // Expected status: 'running', 'queued', 'complete', 'error', 'cancel'
+            await this.log(jobId, 'info', `Kernel status: ${statusObj.status}`);
+
+            if (statusObj.status === 'complete') {
+              isComplete = true;
+            } else if (statusObj.status === 'error' || statusObj.status === 'cancel' || statusObj.status === 'failed') {
+              throw new Error(`Kernel failed with status: ${statusObj.status}`);
+            }
+            pollAttempts++;
+          }
+
+          if (!isComplete) {
+            throw new Error(`Kaggle notebook timeout after ${maxPolls * 30} seconds`);
+          }
+
+          // Download Output
+          await this.log(jobId, 'info', `Downloading zip output from Kaggle...`);
+          const zipBuffer = await kaggle.getNotebookOutput();
+
+          // Extract Zip using adm-zip
+          await this.log(jobId, 'info', `Extracting images...`);
+          const zip = new AdmZip(zipBuffer);
+          const zipEntries = zip.getEntries();
+
+          for (const entry of zipEntries) {
+            if (!entry.isDirectory && /\\.(png|jpe?g|webp)$/i.test(entry.entryName)) {
+              // Extract to imagesDir
+              // We assume images are flat or we flatten them
+              const outPath = path.join(imagesDir, path.basename(entry.entryName));
+              await fs.writeFile(outPath, entry.getData());
+              successCount++;
+            }
+          }
+
+          await this.log(jobId, 'info', `Batch ${batchIdx + 1} complete. Generated ${successCount} images so far.`);
         }
+
+      } catch (error) {
+        await this.log(jobId, 'error', `Kaggle workflow failed`, { error: error instanceof Error ? error.message : String(error) });
+        // Set failCount equal to remaining keywords length to indicate failure
+        failCount += keywords.length - successCount;
       }
     }
 
@@ -697,7 +740,7 @@ Print and color this beautiful ${keyword} design. Perfect for kids of all ages t
       await this.log(jobId, 'info', 'Workflow started');
 
       // Step 1: Generate keywords
-      const keywordResult = await this.generateKeywords(jobId, options.wordRoots);
+      const keywordResult = await this.generateKeywords(jobId, options.wordRoots, options.count);
       csvPath = keywordResult.csvPath;
 
       // Get keywords for image generation

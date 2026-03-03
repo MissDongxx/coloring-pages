@@ -49,7 +49,7 @@ export class KeywordGenerator {
       if (config) {
         // Use dimension generator if a config exists
         const category = this.guessCategory(root);
-        const dimensionKeywords = DimensionGenerator.generate(config, category, 300, 60);
+        const dimensionKeywords = DimensionGenerator.generate(config, category, countPerRoot, 60);
         keywords.push(...dimensionKeywords);
       } else {
         const variations = await this.generateVariations(root, countPerRoot);
