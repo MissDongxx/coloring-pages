@@ -14,6 +14,7 @@ import type {
   KeywordWithPrompt,
 } from './types';
 import { DEFAULT_CATEGORIES } from './types';
+import { DIMENSION_REGISTRY, DimensionGenerator } from './dimensions';
 
 /**
  * Prompt template based on Coloring-Book-Z-Image-Turbo-LoRA format
@@ -32,7 +33,7 @@ export class KeywordGenerator {
   }
 
   /**
-   * Generate keywords from word roots using AI
+   * Generate keywords from word roots using AI or Dimension configs
    */
   async generateFromRoots(
     roots: string[],
@@ -42,8 +43,18 @@ export class KeywordGenerator {
 
     // For each root, generate variations
     for (const root of roots) {
-      const variations = await this.generateVariations(root, countPerRoot);
-      keywords.push(...variations);
+      const lowerRoot = root.toLowerCase().trim();
+      const config = DIMENSION_REGISTRY[lowerRoot];
+
+      if (config) {
+        // Use dimension generator if a config exists
+        const category = this.guessCategory(root);
+        const dimensionKeywords = DimensionGenerator.generate(config, category, 300, 60);
+        keywords.push(...dimensionKeywords);
+      } else {
+        const variations = await this.generateVariations(root, countPerRoot);
+        keywords.push(...variations);
+      }
     }
 
     return keywords;
@@ -354,6 +365,8 @@ export class KeywordGenerator {
     const csvData = data.map((item) => ({
       category: item.category,
       keyword: item.keyword,
+      rootKeyword: item.rootKeyword || '',
+      modifier: item.modifier || '',
       prompt: item.prompt,
     }));
 

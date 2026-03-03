@@ -13,6 +13,8 @@ export interface KeywordGeneratorOptions {
 export interface KeywordData {
   category: string;
   keyword: string;
+  rootKeyword?: string;
+  modifier?: string;
 }
 
 export interface KeywordWithPrompt extends KeywordData {

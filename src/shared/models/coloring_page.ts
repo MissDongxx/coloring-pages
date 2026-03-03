@@ -2,7 +2,7 @@
  * Coloring page model - manages generated coloring pages
  */
 
-import { and, count, desc, eq, like, or } from 'drizzle-orm';
+import { and, count, desc, eq, like, or, ilike } from 'drizzle-orm';
 import { db } from '@/core/db';
 import { coloringPage } from '@/config/db/schema';
 import { nanoid } from 'nanoid';
@@ -153,13 +153,51 @@ export async function getColoringPages({
         keyword ? eq(coloringPage.keyword, keyword) : undefined,
         search
           ? or(
-              like(coloringPage.title, `%${search}%`),
-              like(coloringPage.description, `%${search}%`),
-              like(coloringPage.keyword, `%${search}%`)
-            )
+            like(coloringPage.title, `%${search}%`),
+            like(coloringPage.description, `%${search}%`),
+            like(coloringPage.keyword, `%${search}%`)
+          )
           : undefined
       )
     )
+    .orderBy(desc(coloringPage.sort), desc(coloringPage.publishedAt))
+    .limit(limit)
+    .offset((page - 1) * limit);
+
+  return result;
+}
+
+/**
+ * Get pages for an SEO Hub based on root keyword and optional modifier.
+ * Uses ilike and space replacement to fuzzy match the slugified terms.
+ */
+export async function getPagesForHub({
+  rootKeyword,
+  modifier,
+  page = 1,
+  limit = 30,
+}: {
+  rootKeyword: string;
+  modifier?: string | null;
+  page?: number;
+  limit?: number;
+}): Promise<ColoringPage[]> {
+  const rootStr = rootKeyword.replace(/-/g, ' ');
+
+  const conditions = [
+    eq(coloringPage.status, ColoringPageStatus.PUBLISHED),
+    ilike(coloringPage.rootKeyword, `%${rootStr}%`)
+  ];
+
+  if (modifier) {
+    const modStr = modifier.replace(/-/g, ' ');
+    conditions.push(ilike(coloringPage.modifier, `%${modStr}%`));
+  }
+
+  const result = await db()
+    .select()
+    .from(coloringPage)
+    .where(and(...conditions))
     .orderBy(desc(coloringPage.sort), desc(coloringPage.publishedAt))
     .limit(limit)
     .offset((page - 1) * limit);
@@ -197,10 +235,10 @@ export async function getColoringPagesCount({
         keyword ? eq(coloringPage.keyword, keyword) : undefined,
         search
           ? or(
-              like(coloringPage.title, `%${search}%`),
-              like(coloringPage.description, `%${search}%`),
-              like(coloringPage.keyword, `%${search}%`)
-            )
+            like(coloringPage.title, `%${search}%`),
+            like(coloringPage.description, `%${search}%`),
+            like(coloringPage.keyword, `%${search}%`)
+          )
           : undefined
       )
     )

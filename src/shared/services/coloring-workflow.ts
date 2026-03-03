@@ -98,10 +98,10 @@ export class ColoringWorkflowService {
   private async cleanup(jobId: string, csvPath?: string, imagesDir?: string): Promise<void> {
     try {
       if (csvPath) {
-        await fs.unlink(csvPath).catch(() => {});
+        await fs.unlink(csvPath).catch(() => { });
       }
       if (imagesDir) {
-        await fs.rm(imagesDir, { recursive: true, force: true }).catch(() => {});
+        await fs.rm(imagesDir, { recursive: true, force: true }).catch(() => { });
       }
     } catch (error) {
       console.error(`Cleanup error for job ${jobId}:`, error);
@@ -175,7 +175,7 @@ export class ColoringWorkflowService {
       const { getAIService } = await import('@/shared/services/ai');
       const { AIMediaType, AITaskStatus } = await import('@/extensions/ai/types');
       const aiService = await getAIService();
-      
+
       // Get Replicate provider
       const replicateProvider = aiService.getProvider('replicate');
       if (!replicateProvider) {
@@ -183,21 +183,21 @@ export class ColoringWorkflowService {
         await this.log(jobId, 'error', error.message);
         throw error;
       }
-      
+
       const MODEL = 'stability-ai/sdxl';
       const LORA_URL = 'https://huggingface.co/renderartist/Coloring-Book-Z-Image-Turbo-LoRA/resolve/main/coloring-book-z-image-turbo.safetensors';
-      
+
       for (const kw of keywords) {
         const filename = `${kw.category}-${kw.keyword}.png`;
         const imagePath = path.join(imagesDir, filename);
-        
+
         try {
           await this.log(jobId, 'info', `Generating image for "${kw.keyword}"...`);
-  
+
           // Construct prompt optimized for this LoRA
           // Avoid "book" to prevent literal book generation
           const prompt = `black and white cartoon, ${kw.keyword}, simple, cute, thick lines, white background, no shading, clean lines, kids style <lora:coloring-book-z-image-turbo:0.7>`;
-          
+
           // Call Replicate
           const { taskId, taskStatus } = await replicateProvider.generate({
             params: {
@@ -212,57 +212,57 @@ export class ColoringWorkflowService {
                 guidance_scale: 7.5,
                 width: 1024,
                 height: 1024,
-                scheduler: "K_EULER", 
+                scheduler: "K_EULER",
               }
             }
           });
-  
+
           if (taskStatus === AITaskStatus.FAILED) {
-               throw new Error('Task failed immediately');
+            throw new Error('Task failed immediately');
           }
-  
+
           // Poll for completion
           if (!replicateProvider.query) {
-               throw new Error('Provider does not support querying task status');
+            throw new Error('Provider does not support querying task status');
           }
-  
+
           let resultUrl = '';
           let attempts = 0;
           const maxAttempts = 60; // 2 minutes (2s interval)
-          
+
           while (attempts < maxAttempts) {
             await new Promise(r => setTimeout(r, 2000));
             const result = await replicateProvider.query({ taskId, mediaType: AIMediaType.IMAGE });
-            
+
             if (result.taskStatus === AITaskStatus.SUCCESS) {
-               const images = result.taskInfo?.images;
-               if (images && images.length > 0 && images[0].imageUrl) {
-                 resultUrl = images[0].imageUrl;
-               }
-               break;
+              const images = result.taskInfo?.images;
+              if (images && images.length > 0 && images[0].imageUrl) {
+                resultUrl = images[0].imageUrl;
+              }
+              break;
             } else if (result.taskStatus === AITaskStatus.FAILED || result.taskStatus === AITaskStatus.CANCELED) {
-               throw new Error(`Generation failed: ${result.taskInfo?.errorMessage || 'Unknown error'}`);
+              throw new Error(`Generation failed: ${result.taskInfo?.errorMessage || 'Unknown error'}`);
             }
             attempts++;
           }
-  
+
           if (!resultUrl) {
-             throw new Error('Timeout or no image URL returned');
+            throw new Error('Timeout or no image URL returned');
           }
-  
+
           // Download and save image
           await this.log(jobId, 'info', `Downloading image from ${resultUrl}...`);
           const response = await fetch(resultUrl);
           if (!response.ok) throw new Error(`Failed to download image: ${response.statusText}`);
-          
+
           const arrayBuffer = await response.arrayBuffer();
           const buffer = Buffer.from(arrayBuffer);
-          
+
           await fs.writeFile(imagePath, buffer);
-          
+
           await this.log(jobId, 'info', `Image saved: ${filename}`);
           successCount++;
-          
+
         } catch (error) {
           await this.log(jobId, 'error', `Failed to generate ${kw.keyword}`, { error: error instanceof Error ? error.message : String(error) });
           failCount++;
@@ -275,7 +275,7 @@ export class ColoringWorkflowService {
       for (const kw of keywords) {
         const filename = `${kw.category}-${kw.keyword}.png`;
         const imagePath = path.join(imagesDir, filename);
-  
+
         // Create a simple 512x512 coloring page placeholder (black outlines on white background)
         // Design: A simple flower/butterfly shape with thick black outlines
         const svgImage = `
@@ -295,7 +295,7 @@ export class ColoringWorkflowService {
             </text>
           </svg>
         `;
-  
+
         try {
           const sharpModule = await import('sharp');
           const sharp = sharpModule.default || sharpModule;
@@ -330,11 +330,13 @@ export class ColoringWorkflowService {
   /**
    * Step 4: Check image quality and filter low-quality images
    */
-  private async checkImageQuality(jobId: string, imagesDir: string): Promise<{
+  private async checkImageQuality(jobId: string, imagesDir: string, keywords: any[]): Promise<{
     passedImages: Array<{
       path: string;
       category: string;
       keyword: string;
+      rootKeyword?: string;
+      modifier?: string;
     }>;
     qualityReport: any[];
   }> {
@@ -386,11 +388,17 @@ export class ColoringWorkflowService {
         const filename = path.basename(imgPath);
         const basename = filename.replace(/\.[^/.]+$/, '');
         const parts = basename.split('-');
+        const category = parts.length >= 2 ? parts[0] : 'uncategorized';
+        const keywordStr = parts.length >= 2 ? parts.slice(1).join('-') : basename;
+
+        const originalKw = keywords.find((k: any) => k.keyword === keywordStr && k.category === category);
 
         return {
           path: imgPath,
-          category: parts.length >= 2 ? parts[0] : 'uncategorized',
-          keyword: parts.length >= 2 ? parts.slice(1).join('-') : basename,
+          category,
+          keyword: keywordStr,
+          rootKeyword: originalKw?.rootKeyword,
+          modifier: originalKw?.modifier,
         };
       });
 
@@ -421,12 +429,16 @@ export class ColoringWorkflowService {
       path: string;
       category: string;
       keyword: string;
+      rootKeyword?: string;
+      modifier?: string;
     }>
   ): Promise<
     Array<{
       category: string;
       keyword: string;
       imageUrl: string;
+      rootKeyword?: string;
+      modifier?: string;
     }>
   > {
     await this.log(jobId, 'info', `Step 4: Uploading ${images.length} images to R2...`);
@@ -466,6 +478,8 @@ export class ColoringWorkflowService {
           category: img.category,
           keyword: img.keyword,
           imageUrl: result.url,
+          rootKeyword: img.rootKeyword,
+          modifier: img.modifier,
         };
       } catch (error) {
         const errorMsg = `Failed to upload ${filename}: ${error instanceof Error ? error.message : String(error)}`;
@@ -509,6 +523,8 @@ export class ColoringWorkflowService {
       category: string;
       keyword: string;
       imageUrl: string;
+      rootKeyword?: string;
+      modifier?: string;
     }>
   ): Promise<void> {
     await this.log(jobId, 'info', 'Step 5: Creating coloring pages and MDX files...');
@@ -527,7 +543,7 @@ export class ColoringWorkflowService {
 
         const pages: any[] = [];
         for (const img of uploadedImages) {
-          const slug = this.generateSlug(img.category, img.keyword);
+          const slug = this.generateSlug(img.keyword);
           const title = this.generateTitle(img.keyword);
           const description = `A beautiful ${img.keyword} coloring page for kids`;
 
@@ -542,7 +558,9 @@ export class ColoringWorkflowService {
             img.category,
             img.keyword,
             img.imageUrl,
-            locale
+            locale,
+            img.rootKeyword,
+            img.modifier
           );
 
           pages.push({
@@ -553,6 +571,8 @@ export class ColoringWorkflowService {
             description,
             category: img.category,
             keyword: img.keyword,
+            rootKeyword: img.rootKeyword,
+            modifier: img.modifier,
             prompt: `coloring page of ${img.keyword}`,
             imageUrl: img.imageUrl,
             mdxPath: path.join(mdxPath, locale, `${slug}.mdx`),
@@ -580,17 +600,14 @@ export class ColoringWorkflowService {
   }
 
   /**
-   * Generate a slug from category and keyword
-   * Adds a random suffix to ensure uniqueness
+   * Generate a natural language slug from the keyword
    */
-  private generateSlug(category: string, keyword: string): string {
-    const base = `${category}-${keyword}`
+  private generateSlug(keyword: string): string {
+    const base = keyword
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '');
-    // Add a random 4-char suffix for uniqueness
-    const randomSuffix = Math.random().toString(36).substring(2, 6);
-    return `${base}-${randomSuffix}`;
+    return base;
   }
 
   /**
@@ -614,15 +631,20 @@ export class ColoringWorkflowService {
     category: string,
     keyword: string,
     imageUrl: string,
-    locale: string
+    locale: string,
+    rootKeyword?: string,
+    modifier?: string
   ): Promise<void> {
     const filePath = path.join(dir, `${slug}.mdx`);
+    const rootLine = rootKeyword ? `\nrootKeyword: "${rootKeyword}"` : "";
+    const modLine = modifier ? `\nmodifier: "${modifier}"` : "";
+
     const content = `---
 title: "${title}"
 description: "${description}"
 category: "${category}"
 keyword: "${keyword}"
-image: "${imageUrl}"
+image: "${imageUrl}"${rootLine}${modLine}
 status: "draft"
 locale: "${locale}"
 createdAt: "${new Date().toISOString()}"
@@ -687,7 +709,7 @@ Print and color this beautiful ${keyword} design. Perfect for kids of all ages t
       imagesDir = await this.generateImages(jobId, keywords, options.provider);
 
       // Step 3: Check image quality
-      const qualityResult = await this.checkImageQuality(jobId, imagesDir);
+      const qualityResult = await this.checkImageQuality(jobId, imagesDir, keywords);
 
       // For placeholder images, if all fail quality check, allow them through for testing
       let finalImages = qualityResult.passedImages;
@@ -699,10 +721,16 @@ Print and color this beautiful ${keyword} design. Perfect for kids of all ages t
         finalImages = imageFiles.map((f) => {
           const basename = f.replace(/\.[^/.]+$/, '');
           const parts = basename.split('-');
+          const category = parts.length >= 2 ? parts[0] : 'uncategorized';
+          const keywordStr = parts.length >= 2 ? parts.slice(1).join('-') : basename;
+          const originalKw = keywords.find((k: any) => k.keyword === keywordStr && k.category === category);
+
           return {
             path: path.join(imagesDir!, f),
-            category: parts.length >= 2 ? parts[0] : 'uncategorized',
-            keyword: parts.length >= 2 ? parts.slice(1).join('-') : basename,
+            category,
+            keyword: keywordStr,
+            rootKeyword: originalKw?.rootKeyword,
+            modifier: originalKw?.modifier,
           };
         });
       }

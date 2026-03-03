@@ -16,6 +16,7 @@ interface ColoringCanvasWithProvidersProps {
   title: string;
   description: string;
   category: string;
+  rootKeyword?: string | null;
   relatedPages?: RelatedPageItem[];
 }
 
@@ -25,6 +26,7 @@ export function ColoringCanvasWithProviders({
   title,
   description,
   category,
+  rootKeyword,
   relatedPages,
 }: ColoringCanvasWithProvidersProps) {
   return (
@@ -36,6 +38,7 @@ export function ColoringCanvasWithProviders({
           title={title}
           description={description}
           category={category}
+          rootKeyword={rootKeyword}
           relatedPages={relatedPages}
         />
       </SoundProvider>

@@ -14,6 +14,12 @@ export interface ColoringPage {
   /** 一级分类，例如 "animals" */
   category: string;
 
+  /** SEO Root Keyword，例如 "dinosaur" */
+  rootKeyword?: string;
+
+  /** SEO Modifier，例如 "cute" */
+  modifier?: string;
+
   /** 二级分类/主题，例如 "bunny" */
   subCategory: string;
 

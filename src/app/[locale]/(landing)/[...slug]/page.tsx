@@ -25,6 +25,8 @@ import {
   BreadcrumbSeparator,
 } from "@/shared/components/ui/breadcrumb";
 import type { Category } from '@/features/coloring/types/coloring-page';
+import { parseSeoHubSlug, validateSeoHub } from '@/features/coloring/lib/seo-hub';
+import { getPagesForHub, findColoringPage, ColoringPageStatus } from '@/shared/models/coloring_page';
 
 export const revalidate = 3600;
 
@@ -127,7 +129,38 @@ export async function generateMetadata({
   }
 
   // 3. category not found, try to get coloring page metadata
-  const coloringPage = getPageBySlug(staticPageSlug);
+  const seoHubMatch = parseSeoHubSlug(staticPageSlug);
+  if (seoHubMatch.isHub) {
+    const hubTitle = seoHubMatch.modifier
+      ? `${seoHubMatch.modifier.charAt(0).toUpperCase() + seoHubMatch.modifier.slice(1)} ${seoHubMatch.root.charAt(0).toUpperCase() + seoHubMatch.root.slice(1)} Coloring Pages`
+      : `${seoHubMatch.root.charAt(0).toUpperCase() + seoHubMatch.root.slice(1)} Coloring Pages`;
+
+    return {
+      title: `${hubTitle} - Free Printable`,
+      description: `Discover free printable ${seoHubMatch.modifier ? seoHubMatch.modifier + ' ' : ''}${seoHubMatch.root} coloring pages for kids and adults.`,
+      alternates: { canonical: canonicalUrl }
+    };
+  }
+
+  // 4. Check for Static coloring page
+  let coloringPage = getPageBySlug(staticPageSlug);
+
+  if (!coloringPage) {
+    // Check DB for Longtail coloring page
+    const dbPage = await findColoringPage({ slug: staticPageSlug, status: ColoringPageStatus.PUBLISHED });
+    if (dbPage) {
+      return {
+        title: dbPage.title,
+        description: dbPage.description || '',
+        openGraph: {
+          title: dbPage.title,
+          description: dbPage.description || '',
+          images: [dbPage.imageUrl],
+        },
+        alternates: { canonical: canonicalUrl },
+      };
+    }
+  }
 
   if (coloringPage) {
     title = coloringPage.title || '';
@@ -377,19 +410,108 @@ export default async function DynamicPage({
     }
   }
 
-  // 3. category not found, check for coloring page
-  const coloringPage = getPageBySlug(staticPageSlug);
+  // 3. category not found, check for SEO Hub
+  const seoHubMatch = parseSeoHubSlug(staticPageSlug);
+  if (seoHubMatch.isHub) {
+    const pages = await getPagesForHub({
+      rootKeyword: seoHubMatch.root,
+      modifier: seoHubMatch.modifier
+    });
 
-  if (coloringPage) {
-    const relatedPages = getRelatedPages(coloringPage.related || []);
+    if (pages.length === 0) {
+      return notFound(); // 404 immediately if no pages exist for this Hub
+    }
+
+    const hubTitle = seoHubMatch.modifier
+      ? `${seoHubMatch.modifier.charAt(0).toUpperCase() + seoHubMatch.modifier.slice(1)} ${seoHubMatch.root.charAt(0).toUpperCase() + seoHubMatch.root.slice(1)} Coloring Pages`
+      : `${seoHubMatch.root.charAt(0).toUpperCase() + seoHubMatch.root.slice(1)} Coloring Pages`;
+
+    const pageItems = pages.map(p => ({
+      title: p.title,
+      slug: p.slug,
+      imageSrc: p.imageUrl
+    }));
+
+    return (
+      <div className="container mx-auto px-4 pt-16 pb-8 md:pt-20 md:pb-8 max-w-6xl">
+        <Breadcrumb className="mb-8">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/">Home</BreadcrumbLink>
+            </BreadcrumbItem>
+            {seoHubMatch.modifier && (
+              <>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink href={`/${seoHubMatch.root}-coloring-pages`}>
+                    {seoHubMatch.root.charAt(0).toUpperCase() + seoHubMatch.root.slice(1)}
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              </>
+            )}
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{hubTitle}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
+        <div className="text-center mb-12">
+          <h1 className="text-3xl md:text-4xl font-bold mb-4">{hubTitle}</h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Discover our collection of free printable {seoHubMatch.modifier ? seoHubMatch.modifier + ' ' : ''}{seoHubMatch.root} coloring pages.
+          </p>
+        </div>
+
+        <section>
+          <PopularGrid items={pageItems} />
+        </section>
+      </div>
+    );
+  }
+
+  // 4. check for exact longtail match in DB or static
+  let coloringPage = getPageBySlug(staticPageSlug);
+  let isFromDb = false;
+  let dbPage = null;
+
+  if (!coloringPage) {
+    dbPage = await findColoringPage({ slug: staticPageSlug, status: ColoringPageStatus.PUBLISHED });
+    if (dbPage) {
+      isFromDb = true;
+    }
+  }
+
+  if (coloringPage || dbPage) {
+    let relatedPages = coloringPage
+      ? getRelatedPages(coloringPage.related || [])
+      : [];
+
+    // Fetch dynamic related from Hub
+    if (isFromDb && dbPage?.rootKeyword) {
+      const hubPages = await getPagesForHub({
+        rootKeyword: dbPage.rootKeyword,
+        limit: 12
+      });
+      relatedPages = hubPages
+        .filter(p => p.id !== dbPage.id) // Exclude current
+        .slice(0, 6)
+        .map(p => ({
+          title: p.title,
+          slug: p.slug,
+          imageSrc: p.imageUrl
+        }));
+    }
+
     return (
       <div className="pt-6 md:pt-10 pb-8">
         <ColoringCanvasWithProviders
-          pageId={coloringPage.slug}
-          imageSrc={coloringPage.image.png}
-          title={coloringPage.title}
-          description={coloringPage.description}
-          category={coloringPage.category}
+          pageId={isFromDb ? dbPage!.slug : coloringPage!.slug}
+          imageSrc={isFromDb ? dbPage!.imageUrl : coloringPage!.image.png}
+          title={isFromDb ? dbPage!.title : coloringPage!.title}
+          description={isFromDb ? (dbPage!.description || '') : coloringPage!.description}
+          category={isFromDb ? dbPage!.category : coloringPage!.category}
+          rootKeyword={isFromDb ? dbPage!.rootKeyword : null}
           relatedPages={relatedPages}
         />
       </div>

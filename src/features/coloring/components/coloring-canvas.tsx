@@ -261,10 +261,11 @@ interface ColoringCanvasProps {
   title?: string;
   description?: string;
   category?: string;
+  rootKeyword?: string | null;
   relatedPages?: RelatedPageItem[];
 }
 
-export function ColoringCanvas({ imageSrc, pageId, title, description, category, relatedPages }: ColoringCanvasProps) {
+export function ColoringCanvas({ imageSrc, pageId, title, description, category, rootKeyword, relatedPages }: ColoringCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [selectedColor, setSelectedColor] = useState("#FF0000");
   const [history, setHistory] = useState<ImageData[]>([]);
@@ -950,7 +951,16 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category,
           <BreadcrumbItem>
             <BreadcrumbLink href="/">Home</BreadcrumbLink>
           </BreadcrumbItem>
-          {category && (
+          {rootKeyword ? (
+            <>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink href={`/${rootKeyword.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-coloring-pages`}>
+                  {formatCategoryName(rootKeyword)} Coloring Pages
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+            </>
+          ) : category && (
             <>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -1255,14 +1265,12 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category,
                         <span className="text-xs text-gray-600">{aiPaletteType === "solid" ? "Solid" : "Gradient"}</span>
                         <button
                           onClick={() => setAiPaletteType(aiPaletteType === "solid" ? "gradient" : "solid")}
-                          className={`relative w-14 h-7 rounded-full transition-colors duration-200 ${
-                            aiPaletteType === "solid" ? "bg-orange-500" : "bg-gradient-to-r from-blue-400 to-blue-600"
-                          }`}
+                          className={`relative w-14 h-7 rounded-full transition-colors duration-200 ${aiPaletteType === "solid" ? "bg-orange-500" : "bg-gradient-to-r from-blue-400 to-blue-600"
+                            }`}
                         >
                           <span
-                            className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${
-                              aiPaletteType === "solid" ? "left-1" : "left-8"
-                            }`}
+                            className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${aiPaletteType === "solid" ? "left-1" : "left-8"
+                              }`}
                           />
                         </button>
                       </div>
@@ -1476,7 +1484,9 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category,
       {/* Related Coloring Pages */}
       {relatedPages && relatedPages.length > 0 && (
         <div className="w-full mt-8">
-          <h2 className="text-xl font-bold mb-4">More Coloring Pages You May Like</h2>
+          <h2 className="text-xl font-bold mb-4">
+            {rootKeyword ? `More ${formatCategoryName(rootKeyword)} Coloring Pages` : "More Coloring Pages You May Like"}
+          </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {relatedPages.map((item) => (
               <ColoringCard key={item.slug} title={item.title} slug={item.slug} imageSrc={item.imageSrc} />

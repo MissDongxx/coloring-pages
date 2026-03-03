@@ -600,6 +600,8 @@ export const coloringPage = table(
     title: text('title').notNull(),
     description: text('description'),
     category: text('category').notNull(),
+    rootKeyword: text('root_keyword'), // SEO Root Keyword
+    modifier: text('modifier'), // SEO Modifier
     keyword: text('keyword').notNull(),
     prompt: text('prompt'),
     imageUrl: text('image_url').notNull(),
