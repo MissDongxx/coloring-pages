@@ -3,11 +3,13 @@ import type { DimensionConfig } from './types';
 import { christmasConfig } from './christmas';
 import { dinosaurConfig } from './dinosaur';
 import { unicornConfig } from './unicorn';
+import { roseConfig } from './rose';
 
 export const DIMENSION_REGISTRY: Record<string, DimensionConfig> = {
     christmas: christmasConfig,
     dinosaur: dinosaurConfig,
     unicorn: unicornConfig,
+    rose: roseConfig,
 };
 
 // Extend KeywordData to support rootKeyword and modifier
@@ -47,7 +49,7 @@ export class DimensionGenerator {
         // and pure style hubs if applicable.
 
         // 1. Exact Root Hub
-        const rootKeywordStr = `${root} coloring pages`.trim();
+        const rootKeywordStr = root.trim();
         if (rootKeywordStr.length <= maxLength) {
             results.set(rootKeywordStr, {
                 category,
@@ -58,10 +60,10 @@ export class DimensionGenerator {
         }
 
         // 2. Pure SubHubs (Style/Audience + Root)
-        // We'll try to generate simple hubs like "{style} {root} coloring pages"
+        // We'll try to generate simple hubs like "{style} {root}"
         if (dimensions['style']) {
             for (const style of dimensions['style']) {
-                const subHubStr = `${style} ${root} coloring pages`.trim();
+                const subHubStr = `${style} ${root}`.trim();
                 if (subHubStr.length <= maxLength && !results.has(subHubStr)) {
                     results.set(subHubStr, {
                         category,

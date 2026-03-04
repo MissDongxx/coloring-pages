@@ -469,6 +469,80 @@ export async function getPopularHubs(limitCount: number = 8) {
 }
 
 
+/**
+ * Get all hubs with pagination and optional search
+ */
+export async function getAllHubs({
+  page = 1,
+  pageSize = 20,
+  search,
+}: {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+} = {}) {
+  const conditions = [
+    eq(coloringPage.status, ColoringPageStatus.PUBLISHED),
+    isNotNull(coloringPage.rootKeyword),
+    sql`${coloringPage.rootKeyword} != ''`,
+  ];
+
+  if (search) {
+    conditions.push(ilike(coloringPage.rootKeyword, `%${search}%`));
+  }
+
+  // Get total unique rootKeywords count
+  const [totalResult] = await db()
+    .select({ count: sql<number>`count(DISTINCT ${coloringPage.rootKeyword})` })
+    .from(coloringPage)
+    .where(and(...conditions));
+
+  const totalCount = totalResult?.count || 0;
+
+  // Get paginated hubs
+  const hubs = await db()
+    .select({
+      rootKeyword: coloringPage.rootKeyword,
+      roughCount: sql<number>`count(*)`.as('rough_count'),
+      imageUrl: sql<string>`COALESCE(
+        MAX(CASE WHEN ${coloringPage.imageUrl} LIKE '%images.coloringpages.club%' THEN ${coloringPage.imageUrl} END),
+        MAX(${coloringPage.imageUrl})
+      )`.as('image_url'),
+    })
+    .from(coloringPage)
+    .where(and(...conditions))
+    .groupBy(coloringPage.rootKeyword)
+    .orderBy(desc(sql`rough_count`))
+    .limit(pageSize)
+    .offset((page - 1) * pageSize);
+
+  const hubData = hubs.map((hub: { rootKeyword: string | null; roughCount: number; imageUrl: string | null }) => {
+    const root = hub.rootKeyword || '';
+    const slug = `${root}-coloring-pages`.replace(/\s+/g, '-').toLowerCase();
+    const name = root
+      .split(' ')
+      .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+
+    return {
+      name,
+      slug,
+      count: hub.roughCount,
+      imageSrc: hub.imageUrl || '/images/coloring/placeholder.png',
+      rootKeyword: root,
+      modifier: null,
+    };
+  });
+
+  return {
+    hubs: hubData,
+    total: totalCount,
+    page,
+    pageSize,
+    totalPages: Math.ceil(totalCount / pageSize),
+  };
+}
+
 let hubCache: { rootKeyword: string | null; modifier: string | null }[] | null = null;
 let lastCacheTime = 0;
 const CACHE_TTL = 60 * 1000; // 1 minute cache

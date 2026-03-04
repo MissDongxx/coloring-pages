@@ -69,7 +69,7 @@ export default async function LandingPage({
         <HubGrid hubs={popularHubs} />
         <div className="mt-8 text-center">
           <Link
-            href="/en/themes"
+            href={`/${locale}/themes`}
             className="inline-flex items-center justify-center px-10 py-4 text-base font-medium transition-all rounded-full bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:opacity-90"
           >
             View All Themes

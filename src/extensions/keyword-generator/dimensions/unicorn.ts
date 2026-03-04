@@ -38,11 +38,11 @@ export const unicornConfig: DimensionConfig = {
         ]
     },
     patterns: [
-        "{style} {character} {scene} coloring page",
-        "{style} {character} coloring page {audience}",
-        "{character} {scene} coloring page for kids",
-        "detailed {character} {scene} {root} coloring page",
-        "{style} {root} coloring page {audience}",
-        "{root} {character} {scene} coloring pages"
+        "{style} {character} {scene}",
+        "{style} {character} {audience}",
+        "{character} {scene} {audience}",
+        "detailed {character} {scene} {root}",
+        "{style} {root} {audience}",
+        "{root} {character} {scene}"
     ]
 };

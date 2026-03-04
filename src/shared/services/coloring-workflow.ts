@@ -16,9 +16,10 @@ import {
   ColoringJobStatus,
   ColoringJobType,
 } from '@/shared/models/coloring_job';
-import { createColoringPageWithSlugRetry, ColoringPageStatus } from '@/shared/models/coloring_page';
+import { createColoringPageWithSlugRetry, ColoringPageStatus, findColoringPage } from '@/shared/models/coloring_page';
 import { KaggleClient } from '@/shared/services/kaggle';
 import AdmZip from 'adm-zip';
+import { revalidatePath } from 'next/cache';
 
 interface WorkflowOptions {
   wordRoots?: string[];
@@ -340,7 +341,7 @@ export class ColoringWorkflowService {
           await this.log(jobId, 'info', `Polling Kernel Status...`);
           let isComplete = false;
           let pollAttempts = 0;
-          const maxPolls = 120; // e.g., 120 * 30s = 60 mins max
+          const maxPolls = 240; // e.g., 240 * 30s = 120 mins max
 
           while (!isComplete && pollAttempts < maxPolls) {
             await new Promise(r => setTimeout(r, 30000)); // 30 sec poll interval
@@ -494,28 +495,42 @@ export class ColoringWorkflowService {
         const filename = path.basename(imgPath);
         const basename = filename.replace(/\.[^/.]+$/, '');
 
-        // Look for a matching keyword in our list (basename could be "cat", "animals_cat", "animals-cat")
-        let matchedKw = keywords.find((k: any) =>
-          basename === k.keyword ||
-          basename.endsWith(`_${k.keyword}`) ||
-          basename.endsWith(`-${k.keyword}`) ||
-          basename.replace(/_/g, '-') === `${k.category}-${k.keyword}`
-        );
-
+        // Fallback or better parsing
         let category = 'uncategorized';
         let keywordStr = basename;
 
-        if (matchedKw) {
-          category = matchedKw.category;
-          keywordStr = matchedKw.keyword;
-        } else {
-          // Fallback parsing if not cleanly matched
-          const parts = basename.includes('_') ? basename.split('_') : basename.split('-');
-          if (parts.length >= 2) {
-            category = parts[0];
-            keywordStr = parts.slice(1).join('-'); // Rejoin rest as keyword
+        const parts = basename.includes('_') ? basename.split('_') : basename.split('-');
+        let matchedKw: any = undefined;
+
+        if (parts.length >= 2) {
+          category = parts[0];
+          // Kaggle replaces spaces with underscores, so we reconstruct the keyword slug
+          const fileKeywordSlug = parts.slice(1).join('_');
+
+          matchedKw = keywords.find((k: any) => {
+            const kSlug = k.keyword.replace(/[\s-]/g, '_');
+            return kSlug === fileKeywordSlug && k.category === category;
+          });
+
+          if (!matchedKw) {
+            // Also try hyphen matching just in case
+            const fileKeywordSlugHyphen = parts.slice(1).join('-');
+            matchedKw = keywords.find((k: any) => {
+              const kSlugHyphen = k.keyword.replace(/[\s_]/g, '-');
+              return kSlugHyphen === fileKeywordSlugHyphen && k.category === category;
+            });
           }
-          matchedKw = keywords.find((k: any) => k.keyword === keywordStr && k.category === category);
+
+          if (matchedKw) {
+            keywordStr = matchedKw.keyword;
+            return {
+              path: imgPath,
+              category: matchedKw.category,
+              keyword: matchedKw.keyword,
+              rootKeyword: matchedKw.rootKeyword,
+              modifier: matchedKw.modifier,
+            };
+          }
         }
 
         return {
@@ -778,7 +793,32 @@ export class ColoringWorkflowService {
       // Get keywords for image generation
       const job = await findColoringJob({ id: jobId });
       const keywordsData = JSON.parse(job?.keywordsData || '{"keywords":[]}');
-      const keywords = keywordsData.keywords || [];
+      const allKeywords = keywordsData.keywords || [];
+
+      // Step 1.5: Deduplicate - filter out keywords that already have pages in DB
+      await this.log(jobId, 'info', `Deduplicating ${allKeywords.length} keywords against existing pages...`);
+      const dedupResults = await Promise.all(
+        allKeywords.map(async (kw: any) => {
+          const slug = `${kw.keyword.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-coloring-page`;
+          const existing = await findColoringPage({ slug, status: ColoringPageStatus.PUBLISHED });
+          return { kw, exists: !!existing };
+        })
+      );
+      const keywords = dedupResults.filter(r => !r.exists).map(r => r.kw);
+      const skippedCount = allKeywords.length - keywords.length;
+      await this.log(jobId, 'info', `Dedup complete: ${skippedCount} existing, ${keywords.length} new keywords to process`);
+
+      if (keywords.length === 0) {
+        await this.log(jobId, 'info', 'All keywords already have pages. Workflow complete (no new images needed).');
+        await updateJobStatus(jobId, ColoringJobStatus.COMPLETED);
+        await updateColoringJob(jobId, {
+          completedAt: new Date(),
+          processedPages: 0,
+          totalKeywords: allKeywords.length,
+        });
+        await this.flushLogs(jobId);
+        return jobId;
+      }
 
       // Step 2: Generate images
       imagesDir = await this.generateImages(jobId, keywords, options.provider);
@@ -826,6 +866,12 @@ export class ColoringWorkflowService {
         processedPages: uploadedImages.length * 2, // Both en and zh
       });
 
+      try {
+        revalidatePath('/', 'layout');
+      } catch (e) {
+        console.error('Failed to revalidate cache:', e);
+      }
+
       await this.log(jobId, 'info', 'Workflow completed successfully!');
       await this.flushLogs(jobId);
       return jobId;
@@ -844,6 +890,168 @@ export class ColoringWorkflowService {
     } finally {
       // Cleanup
       await this.cleanup(jobId, csvPath, imagesDir);
+    }
+  }
+
+  /**
+   * Resume a failed/timed-out workflow from the download step.
+   * Downloads Kaggle output → quality check → upload R2 → create pages.
+   */
+  async resumeFromDownload(jobId: string): Promise<string> {
+    await this.ensureTempDir();
+
+    // Load job and its keyword data
+    const job = await findColoringJob({ id: jobId });
+    if (!job) {
+      throw new Error(`Job not found: ${jobId}`);
+    }
+
+    const keywordsData = JSON.parse(job.keywordsData || '{"keywords":[]}');
+    const keywords = keywordsData.keywords || [];
+
+    if (keywords.length === 0) {
+      throw new Error('No keywords found in job data. Cannot resume.');
+    }
+
+    await this.log(jobId, 'info', `Resuming workflow from download step with ${keywords.length} keywords...`);
+
+    // Update job status back to processing
+    await updateJobStatus(jobId, ColoringJobStatus.PROCESSING);
+
+    const imagesDir = path.join(this.tempDir, jobId, 'images');
+    await fs.mkdir(imagesDir, { recursive: true });
+
+    let successCount = 0;
+
+    try {
+      // Step 1: Download Kaggle output
+      await this.log(jobId, 'info', 'Downloading Kaggle notebook output...');
+      const kaggle = new KaggleClient();
+
+      let zipBuffer: Buffer = Buffer.alloc(0);
+      let downloadAttempts = 0;
+      const maxDownloadAttempts = 20;
+      let lastError: any = null;
+
+      while (downloadAttempts < maxDownloadAttempts) {
+        try {
+          zipBuffer = await kaggle.getNotebookOutput();
+          if (zipBuffer.length > 0) {
+            break;
+          } else {
+            throw new Error('Downloaded empty file');
+          }
+        } catch (downloadError: any) {
+          lastError = downloadError;
+          downloadAttempts++;
+
+          if (downloadAttempts >= maxDownloadAttempts) {
+            throw new Error(`Failed to download output after ${maxDownloadAttempts} attempts: ${lastError.message}`);
+          }
+
+          const waitTime = 30;
+          await this.log(jobId, 'info', `Output not ready yet, retrying in ${waitTime}s (attempt ${downloadAttempts}/${maxDownloadAttempts})...`);
+          await new Promise(r => setTimeout(r, waitTime * 1000));
+        }
+      }
+
+      // Step 2: Extract images from zip
+      await this.log(jobId, 'info', `Downloaded zip size: ${zipBuffer.length} bytes. Extracting...`);
+      const zip = new AdmZip(zipBuffer);
+      const zipEntries = zip.getEntries();
+      await this.log(jobId, 'info', `Zip entries count: ${zipEntries.length}`);
+
+      for (const entry of zipEntries) {
+        if (!entry.isDirectory && /\.(png|jpe?g|webp)$/i.test(entry.entryName)) {
+          const outPath = path.join(imagesDir, path.basename(entry.entryName));
+          await fs.writeFile(outPath, entry.getData());
+          successCount++;
+          await this.log(jobId, 'info', `Extracted: ${entry.entryName}`);
+        }
+      }
+
+      await this.log(jobId, 'info', `Extracted ${successCount} images.`);
+
+      if (successCount === 0) {
+        throw new Error('No images found in Kaggle output');
+      }
+
+      // Step 3: Quality check
+      const qualityResult = await this.checkImageQuality(jobId, imagesDir, keywords);
+
+      let finalImages = qualityResult.passedImages;
+      if (finalImages.length === 0) {
+        await this.log(jobId, 'warn', 'All images failed quality check, allowing through for testing');
+        const files = await fs.readdir(imagesDir);
+        const imageFiles = files.filter((f) => /\.(png|jpe?g|webp)$/i.test(f));
+        finalImages = imageFiles.map((f) => {
+          const basename = f.replace(/\.[^/.]+$/, '');
+          const parts = basename.includes('_') ? basename.split('_') : basename.split('-');
+          let category = parts.length >= 2 ? parts[0] : 'uncategorized';
+          let keywordStr = basename;
+          let originalKw = undefined;
+
+          if (parts.length >= 2) {
+            const fileKeywordSlug = parts.slice(1).join('_');
+            originalKw = keywords.find((k: any) => {
+              const kSlug = k.keyword.replace(/[\s-]/g, '_');
+              return kSlug === fileKeywordSlug && k.category === category;
+            });
+
+            if (!originalKw) {
+              const fileKeywordSlugHyphen = parts.slice(1).join('-');
+              originalKw = keywords.find((k: any) => {
+                const kSlugHyphen = k.keyword.replace(/[\s_]/g, '-');
+                return kSlugHyphen === fileKeywordSlugHyphen && k.category === category;
+              });
+            }
+          }
+
+          if (originalKw) {
+            keywordStr = originalKw.keyword;
+            category = originalKw.category;
+          } else if (parts.length >= 2) {
+            keywordStr = parts.slice(1).join(' '); // Fallback to spaced if no match
+          }
+
+          return {
+            path: path.join(imagesDir, f),
+            category,
+            keyword: keywordStr,
+            rootKeyword: originalKw?.rootKeyword,
+            modifier: originalKw?.modifier,
+          };
+        });
+      }
+
+      if (finalImages.length === 0) {
+        throw new Error('No images found after quality check');
+      }
+
+      // Step 4: Upload to R2
+      const uploadedImages = await this.uploadImagesToR2(jobId, finalImages);
+
+      // Step 5: Create pages
+      await this.createColoringPages(jobId, uploadedImages);
+
+      // Mark job as completed
+      await updateJobStatus(jobId, ColoringJobStatus.COMPLETED);
+      await updateColoringJob(jobId, {
+        completedAt: new Date(),
+        processedPages: uploadedImages.length,
+        errorMessage: null,
+      });
+
+      await this.log(jobId, 'info', `Resume workflow completed! ${uploadedImages.length} pages created.`);
+      await this.flushLogs(jobId);
+      return jobId;
+    } catch (error) {
+      await this.log(jobId, 'error', 'Resume workflow failed', { error: error instanceof Error ? error.message : String(error) });
+      await updateJobStatus(jobId, ColoringJobStatus.FAILED, error instanceof Error ? error.message : 'Resume failed');
+      await this.flushLogs(jobId);
+      throw error;
+    } finally {
+      await this.cleanup(jobId, undefined, imagesDir);
     }
   }
 }

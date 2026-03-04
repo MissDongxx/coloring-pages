@@ -26,7 +26,7 @@ import {
 } from "@/shared/components/ui/breadcrumb";
 import type { Category } from '@/features/coloring/types/coloring-page';
 import { parseSeoHubSlug, validateSeoHub } from '@/features/coloring/lib/seo-hub';
-import { getPagesForHub, findColoringPage, ColoringPageStatus, findHubBySlugPrefix } from '@/shared/models/coloring_page';
+import { getPagesForHub, findColoringPage, ColoringPageStatus, findHubBySlugPrefix, getColoringPages } from '@/shared/models/coloring_page';
 
 export const revalidate = 3600;
 
@@ -262,32 +262,25 @@ export default async function DynamicPage({
   if (isCategory) {
     const category = getCategoryBySlug(parts[0]);
     if (category) {
-      // Get pages for this category
-      const pages = getPagesByCategory(category.slug);
+      // Get static pages for this category
+      const staticPages = getPagesByCategory(category.slug);
 
-      // Prepare subcategories for grid
-      const subCategoriesForGrid = category.subCategories?.map(sub => {
-        // Find a representative image from the first page in this subcategory
-        const subPages = getPagesBySubCategory(category.slug, sub.slug);
-        const imageSrc = subPages.length > 0 ? subPages[0].image.png : undefined;
-
-        return {
-          name: sub.name,
-          slug: `${category.slug}/${sub.slug}`, // Construct full path for link
-          count: sub.count,
-          description: sub.description,
-          imageSrc, // Use found image
-          icon: category.icon, // Fallback to parent icon
-          preview: `${sub.count} pages`
-        };
-      }) || [];
+      // Get DB pages for this category
+      const dbPages = await getColoringPages({ limit: 100, status: ColoringPageStatus.PUBLISHED, category: category.slug });
 
       // Convert pages to PopularGrid format
-      const pageItems = pages.map(p => ({
-        title: p.title,
-        slug: p.slug,
-        imageSrc: p.image.png
-      }));
+      const pageItems = [
+        ...dbPages.map(p => ({
+          title: p.title,
+          slug: p.slug,
+          imageSrc: p.imageUrl
+        })),
+        ...staticPages.map(p => ({
+          title: p.title,
+          slug: p.slug,
+          imageSrc: p.image.png
+        }))
+      ];
 
       return (
         <div className="container mx-auto px-4 pt-16 pb-8 md:pt-20 md:pb-8 max-w-6xl">

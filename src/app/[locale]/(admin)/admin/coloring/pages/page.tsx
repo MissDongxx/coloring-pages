@@ -274,7 +274,7 @@ export default async function AdminColoringPagesPage({
 
                         <div className="flex gap-2">
                           <Button variant="outline" size="sm" className="flex-1" asChild>
-                            <Link href={`/coloring-pages/${page.slug}`}>
+                            <Link href={`/${page.slug}`}>
                               <Eye className="mr-1 h-3 w-3" />
                               {t('actions.view')}
                             </Link>

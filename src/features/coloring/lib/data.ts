@@ -113,6 +113,25 @@ export function getAllCategories(): Category[] {
     });
   }
 
+  // Import DEFAULT_CATEGORIES to ensure basic categories always exist
+  const { DEFAULT_CATEGORIES } = require('@/extensions/keyword-generator/types');
+
+  for (const defaultCat of DEFAULT_CATEGORIES) {
+    const slug = defaultCat.name.toLowerCase();
+    if (!categories.find(c => c.slug === slug)) {
+      categories.push({
+        slug,
+        name: formatName(slug),
+        icon: defaultIcons[slug] || "📄",
+        imageSrc: "", // We can use a default placeholder or rely on DB later
+        preview: "",
+        description: `Explore our collection of ${formatName(slug).toLowerCase()} coloring pages.`,
+        count: 0,
+        subCategories: [],
+      });
+    }
+  }
+
   // 按涂色页数量降序排序
   return categories.sort((a, b) => b.count - a.count);
 }

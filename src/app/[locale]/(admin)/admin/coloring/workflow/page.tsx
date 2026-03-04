@@ -121,6 +121,30 @@ export default async function AdminColoringWorkflowPage({
     }
   }
 
+  // Server action to resume a workflow
+  async function resumeWorkflow(formData: FormData) {
+    'use server';
+    const { requirePermission } = await import('@/core/rbac');
+    const { getWorkflowService } = await import('@/shared/services/coloring-workflow');
+    const { redirect } = await import('next/navigation');
+
+    await requirePermission({
+      code: PERMISSIONS.COLORING_WORKFLOW_WRITE,
+      redirectUrl: '/admin/no-permission',
+    });
+
+    const jobId = formData.get('jobId') as string;
+    if (!jobId) return;
+
+    // Start background resume process
+    const workflowService = getWorkflowService();
+    workflowService.resumeFromDownload(jobId).catch(console.error);
+
+    revalidatePath('/admin/coloring/workflow');
+    revalidatePath(`/admin/coloring/jobs/${jobId}`);
+    redirect(`/admin/coloring/jobs/${jobId}`);
+  }
+
   // Format duration
   function formatDuration(started: string | Date | null, completed: string | Date | null): string {
     if (!completed || !started) return '-';
@@ -306,6 +330,14 @@ export default async function AdminColoringWorkflowPage({
                     </div>
                   </div>
                   <div className="flex gap-2">
+                    {job.status === 'failed' && (
+                      <form action={resumeWorkflow}>
+                        <input type="hidden" name="jobId" value={job.id} />
+                        <Button variant="secondary" size="sm" type="submit">
+                          Resume
+                        </Button>
+                      </form>
+                    )}
                     <Button variant="outline" size="sm" asChild>
                       <a href={`/admin/coloring/jobs/${job.id}`}>
                         {t('actions.view')}

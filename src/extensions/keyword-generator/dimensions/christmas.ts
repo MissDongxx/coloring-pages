@@ -43,11 +43,11 @@ export const christmasConfig: DimensionConfig = {
         ]
     },
     patterns: [
-        "{style} {character} {scene} coloring page",
-        "{style} {character} coloring page {audience}",
-        "{character} {scene} coloring page for kids",
-        "{style} {root} coloring page {audience}",
-        "{root} {character} {scene} coloring pages",
-        "detailed {character} mandala {root} coloring page" // High value combination
+        "{style} {character} {scene}",
+        "{style} {character} {audience}",
+        "{character} {scene} {audience}",
+        "{style} {root} {audience}",
+        "{root} {character} {scene}",
+        "detailed {character} mandala {root}"
     ]
 };
