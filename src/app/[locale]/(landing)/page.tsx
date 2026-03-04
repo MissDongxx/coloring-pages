@@ -4,7 +4,9 @@ import { getTranslations } from 'next-intl/server';
 import { CategoryGrid } from '@/features/coloring/components/category-grid';
 import { PopularGrid } from '@/features/coloring/components/popular-grid';
 import { getAllCategories, getPopularPages } from '@/features/coloring/lib/data';
+import { getPopularHubs } from '@/shared/models/coloring_page';
 import { ImageGenerator } from '@/shared/blocks/generator';
+import { HubGrid } from '@/features/coloring/components/hub-grid';
 
 export const revalidate = 3600;
 
@@ -18,6 +20,7 @@ export default async function LandingPage({
 
   const categories = getAllCategories();
   const popularPages = getPopularPages(8);
+  const popularHubs = await getPopularHubs(8);
 
   // 只显示前8个分类
   const displayCategories = categories.slice(0, 8);
@@ -58,24 +61,20 @@ export default async function LandingPage({
         <ImageGenerator srOnlyTitle="AI Coloring Page Generator" />
       </section>
 
-      {/* 分类入口 - 只显示前8个 */}
-      <section className="py-12 mb-16">
-        <h2 className="text-2xl md:text-3xl font-bold mb-8 text-center">
-          Browse by Category
-        </h2>
-        <CategoryGrid categories={categoryData} />
-
-        {/* 更多类别按钮 */}
-        {showMoreButton && (
-          <div className="text-center mt-8">
-            <Link
-              href="/categories"
-              className="inline-flex items-center justify-center px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
-            >
-              More Categories ({categories.length - 8}+)
-            </Link>
-          </div>
-        )}
+      {/* Browse by Theme Section */}
+      <section id="browse-by-theme" className="mb-12">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold">Browse by Theme</h2>
+        </div>
+        <HubGrid hubs={popularHubs} />
+        <div className="mt-8 text-center">
+          <Link
+            href="/en/themes"
+            className="inline-flex items-center justify-center px-10 py-4 text-base font-medium transition-all rounded-full bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:opacity-90"
+          >
+            View All Themes
+          </Link>
+        </div>
       </section>
 
       {/* 热门涂色页 - 移到最下方 */}
@@ -85,6 +84,6 @@ export default async function LandingPage({
         </h2>
         <PopularGrid items={popularPages} />
       </section>
-    </div>
+    </div >
   );
 }

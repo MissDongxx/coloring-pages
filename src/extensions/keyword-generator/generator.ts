@@ -113,6 +113,8 @@ export class KeywordGenerator {
     variations.push({
       category: this.guessCategory(root),
       keyword: root,
+      rootKeyword: root,
+      modifier: '',
     });
 
     // Add variations
@@ -121,16 +123,22 @@ export class KeywordGenerator {
         variations.push({
           category: this.guessCategory(root),
           keyword: `${prefixes[i]} ${root}`,
+          rootKeyword: root,
+          modifier: prefixes[i],
         });
       } else if (i - prefixes.length < suffixes.length) {
         variations.push({
           category: this.guessCategory(root),
           keyword: `${root} ${suffixes[i - prefixes.length]}`,
+          rootKeyword: root,
+          modifier: '', // Hub generation treats suffix modifiers differently, skip for now.
         });
       } else {
         variations.push({
           category: this.guessCategory(root),
           keyword: `${root} ${i + 1}`,
+          rootKeyword: root,
+          modifier: '',
         });
       }
     }

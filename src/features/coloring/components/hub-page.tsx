@@ -123,12 +123,12 @@ export function HubPage({
                 <nav className="text-sm text-muted-foreground mb-6">
                     <Link href={`/${locale}`} className="hover:text-foreground">Home</Link>
                     <span className="mx-2">/</span>
-                    <Link href={`/${locale}/coloring`} className="hover:text-foreground">Coloring Pages</Link>
+                    <Link href={`/${locale}/`} className="hover:text-foreground">Coloring Pages</Link>
                     {modifier && (
                         <>
                             <span className="mx-2">/</span>
                             <Link
-                                href={`/${locale}/coloring/${rootKeyword}-coloring-pages`}
+                                href={`/${locale}/${rootKeyword}-coloring-pages`}
                                 className="hover:text-foreground"
                             >
                                 {rootKeyword.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')} Coloring Pages
@@ -158,7 +158,7 @@ export function HubPage({
                     {pages.map((page) => (
                         <Link
                             key={page.id}
-                            href={`/${locale}/coloring/${page.slug}`}
+                            href={`/${locale}/${page.slug}`}
                             className="group block overflow-hidden rounded-lg border bg-card hover:shadow-lg transition-shadow"
                         >
                             <div className="aspect-square bg-muted overflow-hidden">
@@ -181,7 +181,7 @@ export function HubPage({
                     <div className="flex justify-center gap-2">
                         {currentPage > 1 && (
                             <Link
-                                href={`/${locale}/coloring/${slug}?page=${currentPage - 1}`}
+                                href={`/${locale}/${slug}?page=${currentPage - 1}`}
                                 className="px-4 py-2 rounded-md border hover:bg-accent text-sm"
                             >
                                 Previous
@@ -192,7 +192,7 @@ export function HubPage({
                         </span>
                         {currentPage < totalPages && (
                             <Link
-                                href={`/${locale}/coloring/${slug}?page=${currentPage + 1}`}
+                                href={`/${locale}/${slug}?page=${currentPage + 1}`}
                                 className="px-4 py-2 rounded-md border hover:bg-accent text-sm"
                             >
                                 Next

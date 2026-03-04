@@ -2,7 +2,7 @@
  * Coloring page model - manages generated coloring pages
  */
 
-import { and, count, desc, eq, like, or, ilike } from 'drizzle-orm';
+import { and, count, desc, eq, like, or, ilike, sql, isNotNull } from 'drizzle-orm';
 import { db } from '@/core/db';
 import { coloringPage } from '@/config/db/schema';
 import { nanoid } from 'nanoid';
@@ -409,4 +409,115 @@ export async function getPagesCountForHub({
     .limit(1);
 
   return result?.count || 0;
+}
+
+/**
+ * Get popular SEO Hub combinations aggregated by rootKeyword and modifier
+ */
+export async function getPopularHubs(limitCount: number = 8) {
+  // 1. Get the likely top root keywords by rough count
+  const hubs = await db()
+    .select({
+      rootKeyword: coloringPage.rootKeyword,
+      roughCount: sql<number>`count(*)`.as('rough_count'),
+      imageUrl: sql<string>`COALESCE(
+        MAX(CASE WHEN ${coloringPage.imageUrl} LIKE '%images.coloringpages.club%' THEN ${coloringPage.imageUrl} END),
+        MAX(${coloringPage.imageUrl})
+      )`.as('image_url')
+    })
+    .from(coloringPage)
+    .where(
+      and(
+        eq(coloringPage.status, ColoringPageStatus.PUBLISHED),
+        isNotNull(coloringPage.rootKeyword),
+        sql`${coloringPage.rootKeyword} != ''`
+      )
+    )
+    .groupBy(coloringPage.rootKeyword)
+    .orderBy(desc(sql`rough_count`)) // Sort by rough count first
+    .limit(limitCount + 20); // Fetch a larger pool for accurate recount
+
+  // 2. For each hub, get the accurate count using the more inclusive logic
+  const result = await Promise.all(
+    hubs.map(async (hub: { rootKeyword: string | null; imageUrl: string | null }) => {
+      const accurateCount = await getPagesCountForHub({ rootKeyword: hub.rootKeyword || '' });
+      return {
+        ...hub,
+        count: accurateCount
+      };
+    })
+  );
+
+  // 3. Final sort by accurate count and limit
+  return result
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limitCount)
+    .map((hub: { rootKeyword: string | null; count: number; imageUrl: string | null }) => {
+      const root = hub.rootKeyword || '';
+      const slug = `${root}-coloring-pages`.replace(/\s+/g, '-').toLowerCase();
+      const name = root.split(' ').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
+      return {
+        name,
+        slug,
+        count: hub.count,
+        imageSrc: hub.imageUrl || '/images/coloring/placeholder.png',
+        rootKeyword: root,
+        modifier: null
+      };
+    });
+}
+
+
+let hubCache: { rootKeyword: string | null; modifier: string | null }[] | null = null;
+let lastCacheTime = 0;
+const CACHE_TTL = 60 * 1000; // 1 minute cache
+
+/**
+ * Finds the canonical rootKeyword and modifier for a given Hub slug prefix
+ * (e.g. "micro-nature-leaf-veins" -> { rootKeyword: "nature leaf veins", modifier: "micro" })
+ */
+export async function findHubBySlugPrefix(prefix: string) {
+  try {
+    const now = Date.now();
+    if (!hubCache || now - lastCacheTime > CACHE_TTL) {
+      // Fetch all distinct pairs to match against slugified version
+      hubCache = await db()
+        .select({
+          rootKeyword: coloringPage.rootKeyword,
+          modifier: coloringPage.modifier,
+        })
+        .from(coloringPage)
+        .where(
+          and(
+            eq(coloringPage.status, ColoringPageStatus.PUBLISHED),
+            isNotNull(coloringPage.rootKeyword)
+          )
+        )
+        .groupBy(coloringPage.rootKeyword, coloringPage.modifier);
+
+      lastCacheTime = now;
+    }
+
+    if (!hubCache) return null;
+
+    return hubCache.find((h: { rootKeyword: string | null; modifier: string | null }) => {
+      const hubSlug = h.modifier
+        ? `${h.modifier}-${h.rootKeyword}`.toLowerCase().replace(/\s+/g, '-')
+        : h.rootKeyword!.toLowerCase().replace(/\s+/g, '-');
+      return hubSlug === prefix;
+    }) || null;
+  } catch (error) {
+    console.error('[findHubBySlugPrefix] Error fetching hubs:', error);
+    // If cache exists, return from stale cache as fallback
+    if (hubCache) {
+      return hubCache.find((h: { rootKeyword: string | null; modifier: string | null }) => {
+        const hubSlug = h.modifier
+          ? `${h.modifier}-${h.rootKeyword}`.toLowerCase().replace(/\s+/g, '-')
+          : h.rootKeyword!.toLowerCase().replace(/\s+/g, '-');
+        return hubSlug === prefix;
+      }) || null;
+    }
+    return null;
+  }
 }

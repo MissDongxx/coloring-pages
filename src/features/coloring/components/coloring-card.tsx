@@ -23,7 +23,7 @@ export function ColoringCard({
   const altText = imageAlt || `${title} coloring page - free printable`;
 
   // 构建链接（使用新的 URL 结构）
-  const href = `/coloring/${slug}/`;
+  const href = `/${slug}/`;
   const proxiedSrc = imageSrc.startsWith("/") ? imageSrc : `/api/image-proxy?url=${encodeURIComponent(imageSrc)}`;
   const unoptimized = !imageSrc.startsWith("/");
 

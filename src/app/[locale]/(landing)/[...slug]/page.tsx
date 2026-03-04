@@ -26,7 +26,7 @@ import {
 } from "@/shared/components/ui/breadcrumb";
 import type { Category } from '@/features/coloring/types/coloring-page';
 import { parseSeoHubSlug, validateSeoHub } from '@/features/coloring/lib/seo-hub';
-import { getPagesForHub, findColoringPage, ColoringPageStatus } from '@/shared/models/coloring_page';
+import { getPagesForHub, findColoringPage, ColoringPageStatus, findHubBySlugPrefix } from '@/shared/models/coloring_page';
 
 export const revalidate = 3600;
 
@@ -413,18 +413,29 @@ export default async function DynamicPage({
   // 3. category not found, check for SEO Hub
   const seoHubMatch = parseSeoHubSlug(staticPageSlug);
   if (seoHubMatch.isHub) {
-    const pages = await getPagesForHub({
-      rootKeyword: seoHubMatch.root,
-      modifier: seoHubMatch.modifier
-    });
+    const hubPrefix = staticPageSlug.replace('-coloring-pages', '');
+    const dbHub = await findHubBySlugPrefix(hubPrefix);
 
-    if (pages.length === 0) {
-      return notFound(); // 404 immediately if no pages exist for this Hub
+    let root = seoHubMatch.root;
+    let modifier = seoHubMatch.modifier;
+
+    if (dbHub) {
+      root = dbHub.rootKeyword!;
+      modifier = dbHub.modifier;
     }
 
-    const hubTitle = seoHubMatch.modifier
-      ? `${seoHubMatch.modifier.charAt(0).toUpperCase() + seoHubMatch.modifier.slice(1)} ${seoHubMatch.root.charAt(0).toUpperCase() + seoHubMatch.root.slice(1)} Coloring Pages`
-      : `${seoHubMatch.root.charAt(0).toUpperCase() + seoHubMatch.root.slice(1)} Coloring Pages`;
+    const pages = await getPagesForHub({
+      rootKeyword: root,
+      modifier: modifier
+    });
+
+    if (pages.length === 0 && !dbHub) {
+      return notFound(); // 404 if no pages exist and no DB hub found
+    }
+
+    const hubTitle = modifier
+      ? `${modifier.charAt(0).toUpperCase() + modifier.slice(1)} ${root.charAt(0).toUpperCase() + root.slice(1)} Coloring Pages`
+      : `${root.charAt(0).toUpperCase() + root.slice(1)} Coloring Pages`;
 
     const pageItems = pages.map(p => ({
       title: p.title,
@@ -439,12 +450,12 @@ export default async function DynamicPage({
             <BreadcrumbItem>
               <BreadcrumbLink href="/">Home</BreadcrumbLink>
             </BreadcrumbItem>
-            {seoHubMatch.modifier && (
+            {modifier && (
               <>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <BreadcrumbLink href={`/${seoHubMatch.root}-coloring-pages`}>
-                    {seoHubMatch.root.charAt(0).toUpperCase() + seoHubMatch.root.slice(1)}
+                  <BreadcrumbLink href={`/${root.replace(/\s+/g, '-')}-coloring-pages`}>
+                    {root.charAt(0).toUpperCase() + root.slice(1)}
                   </BreadcrumbLink>
                 </BreadcrumbItem>
               </>
@@ -459,7 +470,7 @@ export default async function DynamicPage({
         <div className="text-center mb-12">
           <h1 className="text-3xl md:text-4xl font-bold mb-4">{hubTitle}</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Discover our collection of free printable {seoHubMatch.modifier ? seoHubMatch.modifier + ' ' : ''}{seoHubMatch.root} coloring pages.
+            Discover our collection of free printable {modifier ? modifier + ' ' : ''}{root} coloring pages.
           </p>
         </div>
 

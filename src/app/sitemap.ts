@@ -108,13 +108,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       for (const page of publishedPages) {
         // Add both without locale and with default locale
         dynamicRoutes.push({
-          url: `${baseUrl.href}coloring/${page.slug}`,
+          url: `${baseUrl.href}${page.slug}`,
           lastModified: page.updatedAt,
           changeFrequency: 'monthly',
           priority: 0.5,
         });
         dynamicRoutes.push({
-          url: `${baseUrl.href}${defaultLocale}/coloring/${page.slug}`,
+          url: `${baseUrl.href}${defaultLocale}/${page.slug}`,
           lastModified: page.updatedAt,
           changeFrequency: 'monthly',
           priority: 0.5,

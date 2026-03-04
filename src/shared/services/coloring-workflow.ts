@@ -362,7 +362,7 @@ export class ColoringWorkflowService {
 
           // Download Output with retry logic - keep trying until we get files or timeout
           await this.log(jobId, 'info', `Downloading zip output from Kaggle...`);
-          let zipBuffer: Buffer;
+          let zipBuffer: Buffer = Buffer.alloc(0);
           let downloadAttempts = 0;
           const maxDownloadAttempts = 20; // Retry up to 20 times (10 minutes)
           let lastError: any = null;
@@ -493,18 +493,37 @@ export class ColoringWorkflowService {
       const passedImages = filterResult.passed.map((imgPath) => {
         const filename = path.basename(imgPath);
         const basename = filename.replace(/\.[^/.]+$/, '');
-        const parts = basename.split('-');
-        const category = parts.length >= 2 ? parts[0] : 'uncategorized';
-        const keywordStr = parts.length >= 2 ? parts.slice(1).join('-') : basename;
 
-        const originalKw = keywords.find((k: any) => k.keyword === keywordStr && k.category === category);
+        // Look for a matching keyword in our list (basename could be "cat", "animals_cat", "animals-cat")
+        let matchedKw = keywords.find((k: any) =>
+          basename === k.keyword ||
+          basename.endsWith(`_${k.keyword}`) ||
+          basename.endsWith(`-${k.keyword}`) ||
+          basename.replace(/_/g, '-') === `${k.category}-${k.keyword}`
+        );
+
+        let category = 'uncategorized';
+        let keywordStr = basename;
+
+        if (matchedKw) {
+          category = matchedKw.category;
+          keywordStr = matchedKw.keyword;
+        } else {
+          // Fallback parsing if not cleanly matched
+          const parts = basename.includes('_') ? basename.split('_') : basename.split('-');
+          if (parts.length >= 2) {
+            category = parts[0];
+            keywordStr = parts.slice(1).join('-'); // Rejoin rest as keyword
+          }
+          matchedKw = keywords.find((k: any) => k.keyword === keywordStr && k.category === category);
+        }
 
         return {
           path: imgPath,
           category,
           keyword: keywordStr,
-          rootKeyword: originalKw?.rootKeyword,
-          modifier: originalKw?.modifier,
+          rootKeyword: matchedKw?.rootKeyword,
+          modifier: matchedKw?.modifier,
         };
       });
 

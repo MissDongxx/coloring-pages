@@ -833,7 +833,7 @@ export function ImageGenerator({
                             {/* Feature 3: Color This Page button */}
                             {image.coloringPage && (
                               <Link
-                                href={`/coloring/generated/${image.coloringPage.id}`}
+                                href={`/generated/${image.coloringPage.id}`}
                               >
                                 <Button
                                   size="sm"
