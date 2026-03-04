@@ -3,14 +3,22 @@ import { setRequestLocale } from 'next-intl/server';
 import { Metadata } from 'next';
 import { getPageBySlug, getAllPageSlugs, getRecommendedPages } from '@/features/coloring/lib/data';
 import { ColoringCanvasWithProviders } from '@/features/coloring/components/coloring-canvas-with-providers';
-import { findColoringPage } from '@/shared/models/coloring_page';
+import { findColoringPage, getPagesForHub, getPagesCountForHub } from '@/shared/models/coloring_page';
 import { ColoringPageStatus } from '@/shared/models/coloring_page';
+import {
+  HubPage,
+  parseHubSlug,
+  generateHubTitle,
+  generateHubDescription,
+  generateHubIntroText,
+} from '@/features/coloring/components/hub-page';
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>;
+  searchParams?: Promise<{ page?: string }>;
 }
 
-// 生成静态参数
+// 生成静态参数 (static pages only)
 export async function generateStaticParams() {
   const slugs = await getAllPageSlugs();
   const locales = ['en', 'zh'];
@@ -27,112 +35,160 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
 
-  // Try to get from static data first
+  // Step 1: Try static data
   const staticPage = await getPageBySlug(slug);
+  if (staticPage) {
+    return {
+      title: staticPage.title,
+      description: staticPage.description,
+      openGraph: {
+        title: staticPage.title,
+        description: staticPage.description,
+        images: [staticPage.image.png],
+      },
+    };
+  }
 
-  // If not found in static data, try database
-  if (!staticPage) {
-    try {
-      const dbPage = await findColoringPage({
-        slug,
-        status: ColoringPageStatus.PUBLISHED,
-      });
-
-      if (dbPage) {
-        return {
+  // Step 2: Try DB long-tail page
+  try {
+    const dbPage = await findColoringPage({
+      slug,
+      status: ColoringPageStatus.PUBLISHED,
+    });
+    if (dbPage) {
+      return {
+        title: dbPage.title,
+        description: dbPage.description || undefined,
+        openGraph: {
           title: dbPage.title,
           description: dbPage.description || undefined,
-          openGraph: {
-            title: dbPage.title,
-            description: dbPage.description || undefined,
-            images: dbPage.imageUrl ? [dbPage.imageUrl] : undefined,
-          },
-        };
-      }
-    } catch (error) {
-      console.error('[ColoringPage] Error fetching from DB:', error);
+          images: dbPage.imageUrl ? [dbPage.imageUrl] : undefined,
+        },
+      };
     }
-
-    return {};
+  } catch (error) {
+    console.error('[ColoringPage] Error fetching from DB:', error);
   }
 
-  return {
-    title: staticPage.title,
-    description: staticPage.description,
-    openGraph: {
-      title: staticPage.title,
-      description: staticPage.description,
-      images: [staticPage.image.png],
-    },
-  };
+  // Step 3: Try hub page
+  const hubParsed = parseHubSlug(slug);
+  if (hubParsed) {
+    const count = await getPagesCountForHub({
+      rootKeyword: hubParsed.root,
+      modifier: hubParsed.modifier,
+    });
+    if (count > 0) {
+      const title = generateHubTitle(hubParsed.root, hubParsed.modifier);
+      const description = generateHubDescription(hubParsed.root, hubParsed.modifier, count);
+      return {
+        title,
+        description,
+        openGraph: { title, description },
+      };
+    }
+  }
+
+  return {};
 }
 
-export default async function ColoringPage({ params }: Props) {
+export default async function ColoringPage({ params, searchParams }: Props) {
   const { locale, slug } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : {};
   setRequestLocale(locale);
 
-  // Try to get from static data first
+  // ============================================
+  // Step 1: Try static data (legacy JSON pages)
+  // ============================================
   const staticPage = await getPageBySlug(slug);
-
-  let pageData: {
-    slug: string;
-    title: string;
-    description: string;
-    imageSrc: string;
-    category: string;
-    subCategory?: string;
-  } | null = null;
-
   if (staticPage) {
-    // Use static data
-    pageData = {
-      slug: staticPage.slug,
-      title: staticPage.title,
-      description: staticPage.description,
-      imageSrc: staticPage.image.png,
-      category: staticPage.category,
-      subCategory: staticPage.subCategory,
-    };
-  } else {
-    // Try database
-    try {
-      const dbPage = await findColoringPage({
-        slug,
-        status: ColoringPageStatus.PUBLISHED,
-      });
+    const relatedPages = getRecommendedPages(staticPage.slug, staticPage.category, staticPage.subCategory);
+    return (
+      <div className="min-h-screen">
+        <ColoringCanvasWithProviders
+          pageId={staticPage.slug}
+          imageSrc={staticPage.image.png}
+          title={staticPage.title}
+          description={staticPage.description}
+          category={staticPage.category}
+          relatedPages={relatedPages}
+        />
+      </div>
+    );
+  }
 
-      if (dbPage) {
-        pageData = {
-          slug: dbPage.slug,
-          title: dbPage.title,
-          description: dbPage.description || '',
-          imageSrc: dbPage.imageUrl,
-          category: dbPage.category,
-          subCategory: undefined, // Database pages might not have subCategory
-        };
-      }
-    } catch (error) {
-      console.error('[ColoringPage] Error fetching from DB:', error);
+  // ============================================
+  // Step 2: Try DB long-tail page
+  // ============================================
+  try {
+    const dbPage = await findColoringPage({
+      slug,
+      status: ColoringPageStatus.PUBLISHED,
+    });
+    if (dbPage) {
+      const relatedPages = getRecommendedPages(dbPage.slug, dbPage.category);
+      return (
+        <div className="min-h-screen">
+          <ColoringCanvasWithProviders
+            pageId={dbPage.slug}
+            imageSrc={dbPage.imageUrl}
+            title={dbPage.title}
+            description={dbPage.description || ''}
+            category={dbPage.category}
+            relatedPages={relatedPages}
+          />
+        </div>
+      );
+    }
+  } catch (error) {
+    console.error('[ColoringPage] Error fetching from DB:', error);
+  }
+
+  // ============================================
+  // Step 3: Try hub page (dynamic aggregation)
+  // ============================================
+  const hubParsed = parseHubSlug(slug);
+  if (hubParsed) {
+    const currentPage = parseInt(resolvedSearchParams.page || '1');
+    const limit = 30;
+
+    const [pages, totalCount] = await Promise.all([
+      getPagesForHub({
+        rootKeyword: hubParsed.root,
+        modifier: hubParsed.modifier,
+        page: currentPage,
+        limit,
+      }),
+      getPagesCountForHub({
+        rootKeyword: hubParsed.root,
+        modifier: hubParsed.modifier,
+      }),
+    ]);
+
+    if (totalCount > 0) {
+      const title = generateHubTitle(hubParsed.root, hubParsed.modifier);
+      const description = generateHubDescription(hubParsed.root, hubParsed.modifier, totalCount);
+      const introText = generateHubIntroText(hubParsed.root, hubParsed.modifier);
+      const totalPages = Math.ceil(totalCount / limit);
+
+      return (
+        <HubPage
+          title={title}
+          description={description}
+          introText={introText}
+          rootKeyword={hubParsed.root}
+          modifier={hubParsed.modifier}
+          pages={pages}
+          totalCount={totalCount}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          locale={locale}
+        />
+      );
     }
   }
 
-  if (!pageData) {
-    notFound();
-  }
-
-  // Get recommended pages from the same category
-  const relatedPages = getRecommendedPages(pageData.slug, pageData.category, pageData.subCategory);
-
-  return (
-    <div className="min-h-screen">
-      <ColoringCanvasWithProviders
-        pageId={pageData.slug}
-        imageSrc={pageData.imageSrc}
-        title={pageData.title}
-        description={pageData.description}
-        category={pageData.category}
-        relatedPages={relatedPages}
-      />
-    </div>
-  );
+  // ============================================
+  // Nothing matched → 404
+  // ============================================
+  notFound();
 }

@@ -55,6 +55,7 @@ export const envConfigs: ConfigMap = {
   // Kaggle Configuration
   kaggle_username: process.env.KAGGLE_USERNAME ?? '',
   kaggle_key: process.env.KAGGLE_KEY ?? '',
+  kaggle_cli_path: process.env.KAGGLE_CLI_PATH ?? '',
   kaggle_dataset_slug: process.env.KAGGLE_DATASET_SLUG ?? '',
   kaggle_notebook_slug: process.env.KAGGLE_NOTEBOOK_SLUG ?? '',
   kaggle_notebook_version: process.env.KAGGLE_NOTEBOOK_VERSION ?? '',

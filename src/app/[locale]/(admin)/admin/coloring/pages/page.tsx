@@ -20,7 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select';
-import Image from 'next/image';
 import Link from 'next/link';
 import { revalidatePath } from 'next/cache';
 
@@ -239,13 +238,13 @@ export default async function AdminColoringPagesPage({
                       className="group relative overflow-hidden rounded-lg border bg-card"
                     >
                       {/* Image Preview */}
-                      <div className="relative aspect-square bg-muted">
+                      <div className="relative aspect-square bg-muted overflow-hidden">
                         {page.imageUrl ? (
-                          <Image
+                          <img
                             src={page.imageUrl}
                             alt={page.title}
-                            fill
-                            className="object-cover"
+                            className="w-full h-full object-cover"
+                            loading="lazy"
                           />
                         ) : (
                           <div className="flex h-full items-center justify-center">

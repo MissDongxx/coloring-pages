@@ -16,7 +16,7 @@ import {
   ColoringJobStatus,
   ColoringJobType,
 } from '@/shared/models/coloring_job';
-import { batchCreateColoringPages, ColoringPageStatus } from '@/shared/models/coloring_page';
+import { createColoringPageWithSlugRetry, ColoringPageStatus } from '@/shared/models/coloring_page';
 import { KaggleClient } from '@/shared/services/kaggle';
 import AdmZip from 'adm-zip';
 
@@ -64,12 +64,23 @@ export class ColoringWorkflowService {
       console.log(consoleMsg, data || '');
     }
 
-    // Save to database periodically (every 5 logs or on error)
+    // Save to database periodically (but not too frequently to avoid size issues)
     const logs = this.jobLogs.get(jobId)!;
-    if (logs.length % 5 === 0 || level === 'error') {
-      await updateColoringJob(jobId, {
-        logs: JSON.stringify(logs)
-      });
+    // Only save on error, or every 20 logs to reduce DB writes
+    if (level === 'error' || logs.length % 20 === 0) {
+      // Only keep last 100 logs to prevent oversized JSON
+      const logsToSave = logs.slice(-100);
+      try {
+        await updateColoringJob(jobId, {
+          logs: JSON.stringify(logsToSave)
+        });
+      } catch (dbError: any) {
+        // If DB update fails due to size, try with even fewer logs
+        const minimalLogs = logs.slice(-20);
+        await updateColoringJob(jobId, {
+          logs: JSON.stringify(minimalLogs)
+        });
+      }
     }
   }
 
@@ -79,9 +90,19 @@ export class ColoringWorkflowService {
   private async flushLogs(jobId: string): Promise<void> {
     const logs = this.jobLogs.get(jobId);
     if (logs && logs.length > 0) {
-      await updateColoringJob(jobId, {
-        logs: JSON.stringify(logs)
-      });
+      // Only keep last 100 logs to prevent oversized JSON
+      const logsToSave = logs.slice(-100);
+      try {
+        await updateColoringJob(jobId, {
+          logs: JSON.stringify(logsToSave)
+        });
+      } catch (dbError: any) {
+        // If DB update fails due to size, try with even fewer logs
+        const minimalLogs = logs.slice(-20);
+        await updateColoringJob(jobId, {
+          logs: JSON.stringify(minimalLogs)
+        });
+      }
     }
   }
 
@@ -288,9 +309,21 @@ export class ColoringWorkflowService {
           await this.log(jobId, 'info', `Processing Kaggle Batch ${batchIdx + 1} / ${numBatches} (${batchKeywords.length} keywords)`);
 
           // Generate CSV content for this batch
-          const header = 'keyword,category\n';
-          const csvRows = batchKeywords.map((kw: any) => `"${kw.keyword}","${kw.category}"`).join('\n');
+          // Format: category,keyword,prompt (as expected by the notebook)
+          const header = 'category,keyword,prompt\n';
+          const csvRows = batchKeywords.map((kw: any) => {
+            // Use the prompt if available, otherwise generate a simple one
+            const prompt = kw.prompt || `A coloring page of ${kw.keyword}, simple outlines, suitable for children`;
+            // Escape double quotes in CSV format by doubling them
+            const safeCategory = (kw.category || 'general').replace(/"/g, '""');
+            const safeKeyword = kw.keyword.replace(/"/g, '""');
+            const safePrompt = prompt.replace(/"/g, '""').replace(/\n/g, ' ').replace(/\r/g, ' ');
+            return `"${safeCategory}","${safeKeyword}","${safePrompt}"`;
+          }).join('\n');
           const batchCsvContent = header + csvRows;
+
+          // Debug log
+          await this.log(jobId, 'info', `Generated CSV content (${batchCsvContent.length} chars):`, { preview: batchCsvContent.substring(0, 200) });
 
           // Upload to Dataset
           await this.log(jobId, 'info', `Uploading Dataset...`);
@@ -327,22 +360,52 @@ export class ColoringWorkflowService {
             throw new Error(`Kaggle notebook timeout after ${maxPolls * 30} seconds`);
           }
 
-          // Download Output
+          // Download Output with retry logic - keep trying until we get files or timeout
           await this.log(jobId, 'info', `Downloading zip output from Kaggle...`);
-          const zipBuffer = await kaggle.getNotebookOutput();
+          let zipBuffer: Buffer;
+          let downloadAttempts = 0;
+          const maxDownloadAttempts = 20; // Retry up to 20 times (10 minutes)
+          let lastError: any = null;
+
+          while (downloadAttempts < maxDownloadAttempts) {
+            try {
+              zipBuffer = await kaggle.getNotebookOutput();
+              // Successfully downloaded, verify it has content
+              if (zipBuffer.length > 0) {
+                break; // Success, exit retry loop
+              } else {
+                throw new Error('Downloaded empty file');
+              }
+            } catch (downloadError: any) {
+              lastError = downloadError;
+              downloadAttempts++;
+
+              if (downloadAttempts >= maxDownloadAttempts) {
+                throw new Error(`Failed to download output after ${maxDownloadAttempts} attempts: ${lastError.message}`);
+              }
+
+              const waitTime = 30; // 30 seconds between retries
+              await this.log(jobId, 'info', `Output not ready yet, retrying in ${waitTime}s (attempt ${downloadAttempts}/${maxDownloadAttempts})...`);
+              await new Promise(r => setTimeout(r, waitTime * 1000));
+            }
+          }
 
           // Extract Zip using adm-zip
           await this.log(jobId, 'info', `Extracting images...`);
+          await this.log(jobId, 'info', `Downloaded zip size: ${zipBuffer.length} bytes`);
           const zip = new AdmZip(zipBuffer);
           const zipEntries = zip.getEntries();
+          await this.log(jobId, 'info', `Zip entries count: ${zipEntries.length}`);
 
           for (const entry of zipEntries) {
-            if (!entry.isDirectory && /\\.(png|jpe?g|webp)$/i.test(entry.entryName)) {
+            await this.log(jobId, 'info', `Processing entry: ${entry.entryName}, isDirectory: ${entry.isDirectory}`);
+            if (!entry.isDirectory && /\.(png|jpe?g|webp)$/i.test(entry.entryName)) {
               // Extract to imagesDir
               // We assume images are flat or we flatten them
               const outPath = path.join(imagesDir, path.basename(entry.entryName));
               await fs.writeFile(outPath, entry.getData());
               successCount++;
+              await this.log(jobId, 'info', `Extracted: ${entry.entryName} -> ${outPath}`);
             }
           }
 
@@ -504,14 +567,30 @@ export class ColoringWorkflowService {
         await this.log(jobId, 'info', `File read: ${filename}, size: ${imageBuffer.length} bytes`);
 
         const storage = await getStorageService();
+        const providers = storage.getProviderNames();
+        await this.log(jobId, 'info', `Storage service obtained, providers: ${providers.join(', ') || 'NONE'}`);
+
+        if (providers.length === 0) {
+          throw new Error('No storage providers configured. Please check R2/S3 configuration in settings.');
+        }
+
         const result = await storage.uploadFile({
           body: imageBuffer,
           key: key,
           contentType: 'image/png',
         });
 
+        await this.log(jobId, 'info', `Upload result for ${filename}:`, {
+          success: result.success,
+          url: result.url,
+          location: result.location,
+          error: result.error,
+          provider: result.provider,
+          key: result.key
+        });
+
         if (!result.url) {
-          throw new Error('Upload failed - no URL returned');
+          throw new Error(`Upload failed - no URL returned. Success: ${result.success}, Error: ${result.error || 'none'}`);
         }
 
         await this.log(jobId, 'info', `Upload success: ${filename}`, { url: result.url });
@@ -558,7 +637,7 @@ export class ColoringWorkflowService {
   }
 
   /**
-   * Step 6: Create database records and MDX files
+   * Step 6: Create database records (DB-only, no MDX files)
    */
   private async createColoringPages(
     jobId: string,
@@ -570,69 +649,47 @@ export class ColoringWorkflowService {
       modifier?: string;
     }>
   ): Promise<void> {
-    await this.log(jobId, 'info', 'Step 5: Creating coloring pages and MDX files...');
+    await this.log(jobId, 'info', `Step 5: Creating ${uploadedImages.length} coloring page records...`);
 
-    const mdxPath = envConfigs.coloring_mdx_path || 'content/coloring-pages';
-    const locales = ['en', 'zh']; // Supported locales
-
-    await this.log(jobId, 'info', `MDX path: ${mdxPath}, locales: ${locales.join(', ')}`);
+    let successCount = 0;
+    let failCount = 0;
 
     try {
-      // Create pages for each locale
-      for (const locale of locales) {
-        const localeDir = path.join(process.cwd(), mdxPath, locale);
-        await fs.mkdir(localeDir, { recursive: true });
-        await this.log(jobId, 'info', `Locale directory ready: ${localeDir}`);
+      for (const img of uploadedImages) {
+        const slug = this.generateSlug(img.keyword);
+        const title = this.generateTitle(img.keyword);
+        const description = `A beautiful ${img.keyword} coloring page for kids`;
 
-        const pages: any[] = [];
-        for (const img of uploadedImages) {
-          const slug = this.generateSlug(img.keyword);
-          const title = this.generateTitle(img.keyword);
-          const description = `A beautiful ${img.keyword} coloring page for kids`;
+        await this.log(jobId, 'info', `Creating page: ${slug}`, { category: img.category, keyword: img.keyword });
 
-          await this.log(jobId, 'info', `Creating page: ${locale}-${slug}`, { category: img.category, keyword: img.keyword });
-
-          // Create MDX file
-          await this.createMDXFile(
-            localeDir,
-            slug,
-            title,
-            description,
-            img.category,
-            img.keyword,
-            img.imageUrl,
-            locale,
-            img.rootKeyword,
-            img.modifier
-          );
-
-          pages.push({
+        try {
+          await createColoringPageWithSlugRetry({
             jobId,
-            userId: 'system', // System user for background-generated content
-            slug: `${locale}-${slug}`,
+            userId: 'system',
+            slug,
             title,
             description,
             category: img.category,
             keyword: img.keyword,
-            rootKeyword: img.rootKeyword,
-            modifier: img.modifier,
+            rootKeyword: img.rootKeyword || null,
+            modifier: img.modifier || null,
             prompt: `coloring page of ${img.keyword}`,
             imageUrl: img.imageUrl,
-            mdxPath: path.join(mdxPath, locale, `${slug}.mdx`),
-            status: ColoringPageStatus.DRAFT,
+            status: ColoringPageStatus.PUBLISHED,
+            publishedAt: new Date(),
             sort: 0,
           });
+          successCount++;
+          await this.log(jobId, 'info', `Page created: ${slug}`);
+        } catch (pageError) {
+          failCount++;
+          await this.log(jobId, 'error', `Failed to create page for ${img.keyword}`, {
+            error: pageError instanceof Error ? pageError.message : String(pageError)
+          });
         }
-
-        await this.log(jobId, 'info', `Creating ${pages.length} database records for locale ${locale}...`);
-
-        // Batch create database records
-        await batchCreateColoringPages(pages);
-
-        await this.log(jobId, 'info', `Database records created for locale ${locale}`);
       }
 
-      await this.log(jobId, 'info', `Total pages created: ${uploadedImages.length * locales.length}`);
+      await this.log(jobId, 'info', `Pages created: ${successCount} success, ${failCount} failed`);
     } catch (error) {
       await this.log(jobId, 'error', 'Failed to create coloring pages', { error: error instanceof Error ? error.message : String(error) });
       await updateColoringJob(jobId, {
@@ -643,14 +700,21 @@ export class ColoringWorkflowService {
   }
 
   /**
-   * Generate a natural language slug from the keyword
+   * Generate SEO-friendly slug: {keyword}-coloring-page (max 70 chars)
    */
   private generateSlug(keyword: string): string {
     const base = keyword
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '');
-    return base;
+    const slug = `${base}-coloring-page`;
+    // Cap at 70 chars for SEO (trim at word boundary)
+    if (slug.length > 70) {
+      const trimmed = slug.slice(0, 70);
+      const lastDash = trimmed.lastIndexOf('-');
+      return lastDash > 20 ? trimmed.slice(0, lastDash) : trimmed;
+    }
+    return slug;
   }
 
   /**
@@ -658,60 +722,9 @@ export class ColoringWorkflowService {
    */
   private generateTitle(keyword: string): string {
     return `${keyword
-      .split('-')
+      .split(/[-_]/)
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
       .join(' ')} Coloring Page`;
-  }
-
-  /**
-   * Create an MDX file
-   */
-  private async createMDXFile(
-    dir: string,
-    slug: string,
-    title: string,
-    description: string,
-    category: string,
-    keyword: string,
-    imageUrl: string,
-    locale: string,
-    rootKeyword?: string,
-    modifier?: string
-  ): Promise<void> {
-    const filePath = path.join(dir, `${slug}.mdx`);
-    const rootLine = rootKeyword ? `\nrootKeyword: "${rootKeyword}"` : "";
-    const modLine = modifier ? `\nmodifier: "${modifier}"` : "";
-
-    const content = `---
-title: "${title}"
-description: "${description}"
-category: "${category}"
-keyword: "${keyword}"
-image: "${imageUrl}"${rootLine}${modLine}
-status: "draft"
-locale: "${locale}"
-createdAt: "${new Date().toISOString()}"
----
-
-# ${title}
-
-Print and color this beautiful ${keyword} design. Perfect for kids of all ages to enjoy!
-
-## How to Color
-
-1. Download the coloring page
-2. Print it on your favorite paper
-3. Get your crayons, colored pencils, or markers ready
-4. Let your creativity shine!
-
-## Tips
-
-- Stay within the lines for a neat look
-- Experiment with different color combinations
-- Have fun and be creative!
-`;
-
-    await fs.writeFile(filePath, content, 'utf-8');
   }
 
   /**

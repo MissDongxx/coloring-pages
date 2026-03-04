@@ -345,3 +345,68 @@ export async function searchColoringPages(
     limit,
   });
 }
+
+/**
+ * Create a coloring page with slug conflict retry.
+ * On unique violation, appends -2, -3, etc.
+ * Uses DB unique index as the source of truth (concurrent-safe).
+ */
+export async function createColoringPageWithSlugRetry(
+  data: Omit<NewColoringPage, 'id'>,
+  maxRetries = 10
+): Promise<ColoringPage> {
+  const baseSlug = data.slug;
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const slug = attempt === 0 ? baseSlug : `${baseSlug}-${attempt + 1}`;
+    try {
+      const id = nanoid();
+      const [result] = await db()
+        .insert(coloringPage)
+        .values({ ...data, id, slug })
+        .returning();
+      return result;
+    } catch (err: any) {
+      // Check if it's a unique constraint violation
+      const msg = (err.message || '').toLowerCase();
+      const code = err.code || '';
+      if (code === '23505' || msg.includes('unique') || msg.includes('duplicate')) {
+        console.log(`[coloring_page] Slug "${slug}" conflict, trying next...`);
+        continue;
+      }
+      throw err; // Re-throw non-conflict errors
+    }
+  }
+
+  throw new Error(`Failed to create page after ${maxRetries} slug retries for base: ${baseSlug}`);
+}
+
+/**
+ * Get count of pages matching hub criteria (for hub page display)
+ */
+export async function getPagesCountForHub({
+  rootKeyword,
+  modifier,
+}: {
+  rootKeyword: string;
+  modifier?: string | null;
+}): Promise<number> {
+  const rootStr = rootKeyword.replace(/-/g, ' ');
+  const conditions = [
+    eq(coloringPage.status, ColoringPageStatus.PUBLISHED),
+    ilike(coloringPage.rootKeyword, `%${rootStr}%`)
+  ];
+
+  if (modifier) {
+    const modStr = modifier.replace(/-/g, ' ');
+    conditions.push(ilike(coloringPage.modifier, `%${modStr}%`));
+  }
+
+  const [result] = await db()
+    .select({ count: count() })
+    .from(coloringPage)
+    .where(and(...conditions))
+    .limit(1);
+
+  return result?.count || 0;
+}

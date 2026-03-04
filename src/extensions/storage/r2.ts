@@ -31,6 +31,19 @@ export class R2Provider implements StorageProvider {
 
   constructor(configs: R2Configs) {
     this.configs = configs;
+    // Validate required configs
+    if (!configs.accountId) {
+      throw new Error('R2 accountId is required. Please set CF_R2_ACCOUNT_ID environment variable.');
+    }
+    if (!configs.accessKeyId) {
+      throw new Error('R2 accessKeyId is required. Please set R2_ACCESS_KEY_ID environment variable.');
+    }
+    if (!configs.secretAccessKey) {
+      throw new Error('R2 secretAccessKey is required. Please set R2_SECRET_ACCESS_KEY environment variable.');
+    }
+    if (!configs.bucket) {
+      throw new Error('R2 bucket is required. Please set R2_BUCKET_NAME environment variable.');
+    }
   }
 
   private getUploadPath() {
@@ -45,10 +58,14 @@ export class R2Provider implements StorageProvider {
   }
 
   private getEndpoint() {
-    return (
-      this.configs.endpoint ||
-      `https://${this.configs.accountId}.r2.cloudflarestorage.com`
-    );
+    if (this.configs.endpoint) {
+      return this.configs.endpoint;
+    }
+    if (!this.configs.accountId) {
+      console.error('[R2] accountId is missing, cannot construct default endpoint');
+      return '';
+    }
+    return `https://${this.configs.accountId}.r2.cloudflarestorage.com`;
   }
 
   getPublicUrl = (options: { key: string; bucket?: string }) => {
@@ -59,9 +76,24 @@ export class R2Provider implements StorageProvider {
     const normalizedKey = isAbsoluteKey ? options.key.slice(1) : options.key;
     const keyPath = isAbsoluteKey ? normalizedKey : `${uploadPath}/${options.key}`;
     const url = `${this.getEndpoint()}/${uploadBucket}/${keyPath}`;
-    return this.configs.publicDomain
+    const resultUrl = this.configs.publicDomain
       ? `${this.configs.publicDomain}/${keyPath}`
       : url;
+
+    console.log('[R2 getPublicUrl]', {
+      inputKey: options.key,
+      inputBucket: options.bucket,
+      uploadBucket,
+      uploadPath,
+      isAbsoluteKey,
+      normalizedKey,
+      keyPath,
+      publicDomain: this.configs.publicDomain,
+      endpoint: this.getEndpoint(),
+      resultUrl
+    });
+
+    return resultUrl;
   };
 
   exists = async (options: { key: string; bucket?: string }) => {
@@ -113,6 +145,16 @@ export class R2Provider implements StorageProvider {
           : options.body;
 
       const uploadPath = this.getUploadPath();
+      const endpoint = this.getEndpoint();
+
+      // Validate endpoint before attempting upload
+      if (!endpoint) {
+        return {
+          success: false,
+          error: 'R2 endpoint is not configured. Please set CF_R2_ACCOUNT_ID environment variable.',
+          provider: this.name,
+        };
+      }
 
       // Support absolute keys (starting with /) - don't add uploadPath
       const isAbsoluteKey = options.key.startsWith('/');
@@ -121,7 +163,7 @@ export class R2Provider implements StorageProvider {
 
       // R2 endpoint format: https://<accountId>.r2.cloudflarestorage.com
       // Use custom endpoint if provided, otherwise use default
-      const url = `${this.getEndpoint()}/${uploadBucket}/${keyPath}`;
+      const url = `${endpoint}/${uploadBucket}/${keyPath}`;
 
       const { AwsClient } = await import('aws4fetch');
 
@@ -146,7 +188,11 @@ export class R2Provider implements StorageProvider {
 
       const response = await client.fetch(request);
 
+      console.log('[R2 Upload] Response status:', response.status, response.statusText);
+
       if (!response.ok) {
+        const responseText = await response.text();
+        console.error('[R2 Upload] Upload failed, response:', responseText);
         return {
           success: false,
           error: `Upload failed: ${response.statusText}`,
@@ -154,8 +200,20 @@ export class R2Provider implements StorageProvider {
         };
       }
 
+      console.log('[R2 Upload] Upload OK, computing public URL...');
+      console.log('[R2 Upload] Input:', {
+        key: options.key,
+        bucket: uploadBucket,
+        uploadPath,
+        publicDomain: this.configs.publicDomain,
+        endpoint
+      });
+
       const publicUrl =
         this.getPublicUrl({ key: options.key, bucket: uploadBucket }) || url;
+
+      console.log('[R2 Upload] Computed publicUrl:', publicUrl);
+      console.log('[R2 Upload] Fallback URL:', url);
 
       return {
         success: true,

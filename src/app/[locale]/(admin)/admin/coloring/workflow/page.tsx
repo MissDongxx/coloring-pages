@@ -24,12 +24,12 @@ import {
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { Textarea } from '@/shared/components/ui/textarea';
-import { Workflow } from 'lucide-react';
+import { Workflow, AlertCircle } from 'lucide-react';
 import { revalidatePath } from 'next/cache';
 
 interface PageProps {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ page?: string; status?: string }>;
+  searchParams: Promise<{ page?: string; status?: string; error?: string }>;
 }
 
 export default async function AdminColoringWorkflowPage({
@@ -37,7 +37,7 @@ export default async function AdminColoringWorkflowPage({
   searchParams,
 }: PageProps) {
   const { locale } = await params;
-  const { page: searchPage, status: searchStatus } = await searchParams;
+  const { page: searchPage, status: searchStatus, error: searchError } = await searchParams;
 
   await requirePermission({
     code: PERMISSIONS.COLORING_WORKFLOW_READ,
@@ -95,18 +95,30 @@ export default async function AdminColoringWorkflowPage({
     const provider = formData.get('provider') || 'kaggle';
     const count = parseInt((formData.get('count') as string) || '100');
 
-    const workflowService = getWorkflowService();
-    const jobId = await workflowService.runWorkflow({
-      wordRoots: wordRoots ? (wordRoots as string).split(',').map((s) => s.trim()) : undefined,
-      jobType: jobType as any,
-      provider: provider as any,
-      count,
-    });
+    let jobId: string | null = null;
+    let errorMessage: string | null = null;
 
-    revalidatePath('/admin/coloring');
-    // Note: Server actions use native redirect without locale prefix
-    // The locale will be handled by middleware
-    redirect(`/admin/coloring/jobs/${jobId}`);
+    try {
+      const workflowService = getWorkflowService();
+      jobId = await workflowService.runWorkflow({
+        wordRoots: wordRoots ? (wordRoots as string).split(',').map((s) => s.trim()) : undefined,
+        jobType: jobType as any,
+        provider: provider as any,
+        count,
+      });
+    } catch (error) {
+      errorMessage = error instanceof Error ? error.message : String(error);
+    }
+
+    if (errorMessage) {
+      revalidatePath('/admin/coloring/workflow');
+      redirect(`/admin/coloring/workflow?error=${encodeURIComponent(errorMessage)}`);
+    } else if (jobId) {
+      revalidatePath('/admin/coloring');
+      // Note: Server actions use native redirect without locale prefix
+      // The locale will be handled by middleware
+      redirect(`/admin/coloring/jobs/${jobId}`);
+    }
   }
 
   // Format duration
@@ -186,6 +198,17 @@ export default async function AdminColoringWorkflowPage({
             </CardHeader>
           </Card>
         </div>
+
+        {/* Error Message */}
+        {searchError && (
+          <div className="mb-6 rounded-md bg-destructive/15 p-4 text-destructive border border-destructive/20 flex items-center gap-3">
+            <AlertCircle className="h-5 w-5" />
+            <div>
+              <h4 className="font-semibold text-sm">Workflow Execution Failed</h4>
+              <p className="text-sm mt-1">{searchError}</p>
+            </div>
+          </div>
+        )}
 
         {/* Start Workflow Form */}
         <Card id="start-workflow" className="mb-6">
