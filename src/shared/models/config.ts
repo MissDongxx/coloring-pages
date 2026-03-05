@@ -16,6 +16,11 @@ export type Configs = Record<string, string>;
 
 export const CACHE_TAG_CONFIGS = 'configs';
 
+// Memory cache for getAllConfigs to avoid repeated database calls
+let configsMemoryCache: Configs | null = null;
+let configsCacheTime = 0;
+const CONFIGS_MEMORY_CACHE_TTL = 5 * 60 * 1000; // 5 minutes cache
+
 export async function saveConfigs(configs: Record<string, string>) {
   const result = await db().transaction(async (tx: any) => {
     const configEntries = Object.entries(configs);
@@ -38,6 +43,8 @@ export async function saveConfigs(configs: Record<string, string>) {
   });
 
   revalidateTag(CACHE_TAG_CONFIGS, 'max');
+  // Clear memory cache when configs are saved
+  configsMemoryCache = null;
 
   return result;
 }
@@ -45,6 +52,8 @@ export async function saveConfigs(configs: Record<string, string>) {
 export async function addConfig(newConfig: NewConfig) {
   const [result] = await db().insert(config).values(newConfig).returning();
   revalidateTag(CACHE_TAG_CONFIGS, 'max');
+  // Clear memory cache when config is added
+  configsMemoryCache = null;
 
   return result;
 }
@@ -76,6 +85,13 @@ export const getConfigs = unstable_cache(
 );
 
 export async function getAllConfigs(): Promise<Configs> {
+  const now = Date.now();
+
+  // Return cached configs if still valid
+  if (configsMemoryCache && now - configsCacheTime < CONFIGS_MEMORY_CACHE_TTL) {
+    return configsMemoryCache;
+  }
+
   let dbConfigs: Configs = {};
 
   // only get configs from db in server side
@@ -103,6 +119,10 @@ export async function getAllConfigs(): Promise<Configs> {
     ...envConfigs,
     ...dbConfigs,
   };
+
+  // Update memory cache
+  configsMemoryCache = configs;
+  configsCacheTime = now;
 
   return configs;
 }

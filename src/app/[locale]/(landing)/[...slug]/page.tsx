@@ -474,7 +474,7 @@ export default async function DynamicPage({
     // Get cross-category links for internal linking
     const hubCategories = getAllCategories()
       .slice(0, 6)
-      .map(c => ({ name: c.name, slug: c.slug, icon: c.icon, count: c.count }));
+      .map(c => ({ name: c.name, slug: c.slug, icon: c.icon, count: c.count, imageSrc: getRandomCategoryCover(c.slug) }));
 
     return (
       <div className="container mx-auto px-4 pt-16 pb-8 md:pt-20 md:pb-8 max-w-6xl">
@@ -520,6 +520,7 @@ export default async function DynamicPage({
               slug: cat.slug,
               count: cat.count,
               icon: cat.icon,
+              imageSrc: cat.imageSrc,
             }))}
           />
         </section>

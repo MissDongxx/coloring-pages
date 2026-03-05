@@ -84,9 +84,10 @@ export function getPostgresDb() {
     // Create connection pool only once
     client = postgres(databaseUrl, {
       prepare: false,
-      max: Number(envConfigs.db_max_connections) || 1, // Maximum connections in pool (default 1)
-      idle_timeout: 30, // Idle connection timeout (seconds)
-      connect_timeout: 10, // Connection timeout (seconds)
+      max: Number(envConfigs.db_max_connections) || 10, // Increased default connections
+      idle_timeout: 60, // Increased idle timeout to reduce reconnections
+      connect_timeout: 30, // Increased connection timeout for better reliability
+      max_lifetime: 60 * 30, // Connection max lifetime (30 minutes)
       ...connectionSchemaOptions,
     });
 
@@ -99,8 +100,8 @@ export function getPostgresDb() {
   const serverlessClient = postgres(databaseUrl, {
     prepare: false,
     max: 1, // Use single connection in serverless
-    idle_timeout: 20,
-    connect_timeout: 10,
+    idle_timeout: 30, // Increased idle timeout
+    connect_timeout: 30, // Increased connection timeout
     ...connectionSchemaOptions,
   });
 

@@ -415,11 +415,11 @@ export async function getPagesCountForHub({
  * Get popular SEO Hub combinations aggregated by rootKeyword and modifier
  */
 export async function getPopularHubs(limitCount: number = 8) {
-  // 1. Get the likely top root keywords by rough count
+  // Single query to get all needed data
   const hubs = await db()
     .select({
       rootKeyword: coloringPage.rootKeyword,
-      roughCount: sql<number>`count(*)`.as('rough_count'),
+      count: sql<number>`count(*)`.as('count'),
       imageUrl: sql<string>`COALESCE(
         MAX(CASE WHEN "image_url" LIKE '%images.coloringpages.club%' THEN "image_url" END),
         MAX("image_url")
@@ -434,24 +434,11 @@ export async function getPopularHubs(limitCount: number = 8) {
       )
     )
     .groupBy(coloringPage.rootKeyword)
-    .orderBy(desc(sql`rough_count`)) // Sort by rough count first
-    .limit(limitCount + 20); // Fetch a larger pool for accurate recount
+    .orderBy(desc(sql`count`))
+    .limit(limitCount);
 
-  // 2. For each hub, get the accurate count using the more inclusive logic
-  const result = await Promise.all(
-    hubs.map(async (hub: { rootKeyword: string | null; imageUrl: string | null }) => {
-      const accurateCount = await getPagesCountForHub({ rootKeyword: hub.rootKeyword || '' });
-      return {
-        ...hub,
-        count: accurateCount
-      };
-    })
-  );
-
-  // 3. Final sort by accurate count and limit
-  return result
-    .sort((a, b) => b.count - a.count)
-    .slice(0, limitCount)
+  // Transform the results
+  return hubs
     .map((hub: { rootKeyword: string | null; count: number; imageUrl: string | null }) => {
       const root = hub.rootKeyword || '';
       const slug = `${root}-coloring-pages`.replace(/\s+/g, '-').toLowerCase();
@@ -461,7 +448,7 @@ export async function getPopularHubs(limitCount: number = 8) {
         name,
         slug,
         count: hub.count,
-        imageSrc: hub.imageUrl || '/images/coloring/placeholder.png',
+        imageSrc: hub.imageUrl || '',
         rootKeyword: root,
         modifier: null
       };
@@ -493,7 +480,7 @@ export async function getAllHubs({
 
   // Get total unique rootKeywords count
   const [totalResult] = await db()
-    .select({ count: sql<number>`count(DISTINCT ${coloringPage.rootKeyword})` })
+    .select({ count: sql<number>`count(DISTINCT "root_keyword")` })
     .from(coloringPage)
     .where(and(...conditions));
 
@@ -528,7 +515,7 @@ export async function getAllHubs({
       name,
       slug,
       count: hub.roughCount,
-      imageSrc: hub.imageUrl || '/images/coloring/placeholder.png',
+      imageSrc: hub.imageUrl || '',
       rootKeyword: root,
       modifier: null,
     };
@@ -545,7 +532,7 @@ export async function getAllHubs({
 
 let hubCache: { rootKeyword: string | null; modifier: string | null }[] | null = null;
 let lastCacheTime = 0;
-const CACHE_TTL = 60 * 1000; // 1 minute cache
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes cache - increased to reduce DB load
 
 /**
  * Finds the canonical rootKeyword and modifier for a given Hub slug prefix
@@ -555,9 +542,9 @@ export async function findHubBySlugPrefix(prefix: string) {
   try {
     const now = Date.now();
     if (!hubCache || now - lastCacheTime > CACHE_TTL) {
-      // Fetch all distinct pairs to match against slugified version
+      // Use DISTINCT ON for better performance in PostgreSQL
       hubCache = await db()
-        .select({
+        .selectDistinct({
           rootKeyword: coloringPage.rootKeyword,
           modifier: coloringPage.modifier,
         })
@@ -568,7 +555,8 @@ export async function findHubBySlugPrefix(prefix: string) {
             isNotNull(coloringPage.rootKeyword)
           )
         )
-        .groupBy(coloringPage.rootKeyword, coloringPage.modifier);
+        .orderBy(coloringPage.rootKeyword, coloringPage.modifier)
+        .limit(10000); // Add a limit to prevent excessive data fetching
 
       lastCacheTime = now;
     }
