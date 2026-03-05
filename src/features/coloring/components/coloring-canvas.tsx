@@ -1,9 +1,12 @@
 "use client";
 
 import { useRef, useState, useEffect, useCallback } from "react";
+import { ClientOnly } from "@/shared/components/client-only";
 import Link from "next/link";
+import jsPDF from "jspdf";
+import { envConfigs } from "@/config";
 import { Button } from "@/shared/components/ui/button";
-import { Redo, Undo, Trash2, Heart, Share2, Sparkles, Plus, Minus, RotateCcw, Crosshair, ChevronLeft, Shuffle, Volume2, VolumeX, Wand2 } from "lucide-react";
+import { Redo, Undo, Trash2, Heart, Share2, Sparkles, Plus, Minus, RotateCcw, Crosshair, ChevronRight, Volume2, VolumeX, Wand2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -134,6 +137,7 @@ const PREDEFINED_PALETTES: ColorPalette[] = [
     id: "pastels",
     name: "Soft Pastels",
     colors: PASTEL_COLORS,
+    gradients: PASTEL_GRADIENTS,
   },
   {
     id: "neon",
@@ -149,6 +153,7 @@ const PREDEFINED_PALETTES: ColorPalette[] = [
       "#8B4513", "#A0522D", "#D2691E", "#CD853F", "#DEB887",
       "#F4A460", "#D2B48C", "#BC8F8F", "#A0826D", "#8B7355"
     ],
+    gradients: NATURE_GRADIENTS,
   },
   {
     id: "ocean",
@@ -157,6 +162,7 @@ const PREDEFINED_PALETTES: ColorPalette[] = [
       "#0077B6", "#00B4D8", "#90E0EF", "#CAF0F8", "#023E8A",
       "#48CAE4", "#ADE8F4", "#03045E", "#03045E", "#0096C7"
     ],
+    gradients: NATURE_GRADIENTS,
   },
   {
     id: "forest",
@@ -165,6 +171,7 @@ const PREDEFINED_PALETTES: ColorPalette[] = [
       "#2D6A4F", "#40916C", "#52B788", "#74C69D", "#95D5B2",
       "#B7E4C7", "#D8F3DC", "#1B4332", "#081C15", "#344E41"
     ],
+    gradients: NATURE_GRADIENTS,
   },
   {
     id: "sunset",
@@ -173,6 +180,7 @@ const PREDEFINED_PALETTES: ColorPalette[] = [
       "#FF6B6B", "#FF8E53", "#FFA07A", "#FFB347", "#FFCC5C",
       "#FFDF96", "#FFEDA3", "#FFE5B4", "#FFDAB9", "#FFC0CB"
     ],
+    gradients: SUNSET_GRADIENTS,
   },
   {
     id: "berry",
@@ -181,6 +189,7 @@ const PREDEFINED_PALETTES: ColorPalette[] = [
       "#C9184A", "#FF4D6D", "#FF758F", "#FF8FA3", "#FFB3C1",
       "#FFCCD5", "#FFF0F3", "#800F2F", "#A4133C", "#D90429"
     ],
+    gradients: SUNSET_GRADIENTS,
   },
   {
     id: "rainbow",
@@ -189,6 +198,16 @@ const PREDEFINED_PALETTES: ColorPalette[] = [
       "#FF0000", "#FF7F00", "#FFFF00", "#00FF00", "#0000FF",
       "#4B0082", "#9400D3", "#FF1493", "#00CED1", "#FFD700"
     ],
+    gradients: COOL_GRADIENTS,
+  },
+  {
+    id: "cool",
+    name: "Cool Tones",
+    colors: [
+      "#3B82F6", "#06B6D4", "#00CCFF", "#7C3AED", "#A855F7",
+      "#7928CA", "#00DFD8"
+    ],
+    gradients: COOL_GRADIENTS,
   },
 ];
 
@@ -284,8 +303,6 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category,
   const [showOutlines, setShowOutlines] = useState(true);
   const [recentlyUsed, setRecentlyUsed] = useState<string[]>([]);
   const [palettes, setPalettes] = useState<ColorPalette[]>(PREDEFINED_PALETTES);
-  const [activePaletteId, setActivePaletteId] = useState("pastels");
-  const [magicModeType, setMagicModeType] = useState<"solid" | "gradient">("gradient");
   const [magicColorHistory, setMagicColorHistory] = useState<typeof NEON_GRADIENTS>([]);
   const [aspectRatio, setAspectRatio] = useState(3 / 4);
   const { theme } = useTheme();
@@ -604,6 +621,27 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category,
     setZoom((prev) => (prev === 1 ? 1.5 : prev === 1.5 ? 2 : 1));
   };
 
+  const handleNextPage = () => {
+    // Get available pages (excluding current page)
+    const availablePages = relatedPages?.filter(p => p.slug !== pageId) || [];
+
+    if (availablePages.length > 0) {
+      // Navigate to a random page from related pages
+      const randomPage = availablePages[Math.floor(Math.random() * availablePages.length)];
+      window.location.href = `/${randomPage.slug}/`;
+    } else {
+      // Navigate to a random page from all pages
+      const allPagesSlugs = [
+        "simple-fish", "cute-cat", "happy-dog", "butterfly", "flower-garden",
+        "sunset-scene", "mountain-landscape", "ocean-waves", "forest-path", "starry-night"
+      ];
+      const otherPages = allPagesSlugs.filter(slug => slug !== pageId);
+      const randomSlug = otherPages[Math.floor(Math.random() * otherPages.length)];
+      window.location.href = `/${randomSlug}/`;
+    }
+    playSound("click");
+  };
+
   // Canvas navigation functions
   const zoomIn = () => setZoom(prev => Math.min(prev * 1.1, 5));
   const zoomOut = () => setZoom(prev => Math.max(prev / 1.1, 1));
@@ -861,17 +899,35 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category,
 
     // In magic mode, automatically switch colors
     if (magicMode) {
-      if (magicModeType === "gradient") {
-        // Auto switch to a random gradient
-        const neonPalette = palettes.find(p => p.id === "neon");
-        if (neonPalette && neonPalette.gradients) {
-          const randomGradient = neonPalette.gradients[Math.floor(Math.random() * neonPalette.gradients.length)];
-          handleGradientSelect(randomGradient);
-          floodFill(x, y, randomGradient.colors[0], randomGradient);
+      // If user has selected a gradient, use gradient mode
+      if (selectedGradient) {
+        // Get gradients based on active gradient category
+        let gradients;
+        switch (activeGradientCategory) {
+          case "neon":
+            gradients = NEON_GRADIENTS;
+            break;
+          case "pastel":
+            gradients = PASTEL_GRADIENTS;
+            break;
+          case "nature":
+            gradients = NATURE_GRADIENTS;
+            break;
+          case "sunset":
+            gradients = SUNSET_GRADIENTS;
+            break;
+          case "cool":
+            gradients = COOL_GRADIENTS;
+            break;
+          default:
+            gradients = NEON_GRADIENTS;
         }
+        const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];
+        handleGradientSelect(randomGradient);
+        floodFill(x, y, randomGradient.colors[0], randomGradient);
       } else {
-        // Solid mode: Auto switch to a random color from the active palette
-        const activePalette = palettes.find(p => p.id === activePaletteId);
+        // Solid mode: Use random color from active solid category
+        const activePalette = PREDEFINED_PALETTES.find(p => p.id === activeSolidCategory);
         if (activePalette && activePalette.colors.length > 0) {
           const randomColor = activePalette.colors[Math.floor(Math.random() * activePalette.colors.length)];
           setSelectedColor(randomColor);
@@ -922,17 +978,33 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category,
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const timestamp = new Date().toISOString().split("T")[0];
-    const filename = `coloring-page-${timestamp}`;
+    // Generate filename: 图片名-网站名
+    const imageName = title || pageId || "coloring-page";
+    const websiteName = envConfigs.app_name || "ColoringPages";
+    const filename = `${imageName}-${websiteName}`;
 
     if (format === "pdf") {
-      // For PDF, we'll create a simple implementation using canvas data URL
-      // In a real implementation, you'd use a library like jsPDF
-      const dataUrl = canvas.toDataURL("image/png", 1.0);
-      const link = document.createElement("a");
-      link.download = `${filename}.pdf`;
-      link.href = dataUrl;
-      link.click();
+      // Use jsPDF for proper PDF generation
+      const imgData = canvas.toDataURL("image/png", 1.0);
+
+      // Calculate PDF dimensions to fit the canvas image
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = imgWidth / imgHeight;
+
+      // Create PDF with A4 size or adjust to image ratio
+      const pdfWidth = 210; // A4 width in mm
+      const pdfHeight = pdfWidth / ratio;
+
+      const pdf = new jsPDF({
+        orientation: ratio > 1 ? "landscape" : "portrait",
+        unit: "mm",
+        format: [pdfWidth, pdfHeight]
+      });
+
+      // Add image to PDF
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`${filename}.pdf`);
     } else {
       const mimeType = format === "png" ? "image/png" : "image/jpeg";
       const dataUrl = canvas.toDataURL(mimeType, quality / 100);
@@ -941,10 +1013,12 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category,
       link.href = dataUrl;
       link.click();
     }
+
+    playSound("click");
   };
 
   return (
-    <div className="flex flex-col w-full items-start px-6 md:px-12 lg:px-16 xl:px-20">
+    <div className="flex flex-col w-full items-start max-w-6xl mx-auto px-4">
       {/* Breadcrumb */}
       <Breadcrumb className="mb-4 w-full mt-16 lg:mt-0">
         <BreadcrumbList>
@@ -1060,56 +1134,58 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category,
               >
                 <Heart className={`w-5 h-5 ${isFavorited ? "fill-pink-500 text-pink-500" : ""}`} />
               </Button>
-              <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="rounded-full shadow-lg bg-white hover:bg-blue-50 hover:border-blue-300"
-                  >
-                    <Share2 className="w-5 h-5" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-sm">
-                  <DialogHeader>
-                    <DialogTitle>Share this Coloring Page</DialogTitle>
-                    <DialogDescription>
-                      Share this fun coloring activity with friends and family!
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-3">
+              <ClientOnly>
+                <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+                  <DialogTrigger asChild>
                     <Button
                       variant="outline"
-                      className="w-full justify-start gap-2"
-                      onClick={() => {
-                        navigator.clipboard.writeText(window.location.href);
-                        alert("Link copied to clipboard!");
-                      }}
+                      size="icon"
+                      className="rounded-full shadow-lg bg-white hover:bg-blue-50 hover:border-blue-300"
                     >
-                      <Share2 className="w-4 h-4" />
-                      Copy Link
+                      <Share2 className="w-5 h-5" />
                     </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start gap-2"
-                      onClick={() => {
-                        if (navigator.share) {
-                          navigator.share({
-                            title: "Coloring Page",
-                            url: window.location.href,
-                          });
-                        } else {
+                  </DialogTrigger>
+                  <DialogContent className="max-w-sm">
+                    <DialogHeader>
+                      <DialogTitle>Share this Coloring Page</DialogTitle>
+                      <DialogDescription>
+                        Share this fun coloring activity with friends and family!
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-3">
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start gap-2"
+                        onClick={() => {
                           navigator.clipboard.writeText(window.location.href);
                           alert("Link copied to clipboard!");
-                        }
-                      }}
-                    >
-                      <Share2 className="w-4 h-4" />
-                      Share via...
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
+                        }}
+                      >
+                        <Share2 className="w-4 h-4" />
+                        Copy Link
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start gap-2"
+                        onClick={() => {
+                          if (navigator.share) {
+                            navigator.share({
+                              title: "Coloring Page",
+                              url: window.location.href,
+                            });
+                          } else {
+                            navigator.clipboard.writeText(window.location.href);
+                            alert("Link copied to clipboard!");
+                          }
+                        }}
+                      >
+                        <Share2 className="w-4 h-4" />
+                        Share via...
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </ClientOnly>
 
               {/* Sound Toggle */}
               <Button
@@ -1132,26 +1208,15 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category,
 
           {/* Actions */}
           <div className="flex flex-wrap gap-2 justify-center">
-            {/* Previous Image */}
+            {/* Next Page */}
             <Button
               variant="outline"
               size="sm"
               className="gap-2"
-              onClick={() => window.history.back()}
+              onClick={handleNextPage}
             >
-              <ChevronLeft className="w-4 h-4" />
-              Previous
-            </Button>
-
-            {/* Generate New Image */}
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2"
-              onClick={() => window.location.href = "/"}
-            >
-              <Shuffle className="w-4 h-4" />
-              New Page
+              Next Page
+              <ChevronRight className="w-4 h-4" />
             </Button>
 
             <Button
@@ -1183,7 +1248,9 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category,
               <Trash2 className="w-4 h-4" />
               Clear
             </Button>
-            <DownloadDialog onDownload={downloadCanvas} />
+            <ClientOnly>
+              <DownloadDialog onDownload={downloadCanvas} />
+            </ClientOnly>
             <Button
               variant="outline"
               size="sm"
@@ -1214,33 +1281,13 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category,
                 </Button>
               </div>
 
-              {/* Magic Mode Type Toggle */}
-              {magicMode && (
-                <div className="flex gap-2 p-2 bg-muted/50 rounded-lg">
-                  <Button
-                    variant={magicModeType === "solid" ? "default" : "outline"}
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => setMagicModeType("solid")}
-                  >
-                    Solid
-                  </Button>
-                  <Button
-                    variant={magicModeType === "gradient" ? "default" : "outline"}
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => setMagicModeType("gradient")}
-                  >
-                    Gradient
-                  </Button>
-                </div>
-              )}
-
               {/* Color Picker Dialog */}
-              <ColorPickerDialog
-                color={selectedColor}
-                onChange={setSelectedColor}
-              />
+              <ClientOnly>
+                <ColorPickerDialog
+                  color={selectedColor}
+                  onChange={setSelectedColor}
+                />
+              </ClientOnly>
 
               {/* ============ AI Palette Section (Moved up) ============ */}
               <div className="space-y-3">
@@ -1332,7 +1379,7 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category,
                       variant={activeSolidCategory === palette.id ? "default" : "outline"}
                       size="sm"
                       className="text-xs h-7 px-3 whitespace-nowrap flex-shrink-0"
-                      onClick={() => setActiveSolidCategory(palette.id)}
+                      onClick={() => { setActiveSolidCategory(palette.id); setSelectedGradient(null); }}
                     >
                       {palette.name}
                     </Button>
@@ -1369,7 +1416,31 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category,
                       variant={activeGradientCategory === cat.id ? "default" : "outline"}
                       size="sm"
                       className="text-xs h-7 px-3 whitespace-nowrap flex-shrink-0"
-                      onClick={() => setActiveGradientCategory(cat.id)}
+                      onClick={() => {
+                        setActiveGradientCategory(cat.id);
+                        // Auto-select first gradient from new category
+                        let newGradients;
+                        switch (cat.id) {
+                          case "neon":
+                            newGradients = NEON_GRADIENTS;
+                            break;
+                          case "pastel":
+                            newGradients = PASTEL_GRADIENTS;
+                            break;
+                          case "nature":
+                            newGradients = NATURE_GRADIENTS;
+                            break;
+                          case "sunset":
+                            newGradients = SUNSET_GRADIENTS;
+                            break;
+                          case "cool":
+                            newGradients = COOL_GRADIENTS;
+                            break;
+                          default:
+                            newGradients = NEON_GRADIENTS;
+                        }
+                        handleGradientSelect(newGradients[0]);
+                      }}
                     >
                       {cat.name}
                     </Button>

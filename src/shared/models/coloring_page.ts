@@ -186,12 +186,12 @@ export async function getPagesForHub({
 
   const conditions = [
     eq(coloringPage.status, ColoringPageStatus.PUBLISHED),
-    ilike(coloringPage.rootKeyword, `%${rootStr}%`)
+    ilike(coloringPage.rootKeyword, rootStr)
   ];
 
   if (modifier) {
     const modStr = modifier.replace(/-/g, ' ');
-    conditions.push(ilike(coloringPage.modifier, `%${modStr}%`));
+    conditions.push(ilike(coloringPage.modifier, modStr));
   }
 
   const result = await db()
@@ -394,12 +394,12 @@ export async function getPagesCountForHub({
   const rootStr = rootKeyword.replace(/-/g, ' ');
   const conditions = [
     eq(coloringPage.status, ColoringPageStatus.PUBLISHED),
-    ilike(coloringPage.rootKeyword, `%${rootStr}%`)
+    ilike(coloringPage.rootKeyword, rootStr)
   ];
 
   if (modifier) {
     const modStr = modifier.replace(/-/g, ' ');
-    conditions.push(ilike(coloringPage.modifier, `%${modStr}%`));
+    conditions.push(ilike(coloringPage.modifier, modStr));
   }
 
   const [result] = await db()
@@ -421,8 +421,8 @@ export async function getPopularHubs(limitCount: number = 8) {
       rootKeyword: coloringPage.rootKeyword,
       roughCount: sql<number>`count(*)`.as('rough_count'),
       imageUrl: sql<string>`COALESCE(
-        MAX(CASE WHEN ${coloringPage.imageUrl} LIKE '%images.coloringpages.club%' THEN ${coloringPage.imageUrl} END),
-        MAX(${coloringPage.imageUrl})
+        MAX(CASE WHEN "image_url" LIKE '%images.coloringpages.club%' THEN "image_url" END),
+        MAX("image_url")
       )`.as('image_url')
     })
     .from(coloringPage)
@@ -505,8 +505,8 @@ export async function getAllHubs({
       rootKeyword: coloringPage.rootKeyword,
       roughCount: sql<number>`count(*)`.as('rough_count'),
       imageUrl: sql<string>`COALESCE(
-        MAX(CASE WHEN ${coloringPage.imageUrl} LIKE '%images.coloringpages.club%' THEN ${coloringPage.imageUrl} END),
-        MAX(${coloringPage.imageUrl})
+        MAX(CASE WHEN "image_url" LIKE '%images.coloringpages.club%' THEN "image_url" END),
+        MAX("image_url")
       )`.as('image_url'),
     })
     .from(coloringPage)

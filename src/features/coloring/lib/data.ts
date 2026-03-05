@@ -253,3 +253,15 @@ export function getRecommendedPages(currentSlug: string, category: string, subCa
     imageSrc: page.image.png,
   }));
 }
+
+/**
+ * 为分类获取随机封面图
+ */
+export function getRandomCategoryCover(categorySlug: string): string {
+  const pages = getPagesByCategory(categorySlug);
+  if (pages.length === 0) return '';
+
+  // 随机选择一张图片
+  const randomIndex = Math.floor(Math.random() * pages.length);
+  return pages[randomIndex].image.png;
+}

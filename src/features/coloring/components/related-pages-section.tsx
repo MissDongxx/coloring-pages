@@ -5,6 +5,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { ColoringCard } from './coloring-card';
 
 interface PageItem {
     title: string;
@@ -17,6 +18,7 @@ interface CategoryItem {
     slug: string;
     icon?: string;
     count: number;
+    imageSrc: string;
 }
 
 interface RelatedPagesSectionProps {
@@ -28,6 +30,8 @@ interface RelatedPagesSectionProps {
     categories: CategoryItem[];
     /** Name of the current category or root keyword for display */
     categoryLabel?: string;
+    /** SEO content section to display at the bottom (after Explore More Categories) */
+    seoContent?: React.ReactNode;
 }
 
 /**
@@ -83,6 +87,7 @@ export function RelatedPagesSection({
     popularPages,
     categories,
     categoryLabel,
+    seoContent,
 }: RelatedPagesSectionProps) {
     return (
         <div className="max-w-6xl mx-auto mt-12 px-4 space-y-12">
@@ -95,8 +100,8 @@ export function RelatedPagesSection({
                             : 'Related Coloring Pages'}
                     </h2>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                        {relatedPages.slice(0, 12).map((page, i) => (
-                            <PageCard key={page.slug} page={page} idx={i} />
+                        {relatedPages.slice(0, 12).map((page) => (
+                            <ColoringCard key={page.slug} title={page.title} slug={page.slug} imageSrc={page.imageSrc} />
                         ))}
                     </div>
                 </section>
@@ -107,8 +112,8 @@ export function RelatedPagesSection({
                 <section>
                     <h2 className="text-xl font-bold mb-4">Popular Coloring Pages</h2>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                        {popularPages.slice(0, 6).map((page, i) => (
-                            <PageCard key={page.slug} page={page} idx={i + 20} />
+                        {popularPages.slice(0, 6).map((page) => (
+                            <ColoringCard key={page.slug} title={page.title} slug={page.slug} imageSrc={page.imageSrc} />
                         ))}
                     </div>
                 </section>
@@ -118,25 +123,31 @@ export function RelatedPagesSection({
             {categories.length > 0 && (
                 <section>
                     <h2 className="text-xl font-bold mb-4">Explore More Categories</h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                        {categories.slice(0, 8).map((cat) => (
-                            <Link
-                                key={cat.slug}
-                                href={`/${cat.slug}`}
-                                className="flex items-center gap-2 p-3 rounded-lg border bg-card hover:shadow-md hover:border-primary/30 transition-all"
-                            >
-                                {cat.icon && <span className="text-xl">{cat.icon}</span>}
-                                <div>
-                                    <span className="font-medium text-sm">{cat.name}</span>
-                                    {cat.count > 0 && (
-                                        <span className="text-xs text-muted-foreground ml-1">
-                                            ({cat.count})
-                                        </span>
-                                    )}
-                                </div>
-                            </Link>
-                        ))}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        {categories.slice(0, 8).map((cat) => {
+                            // Create a ColoringCard-compatible page item for categories
+                            const catPageItem = {
+                                title: `${cat.name} Coloring Pages`,
+                                slug: cat.slug,
+                                imageSrc: cat.imageSrc || '',
+                            };
+                            return (
+                                <ColoringCard
+                                    key={cat.slug}
+                                    title={catPageItem.title}
+                                    slug={catPageItem.slug}
+                                    imageSrc={catPageItem.imageSrc}
+                                />
+                            );
+                        })}
                     </div>
+                </section>
+            )}
+
+            {/* SEO content section - displayed at the bottom after Explore More Categories */}
+            {seoContent && (
+                <section>
+                    {seoContent}
                 </section>
             )}
         </div>

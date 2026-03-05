@@ -20,6 +20,7 @@ import {
   getRelatedPages,
   getPopularPages,
   getRecommendedPages,
+  getRandomCategoryCover,
 } from '@/features/coloring/lib/data';
 import {
   Breadcrumb,
@@ -580,7 +581,13 @@ export default async function DynamicPage({
     const allCats = getAllCategories()
       .filter(c => c.slug !== currentCategory)
       .slice(0, 6)
-      .map(c => ({ name: c.name, slug: c.slug, icon: c.icon, count: c.count }));
+      .map(c => ({
+        name: c.name,
+        slug: c.slug,
+        icon: c.icon,
+        count: c.count,
+        imageSrc: getRandomCategoryCover(c.slug)
+      }));
 
     return (
       <div className="pt-6 md:pt-10 pb-8">
@@ -594,24 +601,25 @@ export default async function DynamicPage({
           relatedPages={relatedPages}
         />
 
-        {/* Server-rendered SEO content — visible to crawlers */}
-        <SeoContentSection
-          title={currentTitle}
-          slug={currentSlug}
-          category={currentCategory}
-          subCategory={coloringPage?.subCategory}
-          keywords={currentKeywords}
-          description={currentDescription}
-          imageSrc={currentImageSrc}
-          rootKeyword={currentRootKeyword}
-        />
-
         {/* Server-rendered internal links — crawlable <a> tags */}
         <RelatedPagesSection
           relatedPages={recommendedPages}
           popularPages={popular}
           categories={allCats}
           categoryLabel={currentRootKeyword ? currentRootKeyword.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1)}
+          seoContent={
+            /* Server-rendered SEO content — visible to crawlers, displayed after Explore More Categories */
+            <SeoContentSection
+              title={currentTitle}
+              slug={currentSlug}
+              category={currentCategory}
+              subCategory={coloringPage?.subCategory}
+              keywords={currentKeywords}
+              description={currentDescription}
+              imageSrc={currentImageSrc}
+              rootKeyword={currentRootKeyword}
+            />
+          }
         />
       </div>
     );
