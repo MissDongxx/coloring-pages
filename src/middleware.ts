@@ -61,8 +61,11 @@ export default async function middleware(request: NextRequest) {
   ) {
     intlResponse.headers.delete('Set-Cookie');
 
-    // Cache-Control header for public pages
-    const cacheControl = 'public, s-maxage=3600, stale-while-revalidate=14400';
+    // Cache-Control header for public pages (disabled stale-while-revalidate in dev to prevent continuous revalidation)
+    const isDev = process.env.NODE_ENV === 'development';
+    const cacheControl = isDev
+      ? 'public, s-maxage=60'
+      : 'public, s-maxage=3600, stale-while-revalidate=14400';
 
     intlResponse.headers.set('Cache-Control', cacheControl);
     intlResponse.headers.set('CDN-Cache-Control', cacheControl);

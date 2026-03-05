@@ -106,7 +106,7 @@ export async function findColoringPage({
     keyword ? eq(coloringPage.keyword, keyword) : undefined
   ].filter(Boolean);
 
-  console.log('[coloring_page] Finding page with conditions:', { id, slug, conditions });
+  // console.log('[coloring_page] Finding page with conditions:', { id, slug, conditions });
 
   const [result] = await db()
     .select()
@@ -114,7 +114,7 @@ export async function findColoringPage({
     .where(conditions.length > 0 ? and(...conditions) : undefined)
     .limit(1);
 
-  console.log('[coloring_page] Find result:', result ? { id: result.id, slug: result.slug, title: result.title } : null);
+  // console.log('[coloring_page] Find result:', result ? { id: result.id, slug: result.slug, title: result.title } : null);
 
   return result;
 }
