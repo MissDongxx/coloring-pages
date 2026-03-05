@@ -29,7 +29,7 @@ export function CategoryGrid({ categories, hideEmpty = true }: CategoryGridProps
         const proxiedSrc = cat.imageSrc?.startsWith("/")
           ? cat.imageSrc
           : `/api/image-proxy?url=${encodeURIComponent(cat.imageSrc || '')}`;
-        const unoptimized = cat.imageSrc && !cat.imageSrc.startsWith("/");
+        const unoptimized = Boolean(cat.imageSrc && !cat.imageSrc.startsWith("/"));
 
         return (
           <Link key={cat.slug} href={`/${cat.slug}/`}>
