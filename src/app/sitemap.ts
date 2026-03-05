@@ -4,6 +4,7 @@ import { db } from '@/core/db';
 import { coloringPage, post } from '@/config/db/schema';
 import { envConfigs } from '@/config';
 import { eq } from 'drizzle-orm';
+import { getAllPageSlugs, getAllCategories } from '@/features/coloring/lib/data';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const appUrl = envConfigs.app_url || 'https://coloringpages.club';
@@ -125,5 +126,40 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  return [...staticRoutes, ...dynamicRoutes];
+  // Static coloring pages from all-pages.json + category pages
+  const staticColoringRoutes: MetadataRoute.Sitemap = [];
+
+  // Deduplicate: collect slugs already in dynamicRoutes
+  const existingSlugs = new Set(dynamicRoutes.map(r => {
+    const url = new URL(r.url);
+    return url.pathname.replace(/^\//, '').replace(/\/$/, '');
+  }));
+
+  // Add all static coloring page slugs
+  const allSlugs = getAllPageSlugs();
+  for (const slug of allSlugs) {
+    if (!existingSlugs.has(slug)) {
+      staticColoringRoutes.push({
+        url: `${baseUrl.href}${slug}`,
+        lastModified: new Date(),
+        changeFrequency: 'monthly',
+        priority: 0.5,
+      });
+    }
+  }
+
+  // Add category pages
+  const categories = getAllCategories();
+  for (const cat of categories) {
+    if (!existingSlugs.has(cat.slug)) {
+      staticColoringRoutes.push({
+        url: `${baseUrl.href}${cat.slug}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.7,
+      });
+    }
+  }
+
+  return [...staticRoutes, ...dynamicRoutes, ...staticColoringRoutes];
 }

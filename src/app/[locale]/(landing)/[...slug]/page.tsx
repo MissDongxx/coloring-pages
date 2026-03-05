@@ -7,6 +7,9 @@ import { getLocalPage } from '@/shared/models/post';
 import { ColoringCanvasWithProviders } from '@/features/coloring/components/coloring-canvas-with-providers';
 import { CategoryGrid } from '@/features/coloring/components/category-grid';
 import { PopularGrid } from '@/features/coloring/components/popular-grid';
+import { SeoContentSection } from '@/features/coloring/components/seo-content-section';
+import { RelatedPagesSection } from '@/features/coloring/components/related-pages-section';
+import { generateCategoryContent } from '@/features/coloring/lib/seo-content-generator';
 import {
   getPageBySlug,
   getAllPageSlugs,
@@ -15,6 +18,8 @@ import {
   getPagesBySubCategory,
   getAllCategories,
   getRelatedPages,
+  getPopularPages,
+  getRecommendedPages,
 } from '@/features/coloring/lib/data';
 import {
   Breadcrumb,
@@ -268,19 +273,38 @@ export default async function DynamicPage({
       // Get DB pages for this category
       const dbPages = await getColoringPages({ limit: 100, status: ColoringPageStatus.PUBLISHED, category: category.slug });
 
-      // Convert pages to PopularGrid format
-      const pageItems = [
-        ...dbPages.map(p => ({
+      // Convert pages to PopularGrid format and deduplicate by slug
+      const pageItemsMap = new Map<string, { title: string; slug: string; imageSrc: string }>();
+
+      // Add DB pages (prioritize DB pages)
+      dbPages.forEach(p => {
+        pageItemsMap.set(p.slug, {
           title: p.title,
           slug: p.slug,
           imageSrc: p.imageUrl
-        })),
-        ...staticPages.map(p => ({
-          title: p.title,
-          slug: p.slug,
-          imageSrc: p.image.png
-        }))
-      ];
+        });
+      });
+
+      // Add static pages (only if not already present from DB)
+      staticPages.forEach(p => {
+        if (!pageItemsMap.has(p.slug)) {
+          pageItemsMap.set(p.slug, {
+            title: p.title,
+            slug: p.slug,
+            imageSrc: p.image.png
+          });
+        }
+      });
+
+      const pageItems = Array.from(pageItemsMap.values());
+
+      // Generate SEO content for category hub page
+      const categoryContent = generateCategoryContent(
+        category.name,
+        category.slug,
+        (category.subCategories || []).map(sc => ({ name: sc.name, slug: sc.slug, count: sc.count })),
+        pageItems.length
+      );
 
       return (
         <div className="container mx-auto px-4 pt-16 pb-8 md:pt-20 md:pb-8 max-w-6xl">
@@ -300,13 +324,6 @@ export default async function DynamicPage({
             <h1 className="text-3xl md:text-4xl font-bold mb-4">{category.name} Coloring Pages</h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">{category.description}</p>
           </div>
-
-          {/* {subCategoriesForGrid.length > 0 && (
-            <section className="mb-16">
-              <h2 className="text-2xl font-bold mb-6">Categories</h2>
-              <CategoryGrid categories={subCategoriesForGrid} hideEmpty={false} />
-            </section>
-          )} */}
 
           <section>
             <h2 className="text-2xl font-bold mb-6">All {category.name} Pages</h2>
@@ -333,6 +350,12 @@ export default async function DynamicPage({
                 }))}
             />
           </section>
+
+          {/* SEO Content — server-rendered, crawlable */}
+          <div
+            className="seo-content-wrapper max-w-3xl mx-auto mt-12 text-muted-foreground"
+            dangerouslySetInnerHTML={{ __html: categoryContent }}
+          />
         </div>
       );
     }
@@ -436,6 +459,22 @@ export default async function DynamicPage({
       imageSrc: p.imageUrl
     }));
 
+    // Generate SEO content for theme/hub page
+    const themeName = modifier
+      ? `${modifier.charAt(0).toUpperCase() + modifier.slice(1)} ${root.charAt(0).toUpperCase() + root.slice(1)}`
+      : root.charAt(0).toUpperCase() + root.slice(1);
+    const hubSeoContent = generateCategoryContent(
+      themeName,
+      staticPageSlug,
+      [], // hub pages don't have subcategories
+      pageItems.length
+    );
+
+    // Get cross-category links for internal linking
+    const hubCategories = getAllCategories()
+      .slice(0, 6)
+      .map(c => ({ name: c.name, slug: c.slug, icon: c.icon, count: c.count }));
+
     return (
       <div className="container mx-auto px-4 pt-16 pb-8 md:pt-20 md:pb-8 max-w-6xl">
         <Breadcrumb className="mb-8">
@@ -470,6 +509,25 @@ export default async function DynamicPage({
         <section>
           <PopularGrid items={pageItems} />
         </section>
+
+        {/* Cross-category navigation */}
+        <section className="mt-16 pt-8 border-t">
+          <h2 className="text-2xl font-bold mb-6">Explore More Categories</h2>
+          <CategoryGrid
+            categories={hubCategories.map((cat) => ({
+              name: cat.name,
+              slug: cat.slug,
+              count: cat.count,
+              icon: cat.icon,
+            }))}
+          />
+        </section>
+
+        {/* SEO Content — server-rendered, crawlable */}
+        <div
+          className="seo-content-wrapper max-w-3xl mx-auto mt-12 text-muted-foreground"
+          dangerouslySetInnerHTML={{ __html: hubSeoContent }}
+        />
       </div>
     );
   }
@@ -507,16 +565,53 @@ export default async function DynamicPage({
         }));
     }
 
+    // Prepare data for server-rendered SEO sections
+    const currentSlug = isFromDb ? dbPage!.slug : coloringPage!.slug;
+    const currentTitle = isFromDb ? dbPage!.title : coloringPage!.title;
+    const currentCategory = isFromDb ? dbPage!.category : coloringPage!.category;
+    const currentDescription = isFromDb ? (dbPage!.description || '') : coloringPage!.description;
+    const currentImageSrc = isFromDb ? dbPage!.imageUrl : coloringPage!.image.png;
+    const currentRootKeyword = isFromDb ? dbPage!.rootKeyword : (coloringPage!.rootKeyword || null);
+    const currentKeywords = coloringPage?.keywords || [];
+
+    // Get recommended pages for server-rendered internal linking
+    const recommendedPages = getRecommendedPages(currentSlug, currentCategory, coloringPage?.subCategory, 12);
+    const popular = getPopularPages(6);
+    const allCats = getAllCategories()
+      .filter(c => c.slug !== currentCategory)
+      .slice(0, 6)
+      .map(c => ({ name: c.name, slug: c.slug, icon: c.icon, count: c.count }));
+
     return (
       <div className="pt-6 md:pt-10 pb-8">
         <ColoringCanvasWithProviders
-          pageId={isFromDb ? dbPage!.slug : coloringPage!.slug}
-          imageSrc={isFromDb ? dbPage!.imageUrl : coloringPage!.image.png}
-          title={isFromDb ? dbPage!.title : coloringPage!.title}
-          description={isFromDb ? (dbPage!.description || '') : coloringPage!.description}
-          category={isFromDb ? dbPage!.category : coloringPage!.category}
-          rootKeyword={isFromDb ? dbPage!.rootKeyword : null}
+          pageId={currentSlug}
+          imageSrc={currentImageSrc}
+          title={currentTitle}
+          description={currentDescription}
+          category={currentCategory}
+          rootKeyword={currentRootKeyword}
           relatedPages={relatedPages}
+        />
+
+        {/* Server-rendered SEO content — visible to crawlers */}
+        <SeoContentSection
+          title={currentTitle}
+          slug={currentSlug}
+          category={currentCategory}
+          subCategory={coloringPage?.subCategory}
+          keywords={currentKeywords}
+          description={currentDescription}
+          imageSrc={currentImageSrc}
+          rootKeyword={currentRootKeyword}
+        />
+
+        {/* Server-rendered internal links — crawlable <a> tags */}
+        <RelatedPagesSection
+          relatedPages={recommendedPages}
+          popularPages={popular}
+          categories={allCats}
+          categoryLabel={currentRootKeyword ? currentRootKeyword.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1)}
         />
       </div>
     );
