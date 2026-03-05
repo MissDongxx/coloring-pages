@@ -15,6 +15,7 @@ import type {
 } from './types';
 import { DEFAULT_CATEGORIES } from './types';
 import { DIMENSION_REGISTRY, DimensionGenerator } from './dimensions';
+import { generateAndRegisterConfig } from './ai-config-generator';
 
 /**
  * Prompt template based on Coloring-Book-Z-Image-Turbo-LoRA format
@@ -34,6 +35,7 @@ export class KeywordGenerator {
 
   /**
    * Generate keywords from word roots using AI or Dimension configs
+   * Now supports AI-generated dimension configs for new roots
    */
   async generateFromRoots(
     roots: string[],
@@ -44,17 +46,17 @@ export class KeywordGenerator {
     // For each root, generate variations
     for (const root of roots) {
       const lowerRoot = root.toLowerCase().trim();
-      const config = DIMENSION_REGISTRY[lowerRoot];
+      let config = DIMENSION_REGISTRY[lowerRoot];
 
-      if (config) {
-        // Use dimension generator if a config exists
-        const category = this.guessCategory(root);
-        const dimensionKeywords = DimensionGenerator.generate(config, category, countPerRoot, 60);
-        keywords.push(...dimensionKeywords);
-      } else {
-        const variations = await this.generateVariations(root, countPerRoot);
-        keywords.push(...variations);
+      if (!config) {
+        // Generate AI config for unknown roots
+        config = generateAndRegisterConfig(root, DIMENSION_REGISTRY);
       }
+
+      // Use dimension generator with config (existing or AI-generated)
+      const category = this.guessCategory(root);
+      const dimensionKeywords = DimensionGenerator.generate(config, category, countPerRoot, 60);
+      keywords.push(...dimensionKeywords);
     }
 
     return keywords;
@@ -77,73 +79,6 @@ export class KeywordGenerator {
     }
 
     return keywords;
-  }
-
-  /**
-   * Generate variations of a word root
-   * This would typically call an AI API, but for now we'll use simple variations
-   */
-  private async generateVariations(
-    root: string,
-    count: number
-  ): Promise<KeywordData[]> {
-    // Simple variations - in production, this would call an AI API
-    const variations: KeywordData[] = [];
-
-    // Common patterns for coloring pages
-    const prefixes = [
-      'cute',
-      'simple',
-      'cartoon',
-      'adorable',
-      'happy',
-      'friendly',
-      'easy',
-    ];
-    const suffixes = [
-      'for kids',
-      'drawing',
-      'outline',
-      'sketch',
-      'template',
-      'design',
-    ];
-
-    // Add the base keyword
-    variations.push({
-      category: this.guessCategory(root),
-      keyword: root,
-      rootKeyword: root,
-      modifier: '',
-    });
-
-    // Add variations
-    for (let i = 0; i < count - 1; i++) {
-      if (i < prefixes.length) {
-        variations.push({
-          category: this.guessCategory(root),
-          keyword: `${prefixes[i]} ${root}`,
-          rootKeyword: root,
-          modifier: prefixes[i],
-        });
-      } else if (i - prefixes.length < suffixes.length) {
-        variations.push({
-          category: this.guessCategory(root),
-          keyword: `${root} ${suffixes[i - prefixes.length]}`,
-          rootKeyword: root,
-          modifier: '', // Hub generation treats suffix modifiers differently, skip for now.
-        });
-      } else {
-        variations.push({
-          category: this.guessCategory(root),
-          keyword: `${root} ${i + 1}`,
-          rootKeyword: root,
-          modifier: '',
-        });
-      }
-    }
-
-    return variations.slice(0, count);
   }
 
   /**
