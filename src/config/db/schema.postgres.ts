@@ -614,6 +614,8 @@ export const coloringPage = table(
     publishedAt: timestamp('published_at'),
     deletedAt: timestamp('deleted_at'),
     sort: integer('sort').default(0).notNull(),
+    pinterestPinId: text('pinterest_pin_id'), // Pinterest pin id
+    pinterestPinUrl: text('pinterest_pin_url'), // Pinterest pin url
   },
   (table) => [
     index('idx_coloring_page_job').on(table.jobId),

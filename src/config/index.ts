@@ -59,6 +59,11 @@ export const envConfigs: ConfigMap = {
   kaggle_dataset_slug: process.env.KAGGLE_DATASET_SLUG ?? '',
   kaggle_notebook_slug: process.env.KAGGLE_NOTEBOOK_SLUG ?? '',
   kaggle_notebook_version: process.env.KAGGLE_NOTEBOOK_VERSION ?? '',
+  // Pinterest Configuration
+  pinterest_app_id: process.env.PINTEREST_APP_ID ?? '',
+  pinterest_app_secret: process.env.PINTEREST_APP_SECRET ?? '',
+  pinterest_refresh_token: process.env.PINTEREST_REFRESH_TOKEN ?? '',
+  pinterest_board_id: process.env.PINTEREST_BOARD_ID ?? '',
   // Coloring Workflow Configuration
   coloring_workflow_enabled: process.env.COLORING_WORKFLOW_ENABLED ?? 'false',
   coloring_workflow_schedule_time: process.env.COLORING_WORKFLOW_SCHEDULE_TIME ?? '02:00',
