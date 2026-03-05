@@ -599,7 +599,35 @@ export class KaggleClient {
                     throw new Error(`Kernel not found: ${this.notebookSlug}`);
                 }
 
-                // If status command fails, assume it's still running
+                // Check if this is an SSL/connection error
+                const isSSLError = output.includes('SSLEOFError') ||
+                                  output.includes('SSL') ||
+                                  output.includes('EOF') ||
+                                  output.includes('ECONNRESET') ||
+                                  output.includes('Connection') ||
+                                  output.includes('timeout') ||
+                                  output.includes('Timed out');
+
+                if (isSSLError) {
+                    console.log('SSL/Connection error detected. Attempting output verification as fallback...');
+
+                    // Check if enough time has passed since push to consider checking output
+                    const elapsed = Date.now() - this.lastPushTimestamp;
+                    if (this.lastPushTimestamp > 0 && elapsed >= MIN_RUNNING_TIME_MS) {
+                        const hasOutput = await this.verifyOutputAvailable();
+                        if (hasOutput) {
+                            console.log('Output verification succeeded despite status check failures. Treating as complete.');
+                            return { status: 'complete' };
+                        } else {
+                            console.log('Output verification failed. Assuming kernel is still running.');
+                        }
+                    } else {
+                        const remainingSec = Math.round((MIN_RUNNING_TIME_MS - elapsed) / 1000);
+                        console.log(`Not enough time elapsed since push (${Math.round(elapsed / 1000)}s, min ${MIN_RUNNING_TIME_MS / 1000}s). Assuming still running (${remainingSec}s remaining).`);
+                    }
+                }
+
+                // Default to running if we can't determine status
                 return { status: 'running' };
             }
         } finally {
@@ -719,6 +747,33 @@ export class KaggleClient {
         }
 
         const arrayBuffer = await res.arrayBuffer();
-        return Buffer.from(arrayBuffer);
+        const buffer = Buffer.from(arrayBuffer);
+
+        // Validate that the response is actually a zip file
+        // ZIP files start with "PK" (0x50 0x4B) magic number
+        if (buffer.length < 4 || buffer[0] !== 0x50 || buffer[1] !== 0x4B) {
+            // Not a zip file - log the first 200 bytes for debugging
+            const preview = buffer.toString('utf-8', 0, Math.min(200, buffer.length));
+            console.error(`Invalid zip format received from Kaggle API. First 200 bytes:`, preview);
+
+            // Check if it's an HTML error page
+            if (preview.includes('<!DOCTYPE') || preview.includes('<html') || preview.includes('<HTML')) {
+                throw new Error('Kaggle API returned an HTML error page instead of a zip file. The kernel output may not be ready or the API endpoint is incorrect.');
+            }
+
+            // Check if it's a JSON error
+            if (preview.startsWith('{') || preview.startsWith('[')) {
+                try {
+                    const jsonError = JSON.parse(preview);
+                    throw new Error(`Kaggle API returned a JSON error response: ${JSON.stringify(jsonError)}`);
+                } catch {
+                    throw new Error(`Kaggle API returned invalid content (not a zip file). Response preview: ${preview}`);
+                }
+            }
+
+            throw new Error(`Kaggle API returned invalid content (not a zip file). Response starts with: ${preview.substring(0, 50)}`);
+        }
+
+        return buffer;
     }
 }

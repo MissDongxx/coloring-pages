@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Card, CardContent } from "@/shared/components/ui/card";
 
 interface Category {
@@ -24,16 +25,18 @@ export function CategoryGrid({ categories, hideEmpty = true }: CategoryGridProps
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-      {filteredCategories.map((cat) => (
+      {filteredCategories.map((cat, index) => (
         <Link key={cat.slug} href={`/${cat.slug}/`}>
           <Card className="overflow-hidden rounded-xl shadow-sm hover:shadow-md transition-all duration-200 hover:border-primary group">
-            <div className="aspect-[4/3] bg-secondary/30 flex items-center justify-center border-b">
+            <div className="relative aspect-[4/3] bg-secondary/30 flex items-center justify-center border-b">
               {cat.imageSrc ? (
-                <img
+                <Image
                   src={cat.imageSrc}
                   alt={cat.name}
-                  className="w-full h-full object-contain transition-transform group-hover:scale-110"
-                  loading="lazy"
+                  fill
+                  priority={index < 4}
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className="object-contain transition-transform duration-500 group-hover:scale-110"
                 />
               ) : (
                 <div className="text-4xl">{cat.icon}</div>

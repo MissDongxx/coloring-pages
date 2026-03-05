@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Card, CardContent } from "@/shared/components/ui/card";
 
 interface HubItem {
@@ -15,16 +16,18 @@ interface HubGridProps {
 export function HubGrid({ hubs }: HubGridProps) {
     return (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {hubs.map((hub) => (
+            {hubs.map((hub, index) => (
                 <Link key={hub.slug} href={`/${hub.slug}`}>
                     <Card className="overflow-hidden rounded-xl shadow-sm hover:shadow-md transition-all duration-200 hover:border-primary group">
-                        <div className="aspect-[4/3] bg-secondary/30 flex items-center justify-center border-b">
+                        <div className="relative aspect-[4/3] bg-secondary/30 flex items-center justify-center border-b">
                             {hub.imageSrc ? (
-                                <img
+                                <Image
                                     src={hub.imageSrc}
                                     alt={hub.name}
-                                    className="w-full h-full object-cover transition-transform group-hover:scale-110"
-                                    loading="lazy"
+                                    fill
+                                    priority={index < 4}
+                                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                                    className="object-cover transition-transform duration-500 group-hover:scale-110"
                                 />
                             ) : (
                                 <div className="text-4xl">🎨</div>

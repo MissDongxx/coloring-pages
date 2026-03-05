@@ -371,8 +371,13 @@ export class ColoringWorkflowService {
           while (downloadAttempts < maxDownloadAttempts) {
             try {
               zipBuffer = await kaggle.getNotebookOutput();
-              // Successfully downloaded, verify it has content
+              // Successfully downloaded, verify it has content and is a valid zip
               if (zipBuffer.length > 0) {
+                // Validate ZIP magic number (starts with "PK")
+                if (zipBuffer[0] !== 0x50 || zipBuffer[1] !== 0x4B) {
+                  const preview = zipBuffer.toString('utf-8', 0, Math.min(200, zipBuffer.length));
+                  throw new Error(`Downloaded content is not a valid ZIP file. Preview: ${preview.substring(0, 100)}`);
+                }
                 break; // Success, exit retry loop
               } else {
                 throw new Error('Downloaded empty file');
@@ -937,6 +942,11 @@ export class ColoringWorkflowService {
         try {
           zipBuffer = await kaggle.getNotebookOutput();
           if (zipBuffer.length > 0) {
+            // Validate ZIP magic number (starts with "PK")
+            if (zipBuffer[0] !== 0x50 || zipBuffer[1] !== 0x4B) {
+              const preview = zipBuffer.toString('utf-8', 0, Math.min(200, zipBuffer.length));
+              throw new Error(`Downloaded content is not a valid ZIP file. Preview: ${preview.substring(0, 100)}`);
+            }
             break;
           } else {
             throw new Error('Downloaded empty file');

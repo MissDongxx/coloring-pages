@@ -9,6 +9,7 @@ interface ColoringCardProps {
   imageAlt?: string;
   canonical?: string;
   category?: string;
+  priority?: boolean;
 }
 
 export function ColoringCard({
@@ -17,7 +18,8 @@ export function ColoringCard({
   imageSrc,
   imageAlt,
   canonical,
-  category
+  category,
+  priority
 }: ColoringCardProps) {
   // 生成优化的 Alt 文本
   const altText = imageAlt || `${title} coloring page - free printable`;
@@ -37,8 +39,8 @@ export function ColoringCard({
               unoptimized={unoptimized}
               alt={altText}
               fill
+              priority={priority}
               className="object-contain group-hover:scale-105 transition-transform duration-500"
-              loading="lazy"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
           </div>
