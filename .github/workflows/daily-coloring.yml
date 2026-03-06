@@ -1,0 +1,99 @@
+name: Daily Coloring Page Generation
+
+on:
+  schedule:
+    # Run at 2:00 AM UTC every day
+    - cron: '0 2 * * *'
+  
+  # Allow manual trigger from GitHub UI
+  workflow_dispatch:
+    inputs:
+      wordRoots:
+        description: 'Word roots to generate (comma separated, e.g. "unicorn, rainbow")'
+        required: false
+        type: string
+        default: ''
+      count:
+        description: 'Number of keywords to generate'
+        required: false
+        type: string
+        default: '5'
+      provider:
+        description: 'Image generation provider (kaggle or replicate)'
+        required: false
+        type: choice
+        options:
+          - kaggle
+          - replicate
+        default: 'kaggle'
+
+jobs:
+  generate-coloring-pages:
+    runs-on: ubuntu-latest
+    
+    # Increase maximum execution time (default is 360 mins, but good to be explicit for our use case)
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Run Coloring Workflow Script
+        # Pass secrets as environment variables so the script can access them just like Vercel does
+        env:
+          # Database (Must add these to GitHub Secrets!)
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          
+          # Kaggle config
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+          KAGGLE_DATASET_SLUG: ${{ secrets.KAGGLE_DATASET_SLUG }}
+          KAGGLE_NOTEBOOK_SLUG: ${{ secrets.KAGGLE_NOTEBOOK_SLUG }}
+          
+          # Replicate config
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
+          
+          # R2 Storage Config
+          CF_R2_ACCOUNT_ID: ${{ secrets.CF_R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          R2_PUBLIC_DOMAIN: ${{ secrets.R2_PUBLIC_DOMAIN }}
+          
+          # AI Config (Using Deepseek as per user .env)
+          DEEPSEEK_API: ${{ secrets.DEEPSEEK_API }}
+          
+        run: |
+          # Only pass arguments if they were provided manually via workflow_dispatch
+          if [ -n "${{ github.event.inputs.wordRoots }}" ] && [ -n "${{ github.event.inputs.count }}" ]; then
+            pnpm run-workflow --roots "${{ github.event.inputs.wordRoots }}" --count "${{ github.event.inputs.count }}" --provider "${{ github.event.inputs.provider }}"
+          else
+            # Default scheduled run or empty inputs
+            pnpm run-workflow
+          fi
