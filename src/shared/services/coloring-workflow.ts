@@ -837,8 +837,10 @@ export class ColoringWorkflowService {
    */
   private async runWorkflowInternal(options: WorkflowOptions & { jobId?: string }): Promise<string> {
     // Step 0: Create job record or use existing jobId from background workflow
-    let jobId = options.jobId;
-    if (!jobId) {
+    let jobId: string;
+    if (options.jobId) {
+      jobId = options.jobId;
+    } else {
       const job = await createColoringJob({
         userId: options.userId || 'system',
         status: ColoringJobStatus.PENDING,

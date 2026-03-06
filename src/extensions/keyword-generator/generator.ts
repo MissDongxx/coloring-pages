@@ -16,6 +16,7 @@ import type {
 import { DEFAULT_CATEGORIES } from './types';
 import { DIMENSION_REGISTRY, DimensionGenerator } from './dimensions';
 import { generateAndRegisterConfig } from './ai-config-generator';
+import { getAllGeneratedKeywords } from '@/shared/models/coloring_page';
 
 /**
  * Prompt template based on Coloring-Book-Z-Image-Turbo-LoRA format
@@ -345,7 +346,17 @@ export class KeywordGenerator {
     }
 
     // Generate prompts
-    const keywordsWithPrompts = this.generatePrompts(keywords);
+    let keywordsWithPrompts = this.generatePrompts(keywords);
+
+    // Filter out already generated keywords
+    try {
+      const existingKeywords = await getAllGeneratedKeywords();
+      const originalCount = keywordsWithPrompts.length;
+      keywordsWithPrompts = keywordsWithPrompts.filter(kw => !existingKeywords.has(kw.keyword));
+      console.log(`[KeywordGenerator] Filtered out ${originalCount - keywordsWithPrompts.length} existing keywords.`);
+    } catch (error) {
+      console.error('[KeywordGenerator] Failed to fetch existing keywords, skipping filter:', error);
+    }
 
     // Export to CSV
     const csvPath = path.join(process.cwd(), 'temp', 'my-keywords.csv');

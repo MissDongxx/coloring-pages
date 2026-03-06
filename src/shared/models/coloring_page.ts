@@ -599,3 +599,16 @@ export async function findHubBySlugPrefix(prefix: string) {
     return null;
   }
 }
+
+/**
+ * Get all existing generation keywords from the database
+ * Used to filter out already generated keywords
+ */
+export async function getAllGeneratedKeywords(): Promise<Set<string>> {
+  const results = await db()
+    .select({ keyword: coloringPage.keyword })
+    .from(coloringPage)
+    .where(isNotNull(coloringPage.keyword));
+
+  return new Set(results.map((r: { keyword: string | null }) => r.keyword).filter((k: string | null): k is string => k !== null && k !== ''));
+}

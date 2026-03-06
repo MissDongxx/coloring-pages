@@ -11,9 +11,9 @@ import { redirect } from 'next/navigation';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { Separator } from '@/shared/components/ui/separator';
-import { Clock, CheckCircle, XCircle, FileImage, ListTodo, Workflow } from 'lucide-react';
+import { CheckCircle, XCircle, FileImage, Workflow } from 'lucide-react';
 import Link from 'next/link';
+import { JobDetailClient } from './job-detail-client';
 
 interface PageProps {
   params: Promise<{ locale: string; jobId: string }>;
@@ -57,52 +57,33 @@ export default async function AdminColoringJobDetailPage({
     // Invalid JSON
   }
 
-  // Parse logs
-  let logs: Array<{ timestamp: string; level: string; message: string; data?: any }> = [];
-  try {
-    const logsData = JSON.parse((job as any).logs || '[]');
-    logs = logsData;
-  } catch (e) {
-    // Invalid JSON
-  }
-
-  // Status badge variant
-  function getStatusVariant(status: string): 'default' | 'secondary' | 'destructive' | 'outline' {
-    switch (status) {
-      case 'completed':
-        return 'default';
-      case 'processing':
-        return 'secondary';
-      case 'failed':
-        return 'destructive';
-      default:
-        return 'outline';
-    }
-  }
-
-  // Status icon
-  function getStatusIcon(status: string) {
-    switch (status) {
-      case 'processing':
-        return <Clock className="h-5 w-5" />;
-      case 'completed':
-        return <CheckCircle className="h-5 w-5" />;
-      case 'failed':
-        return <XCircle className="h-5 w-5" />;
-      default:
-        return <ListTodo className="h-5 w-5" />;
-    }
-  }
-
-  // Format duration
-  function formatDuration(): string {
-    if (!job.completedAt || !job.startedAt) return '-';
-    const start = new Date(job.startedAt).getTime();
-    const end = new Date(job.completedAt).getTime();
-    const diff = (end - start) / 1000;
-    if (diff < 60) return `${Math.round(diff)}s`;
-    return `${Math.round(diff / 60)}m`;
-  }
+  // Prepare translations for client component
+  const translations = {
+    detail: {
+      title: t('detail.title'),
+      steps: t('detail.steps'),
+      keywords: t('detail.keywords'),
+    },
+    status: {
+      pending: t('status.pending'),
+      processing: t('status.processing'),
+      completed: t('status.completed'),
+      failed: t('status.failed'),
+    },
+    type: {
+      manual: t('type.manual'),
+      scheduled: t('type.scheduled'),
+    },
+    fields: {
+      status: t('fields.status'),
+      jobType: t('fields.jobType'),
+      duration: t('fields.duration'),
+    },
+    actions: {
+      viewPages: t('actions.viewPages'),
+      retry: t('actions.retry'),
+    },
+  };
 
   return (
     <>
@@ -132,70 +113,13 @@ export default async function AdminColoringJobDetailPage({
           }
         />
 
-        {/* Job Overview */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-normal text-muted-foreground">
-                {t('fields.status')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                {getStatusIcon(job.status)}
-                <Badge variant={getStatusVariant(job.status)}>
-                  {t(`status.${job.status}`)}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-normal text-muted-foreground">
-                {t('fields.jobType')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Badge variant="outline">{t(`type.${job.jobType}`)}</Badge>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-normal text-muted-foreground">
-                {t('fields.duration')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-2xl font-semibold">
-              {formatDuration()}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-normal text-muted-foreground">
-                Results
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-1">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Keywords:</span>
-                <span>{job.totalKeywords}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Pages:</span>
-                <span>{job.processedPages}</span>
-              </div>
-              {job.failedPages > 0 && (
-                <div className="flex justify-between text-sm text-destructive">
-                  <span>Failed:</span>
-                  <span>{job.failedPages}</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+        {/* Client Component with Live Updates */}
+        <JobDetailClient
+          initialJob={job}
+          locale={locale}
+          jobId={jobId}
+          translations={translations}
+        />
 
         {/* Timeline */}
         <Card className="mb-6">
@@ -228,7 +152,7 @@ export default async function AdminColoringJobDetailPage({
                 <div className="pb-8">
                   <div className="font-medium">Generate Images</div>
                   <div className="text-sm text-muted-foreground">
-                    {job.totalKeywords} placeholder images created
+                    {job.totalKeywords} images created
                   </div>
                 </div>
               </div>
@@ -269,7 +193,7 @@ export default async function AdminColoringJobDetailPage({
                 <div>
                   <div className="font-medium">Create Pages</div>
                   <div className="text-sm text-muted-foreground">
-                    Database records and MDX files created
+                    Database records created
                   </div>
                 </div>
               </div>
@@ -420,59 +344,6 @@ export default async function AdminColoringJobDetailPage({
             </div>
           </CardContent>
         </Card>
-
-        {/* Execution Logs */}
-        {logs.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ListTodo className="h-5 w-5" />
-                Execution Logs
-                <Badge variant="outline">{logs.length}</Badge>
-              </CardTitle>
-              <CardDescription>
-                Detailed step-by-step execution logs
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-1 font-mono text-xs max-h-96 overflow-y-auto">
-                {logs.map((log, index) => {
-                  const levelColors = {
-                    info: 'text-foreground',
-                    error: 'text-destructive',
-                    warn: 'text-yellow-600 dark:text-yellow-400',
-                  };
-                  const levelBgColors = {
-                    info: 'bg-muted/30',
-                    error: 'bg-destructive/10',
-                    warn: 'bg-yellow-500/10',
-                  };
-                  return (
-                    <div
-                      key={index}
-                      className={`flex gap-2 p-2 rounded ${levelBgColors[log.level as keyof typeof levelBgColors] || levelBgColors.info}`}
-                    >
-                      <span className="text-muted-foreground shrink-0">
-                        {new Date(log.timestamp).toLocaleTimeString()}
-                      </span>
-                      <span className={`font-semibold shrink-0 uppercase ${levelColors[log.level as keyof typeof levelColors] || levelColors.info}`}>
-                        [{log.level}]
-                      </span>
-                      <span className={levelColors[log.level as keyof typeof levelColors] || levelColors.info}>
-                        {log.message}
-                      </span>
-                      {log.data && (
-                        <span className="text-muted-foreground ml-auto">
-                          {JSON.stringify(log.data)}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </Main>
     </>
   );
