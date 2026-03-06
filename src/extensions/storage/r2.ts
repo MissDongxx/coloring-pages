@@ -237,41 +237,97 @@ export class R2Provider implements StorageProvider {
   async downloadAndUpload(
     options: StorageDownloadUploadOptions
   ): Promise<StorageUploadResult> {
-    try {
-      const response = await fetch(options.url);
-      if (!response.ok) {
-        return {
-          success: false,
-          error: `HTTP error! status: ${response.status}`,
-          provider: this.name,
-        };
+    const maxRetries = 3;
+    const baseDelay = 1000; // 1 second
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`[R2 downloadAndUpload] Attempt ${attempt}/${maxRetries} for URL: ${options.url}`);
+
+        // Add timeout to fetch request
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+        const response = await fetch(options.url, {
+          signal: controller.signal,
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          },
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          const error = `HTTP error! status: ${response.status} ${response.statusText}`;
+          console.error(`[R2 downloadAndUpload] ${error}`);
+
+          if (attempt === maxRetries) {
+            return {
+              success: false,
+              error,
+              provider: this.name,
+            };
+          }
+          // Wait before retry with exponential backoff
+          await new Promise(resolve => setTimeout(resolve, baseDelay * Math.pow(2, attempt - 1)));
+          continue;
+        }
+
+        if (!response.body) {
+          return {
+            success: false,
+            error: 'No body in response',
+            provider: this.name,
+          };
+        }
+
+        const arrayBuffer = await response.arrayBuffer();
+        const body = new Uint8Array(arrayBuffer);
+
+        console.log(`[R2 downloadAndUpload] Download successful (${body.length} bytes), uploading...`);
+
+        const uploadResult = await this.uploadFile({
+          body,
+          key: options.key,
+          bucket: options.bucket,
+          contentType: options.contentType,
+          disposition: options.disposition,
+        });
+
+        if (uploadResult.success) {
+          console.log(`[R2 downloadAndUpload] Upload successful: ${uploadResult.url}`);
+        }
+
+        return uploadResult;
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error(`[R2 downloadAndUpload] Attempt ${attempt}/${maxRetries} failed:`, errorMessage);
+
+        // Check if error is due to abort (timeout)
+        if (error instanceof Error && error.name === 'AbortError') {
+          console.error('[R2 downloadAndUpload] Request timed out');
+        }
+
+        if (attempt === maxRetries) {
+          return {
+            success: false,
+            error: `Failed after ${maxRetries} attempts: ${errorMessage}`,
+            provider: this.name,
+          };
+        }
+
+        // Wait before retry with exponential backoff
+        const delay = baseDelay * Math.pow(2, attempt - 1);
+        console.log(`[R2 downloadAndUpload] Retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
-
-      if (!response.body) {
-        return {
-          success: false,
-          error: 'No body in response',
-          provider: this.name,
-        };
-      }
-
-      const arrayBuffer = await response.arrayBuffer();
-      const body = new Uint8Array(arrayBuffer);
-
-      return this.uploadFile({
-        body,
-        key: options.key,
-        bucket: options.bucket,
-        contentType: options.contentType,
-        disposition: options.disposition,
-      });
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        provider: this.name,
-      };
     }
+
+    return {
+      success: false,
+      error: 'Max retries exceeded',
+      provider: this.name,
+    };
   }
 }
 

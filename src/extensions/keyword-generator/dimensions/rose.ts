@@ -48,13 +48,8 @@ export const roseConfig: DimensionConfig = {
         ]
     },
     patterns: [
-        // 基础型 - 适合主hub
-        "{root}",
-        "{style} {root}",
-        "{style} {root} coloring page",
         // 动作+场景组合
         "{root} {action} {scene}",
-        "{style} {root} {action}",
         "{root} {action} with {companion}",
         // 详细场景
         "{detail} {root} {scene}",
@@ -63,7 +58,6 @@ export const roseConfig: DimensionConfig = {
         // 艺术风格
         "botanical {root} illustration",
         "vintage {root} print",
-        "therapeutic {root} mandala",
         // 季节性
         "{root} in spring",
         "{style} {root} at sunset"

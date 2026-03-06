@@ -46,7 +46,6 @@ export class DimensionGenerator {
 
         // Enforce Core Pages First:
         // Generate the exact root phrase (usually pattern with only {root})
-        // and pure style hubs if applicable.
 
         // 1. Exact Root Hub
         const rootKeywordStr = root.trim();
@@ -57,22 +56,6 @@ export class DimensionGenerator {
                 rootKeyword: root,
                 modifier: '',
             });
-        }
-
-        // 2. Pure SubHubs (Style/Audience + Root)
-        // We'll try to generate simple hubs like "{style} {root}"
-        if (dimensions['style']) {
-            for (const style of dimensions['style']) {
-                const subHubStr = `${style} ${root}`.trim();
-                if (subHubStr.length <= maxLength && !results.has(subHubStr)) {
-                    results.set(subHubStr, {
-                        category,
-                        keyword: subHubStr,
-                        rootKeyword: root,
-                        modifier: style,
-                    });
-                }
-            }
         }
 
         // Generation loop for longtail
@@ -104,7 +87,7 @@ export class DimensionGenerator {
 
                 generatedString = generatedString.replace(`{${v}}`, replacement);
 
-                // Naively capture the first style or character as the modifier, 
+                // Naively capture the first style or character as the modifier,
                 // prioritizing style if it matches.
                 if (!usedModifier && (v === 'style' || v === 'character')) {
                     usedModifier = replacement;

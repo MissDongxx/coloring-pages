@@ -97,41 +97,105 @@ const TYPE_TEMPLATES: Record<RootType, Partial<DimensionConfig>> = {
     dimensions: {
       species: [],  // Will be AI-generated
       style: [
-        // 儿童风格
-        'cute', 'cartoon', 'kawaii', 'simple', 'easy', 'adorable',
-        // 成人/艺术风格
-        'realistic', 'detailed', 'intricate', 'elegant', 'aesthetic',
-        'therapeutic', 'mandala style', 'geometric', 'folk art',
-        'wildlife illustration', 'nature study', 'scientific illustration',
-        'minimalist', 'zen', 'peaceful'
+        // 基础风格
+        'cute', 'simple', 'easy',
+        // 专业风格
+        'realistic', 'detailed', 'scientific illustration', 'wildlife art',
+        'therapeutic', 'mandala style', 'geometric'
       ],
+      // 详细场景描述
       environment: [
-        'in natural habitat', 'in forest', 'in jungle', 'in meadow',
-        'near water', 'on mountain', 'in desert', 'in arctic', 'in ocean',
-        'in garden', 'in park', 'at zoo', 'on farm', 'in wild',
-        'at sunrise', 'at sunset', 'under moonlight', 'in rain', 'in snow'
+        // 森林场景
+        'in dense forest with sunlight filtering through trees',
+        'in bamboo forest', 'in autumn forest with fallen leaves',
+        'in rainforest with vines and tropical plants',
+        'in pine forest on mountainside',
+        // 水边场景
+        'drinking from crystal clear stream',
+        'wading in shallow pond with lily pads',
+        'resting by waterfall with mist',
+        'on riverbank with smooth stones',
+        'swimming in lake with mountain reflection',
+        // 山地场景
+        'standing on rocky cliff edge',
+        'resting on grassy hilltop',
+        'in mountain meadow with wildflowers',
+        'cave entrance with stalactites visible',
+        // 特殊天气环境
+        'walking through morning fog', 'in gentle rain',
+        'standing in snow-covered landscape',
+        'basking in golden sunset light',
+        'under starry night sky', 'during thunderstorm',
+        // 特定位置
+        'hiding in tall grass', 'on tree branch',
+        'in hollow log', 'under leafy canopy',
+        'near colorful flowers', 'among autumn leaves',
+        'on sandy beach', 'in desert oasis with palm trees'
       ],
+      // 详细动作描述
       action: [
-        'standing', 'walking', 'running', 'jumping', 'flying', 'swimming',
-        'sleeping', 'eating', 'playing', 'resting', 'looking at viewer',
-        'with family', 'with babies', 'hunting', 'soaring', 'climbing'
+        // 姿态动作
+        'standing alert with ears perked up',
+        'sitting gracefully with tail wrapped around',
+        'lying down resting head on paws',
+        'crouching ready to pounce',
+        'stretching body fully extended',
+        'walking slowly and carefully',
+        'running at full speed with motion blur',
+        'jumping through the air',
+        'climbing tree trunk with claws',
+        'flying with wings spread wide',
+        'swimming underwater with bubbles',
+        // 进食动作
+        'eating grass peacefully',
+        'drinking water with head down',
+        'chewing on branch or bone',
+        'catching fish in river',
+        'hunting with intense focus',
+        // 社交动作
+        'mother nursing babies',
+        'playing with siblings',
+        'grooming another animal',
+        'sleeping curled up together',
+        'fighting with rival',
+        // 特殊状态
+        'sleeping peacefully with eyes closed',
+        'howling at the moon',
+        'looking directly at viewer',
+        'looking back over shoulder',
+        'roaring with mouth open',
+        'shedding tears',
+        'injured but determined',
+        'young and clumsy learning to walk',
+        'old and wise with gray fur'
       ],
+      // 身体细节
       detail: [
-        'with detailed fur', 'with feathers detailed', 'showing scales',
-        'with patterns', 'with natural markings', 'in motion',
-        'portrait style', 'full body', 'close up', 'in profile'
+        'fur texture clearly visible',
+        'feathers individually detailed',
+        'scales shimmering',
+        'skin wrinkled and realistic',
+        'mane flowing in wind',
+        'tail bushy and curled',
+        'wings translucent',
+        'horns or antlers prominent',
+        'spikes or quills visible',
+        'patterns and markings natural',
+        'eyes bright and expressive',
+        'wet nose texture',
+        'paws with pads detailed',
+        'claws sharp and visible'
       ]
     },
     patterns: [
-      "{root}",
-      "{style} {root}",
-      "{style} {root} {environment}",
-      "{root} {action} {environment}",
-      "{detail} {root} {action}",
-      "wildlife {root} illustration",
-      "therapeutic {root} mandala",
-      "{style} {root} with family",
-      "detailed {root} in habitat"
+      "{root} {action}",
+      "{root} in {environment}",
+      "{root} {action} in {environment}",
+      "{detail} {root}",
+      "portrait of {root} {action}",
+      "{style} {root} with {detail}",
+      "detailed {root} {environment}",
+      "{root} family {action}"
     ]
   },
 
@@ -139,45 +203,85 @@ const TYPE_TEMPLATES: Record<RootType, Partial<DimensionConfig>> = {
     dimensions: {
       variety: [],  // Will be AI-generated
       style: [
-        // 基础风格
-        'cute', 'simple', 'easy', 'adorable',
-        // 艺术/专业风格
-        'botanical illustration', 'art nouveau', 'vintage', 'realistic',
-        'intricate', 'elegant', 'therapeutic', 'geometric', 'zentangle',
-        'folk art', 'watercolor style', 'scientific illustration',
-        // 特殊风格
-        'mandala style', 'sketch', 'minimalist', 'aesthetic', 'detailed'
+        'cute', 'simple', 'easy',
+        'botanical illustration', 'scientific', 'realistic',
+        'vintage', 'art nouveau', 'therapeutic', 'mandala style', 'geometric'
       ],
+      // 详细场景
       scene: [
-        // 自然环境
-        'in garden', 'in meadow', 'in forest', 'on mountain', 'in field',
-        'beside river', 'near waterfall', 'at sunrise', 'at sunset',
-        'in morning dew', 'in spring', 'in summer', 'in autumn', 'in winter',
+        // 生长环境
+        'growing from cracked stone pavement',
+        'in cottage garden with picket fence',
+        'in wild meadow with tall grass',
+        'in greenhouse with glass panels visible',
+        'on windowsill with curtains',
+        'in terracotta pot on wooden table',
+        'hanging from basket on porch',
+        'climbing up brick wall',
+        'in bamboo container',
+        'among mossy rocks in stream',
         // 特定情境
-        'in vase', 'in pot', 'in basket', 'in bouquet', 'in wreath',
-        'growing wild', 'with buds', 'blooming', 'wilting', 'with leaves',
-        'with roots', 'with thorns', 'with vines'
+        'with morning dewdrops on petals',
+        'covered in fresh snow',
+        'bathed in golden hour light',
+        'with dramatic shadows from above',
+        'reflected in still pond water',
+        'backlit by bright sunlight',
+        'in moonlight with stars',
+        'during autumn with falling leaves',
+        'surrounded by autumn foliage',
+        'with spring buds just opening',
+        // 艺术呈现
+        'in vintage mason jar',
+        'wrapped in brown paper and twine',
+        'arranged in vintage vase',
+        'in floral bouquet with ribbon',
+        'as single stem in glass bottle',
+        'dried and hanging upside down',
+        'pressed in vintage book',
+        'woven into flower crown'
       ],
+      // 生长状态动作
       action: [
-        'blooming', 'budding', 'unfolding', 'swaying', 'reaching for sun',
-        'dancing in wind', 'growing', 'flowering', 'wilting gently'
+        'just beginning to sprout from soil',
+        'tightly closed bud ready to open',
+        'partially opening showing layers',
+        'fully bloomed with petals wide',
+        'petals falling gently one by one',
+        'wilted but still beautiful',
+        'dried seed head with seeds scattering',
+        'leaning towards light source',
+        'swaying gently in breeze',
+        'bent under weight of rain',
+        'growing vines wrapping around',
+        'roots showing in soil',
+        'leaves turning yellow and brown',
+        'new growth emerging from stem'
       ],
+      // 配套元素
       companion: [
-        'with butterfly', 'with bee', 'with ladybug', 'with bird',
-        'with dewdrops', 'with raindrops', 'with other flowers',
-        'with leaves', 'with vines', 'in grass'
+        'with honeybee collecting nectar',
+        'with butterfly resting on petal',
+        'with fuzzy caterpillar eating leaf',
+        'with small ladybug on leaf',
+        'with dragonfly nearby',
+        'with bird perched on branch',
+        'with spider web between leaves',
+        'with snail on stem',
+        'with dewdrop on each petal tip',
+        'with raindrops clinging to petals'
       ]
     },
     patterns: [
       "{root}",
       "{style} {root}",
-      "{style} {root} {scene}",
-      "{root} {action} {scene}",
+      "{root} {action}",
+      "{root} in {scene}",
       "botanical {root} illustration",
-      "vintage {root} print",
-      "therapeutic {root} mandala",
-      "{style} {root} with {companion}",
-      "detailed {root} in {scene}"
+      "{style} {root} {action}",
+      "{root} {companion}",
+      "detailed {root} {scene}",
+      "{root} blooming in {scene}"
     ]
   },
 
@@ -218,9 +322,7 @@ const TYPE_TEMPLATES: Record<RootType, Partial<DimensionConfig>> = {
       ]
     },
     patterns: [
-      "{root}",
       "{style} {variant}",
-      "{style} {root}",
       "{variant} {scene}",
       "{variant} {action} {scene}",
       "detailed {root} {detail}",
@@ -235,51 +337,90 @@ const TYPE_TEMPLATES: Record<RootType, Partial<DimensionConfig>> = {
     dimensions: {
       character: [],  // Will be AI-generated
       style: [
-        // 儿童风格
-        'cute', 'cartoon', 'kawaii', 'simple', 'easy',
-        // 成人/艺术风格
-        'realistic', 'intricate', 'elegant', 'detailed', 'aesthetic',
-        'therapeutic', 'mandala style', 'geometric', 'folk art',
-        'fantasy illustration', 'epic style', 'mythical art',
-        'celtic art', 'art nouveau', 'watercolor style'
+        'cute', 'simple', 'easy',
+        'realistic', 'detailed', 'epic', 'mythical',
+        'therapeutic', 'mandala style', 'geometric', 'folk art'
       ],
+      // 详细奇幻场景
       scene: [
-        // 神奇环境
-        'in enchanted forest', 'in magical realm', 'in fantasy castle',
-        'in crystal cave', 'at ancient ruins', 'in mystical grove',
-        'in dreamland', 'in otherworld', 'in shadow realm', 'in light realm',
+        // 魔法森林场景
+        'in ancient forest with bioluminescent plants',
+        'in crystal cave with glowing formations',
+        'in enchanted grove with floating lights',
+        'in mystical forest with magical creatures',
+        'in dark forest with fireflies',
+        // 城堡场景
+        'in grand castle hall with chandeliers',
+        'on castle tower overlooking kingdom',
+        'in castle dungeon with stone walls',
+        'in royal throne room',
+        'in castle garden with magical fountains',
         // 天空场景
-        'flying through clouds', 'under stars', 'under moonlight',
-        'at sunset', 'in aurora', 'in nebula', 'in cosmos',
+        'soaring through star-filled night sky',
+        'floating above clouds at sunset',
+        'flying through aurora borealis',
+        'resting on crescent moon',
+        'playing among constellations',
         // 魔法场景
-        'with magical aura', 'surrounded by magic', 'casting spell',
-        'with glowing effect', 'with power emanating'
+        'standing in circle of magical runes',
+        'at ancient altar with candles',
+        'in library with floating books',
+        'in potion room with bubbling cauldrons',
+        'in magical workshop with crystals',
+        // 特殊环境
+        'emerging from misty lake',
+        'standing on floating island',
+        'in underground labyrinth',
+        'at dragon\'s treasure hoard',
+        'in celestial palace'
       ],
+      // 详细动作
       action: [
-        'casting spell', 'summoning power', 'flying majestically',
-        'standing proudly', 'guarding treasure', 'on quest',
-        'in battle', 'resting peacefully', 'looking mysterious',
-        'emerging from shadows', 'ascending to heavens'
+        // 魔法动作
+        'casting spell with hands glowing',
+        'summoning magical energy from surroundings',
+        'reading ancient glowing spellbook',
+        'brewing potion in cauldron',
+        'wielding magical staff with light',
+        'creating portal with swirling magic',
+        'healing wounded creature',
+        'teleporting with fading form',
+        // 战斗动作
+        'sword fighting with magic enhanced blade',
+        'defending with magical shield',
+        'shooting energy blast from hands',
+        'dodging enemy attack mid-air',
+        'riding dragon into battle',
+        'commanding army of creatures',
+        // 日常动作
+        'sleeping on bed of clouds',
+        'eating magical feast at table',
+        'playing with magical creatures',
+        'practicing sword fighting alone',
+        'meditating in lotus position floating',
+        'looking in magic mirror',
+        'writing in ancient tome'
       ],
       companion: [
-        'with fairy', 'with dragon', 'with phoenix', 'with unicorn',
-        'with magical creatures', 'with spirits', 'with elements',
-        'with ancient beings', 'with other fantasy creatures'
-      ],
-      detail: [
-        'with glowing eyes', 'with magical markings', 'with armor',
-        'with crown', 'with wings detailed', 'with elemental effects',
-        'with ancient symbols', 'with mystical aura'
+        'with tiny fairy on shoulder',
+        'with baby dragon following',
+        'with magical phoenix companion',
+        'with wise old wizard',
+        'with spirit animal guide',
+        'with elemental creature',
+        'with enchanted weapon floating nearby',
+        'with mythical beast companion'
       ]
     },
     patterns: [
-      "{style} {root}",
+      "{root}",
       "{style} {character}",
-      "{character} {action} {scene}",
-      "{style} {character} {scene}",
-      "fantasy illustration {character}",
-      "intricate {root} mandala",
-      "mythical {character} with {companion}",
+      "{character} {action}",
+      "{character} in {scene}",
+      "{style} {character} {action}",
+      "fantasy {character} {companion}",
+      "detailed {character} in {scene}",
+      "{character} casting magic in {scene}",
       "epic {character} {action}"
     ]
   },
@@ -325,9 +466,6 @@ const TYPE_TEMPLATES: Record<RootType, Partial<DimensionConfig>> = {
       ]
     },
     patterns: [
-      "{root}",
-      "{style} {element}",
-      "{style} {root}",
       "{element} {scene}",
       "{style} {element} {scene}",
       "vintage {element} illustration",
@@ -364,9 +502,6 @@ const TYPE_TEMPLATES: Record<RootType, Partial<DimensionConfig>> = {
       ]
     },
     patterns: [
-      "{root}",
-      "{style} {type}",
-      "{style} {root}",
       "{type} {action} {environment}",
       "technical {type} illustration",
       "detailed {type} {detail}",
@@ -402,9 +537,6 @@ const TYPE_TEMPLATES: Record<RootType, Partial<DimensionConfig>> = {
       ]
     },
     patterns: [
-      "{root}",
-      "{style} {role}",
-      "{style} {root}",
       "{role} {action} {scene}",
       "portrait of {role}",
       "detailed {role} {detail}",
@@ -440,9 +572,6 @@ const TYPE_TEMPLATES: Record<RootType, Partial<DimensionConfig>> = {
       ]
     },
     patterns: [
-      "{root}",
-      "{style} {item}",
-      "{style} {root}",
       "{item} {presentation}",
       "{style} {item} {scene}",
       "appetizing {item} illustration",
@@ -478,9 +607,6 @@ const TYPE_TEMPLATES: Record<RootType, Partial<DimensionConfig>> = {
       ]
     },
     patterns: [
-      "{root}",
-      "{style} {phenomenon}",
-      "{style} {root}",
       "{phenomenon} {condition} {scene}",
       "landscape {phenomenon}",
       "atmospheric {root} {scene}",
@@ -545,9 +671,6 @@ const TYPE_TEMPLATES: Record<RootType, Partial<DimensionConfig>> = {
       ]
     },
     patterns: [
-      "{root}",
-      "{style} {variant}",
-      "{style} {root}",
       "{variant} {scene}",
       "detailed {root}",
       "therapeutic {root} mandala"

@@ -3,6 +3,34 @@ import { AIFile, AIMediaType, AIProvider } from './types';
 export * from './types';
 
 /**
+ * Execute promises with concurrency limit
+ */
+async function promiseAllConcurrent<T>(
+  items: Array<T>,
+  asyncFn: (item: T, index: number) => Promise<any>,
+  concurrency: number
+): Promise<any[]> {
+  const results: any[] = [];
+  const executing: Array<Promise<any>> = [];
+
+  for (let i = 0; i < items.length; i++) {
+    const promise = asyncFn(items[i], i).then((result) => {
+      executing.splice(executing.indexOf(promise), 1);
+      return result;
+    });
+
+    results.push(promise);
+    executing.push(promise);
+
+    if (executing.length >= concurrency) {
+      await Promise.race(executing);
+    }
+  }
+
+  return Promise.all(results);
+}
+
+/**
  * AI Manager to manage all AI providers
  */
 export class AIManager {
@@ -50,8 +78,9 @@ export async function saveFiles(files: AIFile[]) {
     const { getStorageService } = await import('@/shared/services/storage');
     const storageService = await getStorageService();
 
-    const uploadedFiles = await Promise.all(
-      files.map(async (file) => {
+    const uploadedFiles = await promiseAllConcurrent(
+      files,
+      async (file) => {
         const result = await storageService.downloadAndUpload({
           url: file.url,
           contentType: file.contentType,
@@ -61,7 +90,8 @@ export async function saveFiles(files: AIFile[]) {
           ...file,
           url: result.url,
         } as AIFile;
-      })
+      },
+      3 // Max 3 concurrent uploads
     );
 
     return uploadedFiles;

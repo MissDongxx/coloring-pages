@@ -52,17 +52,13 @@ export const dinosaurConfig: DimensionConfig = {
         ]
     },
     patterns: [
-        // 基础型
-        "{root}",
-        "{style} {species}",
-        "{style} {root}",
         // 动作组合
         "{species} {action}",
         "{species} {action} {environment}",
         "{style} {species} {action}",
         // 环境组合
         "{species} in {environment}",
-        "{style} {species} environment",
+        "{style} {species} in {environment}",
         // 教育向
         "scientific {species} illustration",
         "{educational} {species}",
@@ -70,7 +66,6 @@ export const dinosaurConfig: DimensionConfig = {
         "realistic {species} with {companion}",
         // 艺术/成人向
         "intricate {species} {action}",
-        "therapeutic {root} mandala",
         "geometric {species} pattern",
         "paleontology art {species}",
         // 特定情境

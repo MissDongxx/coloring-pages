@@ -6,6 +6,7 @@ export interface PinterestConfigs {
     appId: string;
     appSecret: string;
     refreshToken: string;
+    accessToken?: string; // Optional static token for sandbox/unauthenticated testing
 }
 
 export interface PinterestTokenResponse {
@@ -21,6 +22,14 @@ export interface CreatePinParams {
     description: string;
     link: string;
     imageUrl: string;
+    altText?: string;
+}
+
+export interface BoardResponse {
+    id: string;
+    name: string;
+    description?: string;
+    privacy: 'PUBLIC' | 'PROTECTED' | 'SECRET';
 }
 
 export interface PinResponse {

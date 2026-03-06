@@ -58,10 +58,6 @@ export const unicornConfig: DimensionConfig = {
         ]
     },
     patterns: [
-        // 基础型
-        "{root}",
-        "{style} {root}",
-        "{style} {character}",
         // 动作组合
         "{character} {action}",
         "{style} {character} {action}",
@@ -71,13 +67,10 @@ export const unicornConfig: DimensionConfig = {
         "{style} {character} {scene}",
         "detailed {character} with {companion}",
         // 艺术/成人向
-        "intricate {root} mandala",
         "therapeutic {character} {scene}",
         "fantasy illustration {character}",
-        "celtic {root} design",
         // 特定情境
         "{character} {action} {companion}",
-        "{detail} {character} coloring page",
         "{style} {character} at {scene}"
     ]
 };

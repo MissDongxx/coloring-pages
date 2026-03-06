@@ -361,9 +361,16 @@ export async function createColoringPageWithSlugRetry(
     const slug = attempt === 0 ? baseSlug : `${baseSlug}-${attempt + 1}`;
     try {
       const id = nanoid();
+
+      // Filter out undefined values to prevent Drizzle from using DEFAULT keyword
+      // Only include properties with actual values (null, empty string, 0, false are kept)
+      const cleanData = Object.fromEntries(
+        Object.entries({ ...data, id, slug }).filter(([_, value]) => value !== undefined)
+      );
+
       const [result] = await db()
         .insert(coloringPage)
-        .values({ ...data, id, slug })
+        .values(cleanData)
         .returning();
       return result;
     } catch (err: any) {
@@ -374,6 +381,15 @@ export async function createColoringPageWithSlugRetry(
         console.log(`[coloring_page] Slug "${slug}" conflict, trying next...`);
         continue;
       }
+      // Log more detailed error for debugging
+      console.error('[coloring_page] Create page error:', {
+        message: err.message,
+        code: err.code,
+        detail: err.detail,
+        hint: err.hint,
+        slug,
+        dataKeys: Object.keys(data)
+      });
       throw err; // Re-throw non-conflict errors
     }
   }

@@ -45,6 +45,21 @@ export default async function AdminUsersPage({
     limit,
   });
 
+  // Preload all roles and credits to avoid N+1 queries
+  const userRolesMap = new Map<string, any[]>();
+  const userCreditsMap = new Map<string, number>();
+
+  await Promise.all(
+    users.map(async (user) => {
+      const [roles, credits] = await Promise.all([
+        getUserRoles(user.id),
+        getRemainingCredits(user.id),
+      ]);
+      userRolesMap.set(user.id, roles);
+      userCreditsMap.set(user.id, credits);
+    })
+  );
+
   const crumbs: Crumb[] = [
     { title: t('list.crumbs.admin'), url: '/admin' },
     { title: t('list.crumbs.users'), is_active: true },
@@ -71,8 +86,8 @@ export default async function AdminUsersPage({
       {
         name: 'roles',
         title: t('fields.roles'),
-        callback: async (item: User) => {
-          const roles = await getUserRoles(item.id);
+        callback: (item: User) => {
+          const roles = userRolesMap.get(item.id) || [];
 
           return (
             <div className="flex flex-col gap-2">
@@ -94,8 +109,8 @@ export default async function AdminUsersPage({
       {
         name: 'remainingCredits',
         title: t('fields.remaining_credits'),
-        callback: async (item: User) => {
-          const credits = await getRemainingCredits(item.id);
+        callback: (item: User) => {
+          const credits = userCreditsMap.get(item.id) ?? 0;
 
           return <div className="text-green-500">{credits}</div>;
         },

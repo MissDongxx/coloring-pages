@@ -20,7 +20,6 @@ export async function GET(request: Request) {
         }
 
         const pinterestProvider = createPinterestProvider();
-        const boardId = envConfigs.pinterest_board_id;
 
         // Fetch up to 5 unpublished pages
         const pagesToPin = await db()
@@ -41,17 +40,35 @@ export async function GET(request: Request) {
         const results = [];
 
         // Process pages sequentially to avoid hitting rate limits
+        // In-memory cache for boards found/created in this batch
+        const boardCache = new Map<string, string>();
+
         for (const page of pagesToPin) {
             try {
+                // Determine board name from rootKeyword or category
+                const boardName = (page.rootKeyword || page.category || 'General').trim();
+                const capitalizedBoardName = boardName.charAt(0).toUpperCase() + boardName.slice(1);
+
+                let boardId = boardCache.get(capitalizedBoardName);
+                if (!boardId) {
+                    boardId = await pinterestProvider.getOrCreateBoardByName(capitalizedBoardName);
+                    boardCache.set(capitalizedBoardName, boardId);
+                }
+
                 const pinLink = `${envConfigs.app_url}/${page.slug}`;
-                const description = page.description || `Beautiful ${page.title} for you to color! Download and enjoy.`;
+
+                // Build rich description with hashtags
+                const tags = (page.keyword || '').split(',').map((t: string) => `#${t.trim().replace(/\s+/g, '')}`).join(' ');
+                const baseDescription = page.description || `Beautiful ${page.title} for you to color! Download and enjoy.`;
+                const fullDescription = `${baseDescription}\n\n${tags}`;
 
                 const pinResult = await pinterestProvider.createPin({
                     boardId,
                     title: page.title,
-                    description,
+                    description: fullDescription,
                     link: pinLink,
                     imageUrl: page.imageUrl,
+                    altText: page.title,
                 });
 
                 // Update database with pin info

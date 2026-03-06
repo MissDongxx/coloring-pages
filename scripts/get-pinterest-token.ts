@@ -2,8 +2,8 @@ import { createServer } from 'http';
 import { envConfigs } from '../src/config';
 import { exec } from 'child_process';
 
-const PORT = 3000;
-const REDIRECT_URI = `http://localhost:${PORT}/callback`;
+const PORT = 3001;
+const REDIRECT_URI = `https://coloringpages.club/callback`;
 
 if (!envConfigs.pinterest_app_id || !envConfigs.pinterest_app_secret) {
   console.error("❌ 错误: 请确保 .env 或者 .env.development 中已经配置了 PINTEREST_APP_ID 和 PINTEREST_APP_SECRET");
@@ -22,9 +22,23 @@ console.log(`🔗 请在浏览器中打开此链接进行授权: \n${authUrl}\n`
 
 // Attempt to open the auth URL in the user's default browser
 const openCommand = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
-exec(`${openCommand} "${authUrl}"`).catch(() => { });
+exec(`${openCommand} "${authUrl}"`, (error) => {
+  if (error) {
+    // Silently ignore if browser can't be opened automatically
+  }
+});
 
 const server = createServer(async (req, res) => {
+  // CORS configuration to allow coloringpages.club to call this localhost server
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+
+  if (req.method === 'OPTIONS') {
+    res.writeHead(200);
+    res.end();
+    return;
+  }
+
   const url = new URL(req.url || '/', `http://localhost:${PORT}`);
 
   if (url.pathname === '/callback') {
@@ -73,8 +87,9 @@ const server = createServer(async (req, res) => {
       res.end('<h1>✅ 授权成功！</h1><p>请查看终端控制台获取你的 <b>PINTEREST_REFRESH_TOKEN</b>，然后你可以关闭此页面了。</p>');
 
       setTimeout(() => {
+        console.log("脚本即将退出...");
         process.exit(0);
-      }, 1000);
+      }, 3000);
 
     } catch (err: any) {
       console.error(err);

@@ -63,10 +63,6 @@ export const christmasConfig: DimensionConfig = {
         ]
     },
     patterns: [
-        // 基础型
-        "{root}",
-        "{style} {character}",
-        "{style} {root} coloring page",
         // 动作组合
         "{character} {action}",
         "{character} {action} {scene}",
@@ -84,7 +80,6 @@ export const christmasConfig: DimensionConfig = {
         "{style} {mood} scene",
         // 艺术/成人向
         "intricate {character} {decoration}",
-        "therapeutic christmas mandala",
         "victorian {character} illustration",
         "folk art {character}",
         "scandinavian minimal {character}",

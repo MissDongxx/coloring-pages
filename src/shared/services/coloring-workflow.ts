@@ -30,6 +30,34 @@ interface WorkflowOptions {
 }
 
 /**
+ * Execute promises with concurrency limit
+ */
+async function promiseAllConcurrent<T>(
+  items: Array<T>,
+  asyncFn: (item: T, index: number) => Promise<any>,
+  concurrency: number
+): Promise<any[]> {
+  const results: any[] = [];
+  const executing: Array<Promise<any>> = [];
+
+  for (let i = 0; i < items.length; i++) {
+    const promise = asyncFn(items[i], i).then((result) => {
+      executing.splice(executing.indexOf(promise), 1);
+      return result;
+    });
+
+    results.push(promise);
+    executing.push(promise);
+
+    if (executing.length >= concurrency) {
+      await Promise.race(executing);
+    }
+  }
+
+  return Promise.all(results);
+}
+
+/**
  * Coloring workflow service class
  */
 export class ColoringWorkflowService {
@@ -595,63 +623,67 @@ export class ColoringWorkflowService {
     let failCount = 0;
     const errors: string[] = [];
 
-    const uploadPromises = images.map(async (img) => {
-      const filename = path.basename(img.path);
-      const key = `${r2Path}/${img.category}/${filename}`;
+    // Limit concurrent uploads to avoid overwhelming the network/server
+    // Use 3 concurrent uploads at a time
+    const results = await promiseAllConcurrent(
+      images,
+      async (img) => {
+        const filename = path.basename(img.path);
+        const key = `${r2Path}/${img.category}/${filename}`;
 
-      try {
-        await this.log(jobId, 'info', `Uploading ${filename} to ${key}...`);
+        try {
+          await this.log(jobId, 'info', `Uploading ${filename} to ${key}...`);
 
-        const imageBuffer = await fs.readFile(img.path);
-        await this.log(jobId, 'info', `File read: ${filename}, size: ${imageBuffer.length} bytes`);
+          const imageBuffer = await fs.readFile(img.path);
+          await this.log(jobId, 'info', `File read: ${filename}, size: ${imageBuffer.length} bytes`);
 
-        const storage = await getStorageService();
-        const providers = storage.getProviderNames();
-        await this.log(jobId, 'info', `Storage service obtained, providers: ${providers.join(', ') || 'NONE'}`);
+          const storage = await getStorageService();
+          const providers = storage.getProviderNames();
+          await this.log(jobId, 'info', `Storage service obtained, providers: ${providers.join(', ') || 'NONE'}`);
 
-        if (providers.length === 0) {
-          throw new Error('No storage providers configured. Please check R2/S3 configuration in settings.');
+          if (providers.length === 0) {
+            throw new Error('No storage providers configured. Please check R2/S3 configuration in settings.');
+          }
+
+          const result = await storage.uploadFile({
+            body: imageBuffer,
+            key: key,
+            contentType: 'image/png',
+          });
+
+          await this.log(jobId, 'info', `Upload result for ${filename}:`, {
+            success: result.success,
+            url: result.url,
+            location: result.location,
+            error: result.error,
+            provider: result.provider,
+            key: result.key
+          });
+
+          if (!result.url) {
+            throw new Error(`Upload failed - no URL returned. Success: ${result.success}, Error: ${result.error || 'none'}`);
+          }
+
+          await this.log(jobId, 'info', `Upload success: ${filename}`, { url: result.url });
+          successCount++;
+
+          return {
+            category: img.category,
+            keyword: img.keyword,
+            imageUrl: result.url,
+            rootKeyword: img.rootKeyword,
+            modifier: img.modifier,
+          };
+        } catch (error) {
+          const errorMsg = `Failed to upload ${filename}: ${error instanceof Error ? error.message : String(error)}`;
+          await this.log(jobId, 'error', errorMsg);
+          errors.push(errorMsg);
+          failCount++;
+          return null;
         }
-
-        const result = await storage.uploadFile({
-          body: imageBuffer,
-          key: key,
-          contentType: 'image/png',
-        });
-
-        await this.log(jobId, 'info', `Upload result for ${filename}:`, {
-          success: result.success,
-          url: result.url,
-          location: result.location,
-          error: result.error,
-          provider: result.provider,
-          key: result.key
-        });
-
-        if (!result.url) {
-          throw new Error(`Upload failed - no URL returned. Success: ${result.success}, Error: ${result.error || 'none'}`);
-        }
-
-        await this.log(jobId, 'info', `Upload success: ${filename}`, { url: result.url });
-        successCount++;
-
-        return {
-          category: img.category,
-          keyword: img.keyword,
-          imageUrl: result.url,
-          rootKeyword: img.rootKeyword,
-          modifier: img.modifier,
-        };
-      } catch (error) {
-        const errorMsg = `Failed to upload ${filename}: ${error instanceof Error ? error.message : String(error)}`;
-        await this.log(jobId, 'error', errorMsg);
-        errors.push(errorMsg);
-        failCount++;
-        return null;
-      }
-    });
-
-    const results = await Promise.all(uploadPromises);
+      },
+      3 // Max 3 concurrent uploads
+    );
     const uploaded = results.filter((r): r is NonNullable<typeof r> => r !== null);
 
     await this.log(jobId, 'info', `R2 upload complete: ${successCount} success, ${failCount} failed`);
@@ -770,7 +802,14 @@ export class ColoringWorkflowService {
    * Main workflow orchestration
    */
   async runWorkflow(options: WorkflowOptions): Promise<string> {
-    // Step 0: Create job record
+    return this.runWorkflowInternal(options);
+  }
+
+  /**
+   * Start workflow in background and return jobId immediately
+   */
+  async runWorkflowInBackground(options: WorkflowOptions): Promise<string> {
+    // Create job record first to get the ID
     const job = await createColoringJob({
       userId: options.userId || 'system',
       status: ColoringJobStatus.PENDING,
@@ -783,6 +822,35 @@ export class ColoringWorkflowService {
     });
 
     const jobId = job.id;
+
+    // Run workflow in background
+    this.runWorkflowInternal({ ...options, jobId }).catch((error) => {
+      console.error(`Background workflow failed for job ${jobId}:`, error);
+    });
+
+    // Return jobId immediately
+    return jobId;
+  }
+
+  /**
+   * Internal workflow orchestration
+   */
+  private async runWorkflowInternal(options: WorkflowOptions & { jobId?: string }): Promise<string> {
+    // Step 0: Create job record or use existing jobId from background workflow
+    let jobId = options.jobId;
+    if (!jobId) {
+      const job = await createColoringJob({
+        userId: options.userId || 'system',
+        status: ColoringJobStatus.PENDING,
+        jobType: options.jobType,
+        keywordsData: '',
+        totalKeywords: 0,
+        processedPages: 0,
+        failedPages: 0,
+        startedAt: new Date(),
+      });
+      jobId = job.id;
+    }
     let csvPath: string | undefined;
     let imagesDir: string | undefined;
 

@@ -100,7 +100,8 @@ export default async function AdminColoringWorkflowPage({
 
     try {
       const workflowService = getWorkflowService();
-      jobId = await workflowService.runWorkflow({
+      // Run workflow in background and get jobId immediately
+      jobId = await workflowService.runWorkflowInBackground({
         wordRoots: wordRoots ? (wordRoots as string).split(',').map((s) => s.trim()) : undefined,
         jobType: jobType as any,
         provider: provider as any,

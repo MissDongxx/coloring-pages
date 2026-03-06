@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 
-import { Link, usePathname, useRouter } from '@/core/i18n/navigation';
+import { Link, usePathname } from '@/core/i18n/navigation';
 import { SmartIcon } from '@/shared/blocks/common/smart-icon';
 import {
   Collapsible,
@@ -25,12 +25,54 @@ import { NavItem, type Nav as NavType } from '@/shared/types/blocks/common';
 
 export function Nav({ nav, className }: { nav: NavType; className?: string }) {
   const pathname = usePathname();
-  const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  if (!mounted) {
+    return (
+      <SidebarGroup className={className}>
+        <SidebarGroupContent className="mt-0 flex flex-col gap-2">
+          {nav.title && <SidebarGroupLabel>{nav.title}</SidebarGroupLabel>}
+          <SidebarMenu>
+            {nav.items.map((item: NavItem | undefined) => (
+              <SidebarMenuItem key={item?.title || ''}>
+                {item?.children ? (
+                  <SidebarMenuButton tooltip={item?.title}>
+                    {item?.icon && <SmartIcon name={item.icon as string} />}
+                    <span>{item?.title || ''}</span>
+                    <ChevronRight className="ml-auto" />
+                  </SidebarMenuButton>
+                ) : (
+                  <SidebarMenuButton asChild tooltip={item?.title}>
+                    <Link href={item?.url as string} target={item?.target as string}>
+                      {item?.icon && <SmartIcon name={item.icon as string} />}
+                      <span>{item?.title || ''}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                )}
+                {item?.children && (
+                  <SidebarMenuSub>
+                    {item.children?.map((subItem: NavItem) => (
+                      <SidebarMenuSubItem key={subItem.title}>
+                        <SidebarMenuSubButton asChild>
+                          <Link href={subItem.url as string} target={subItem.target as string}>
+                            <span className="px-2">{subItem.title}</span>
+                          </Link>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    ))}
+                  </SidebarMenuSub>
+                )}
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    );
+  }
 
   return (
     <SidebarGroup className={className}>
