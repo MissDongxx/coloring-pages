@@ -43,9 +43,22 @@ async function main() {
 
     try {
         const workflowService = getWorkflowService();
+
+        // Find a valid user ID to avoid FK violation
+        // We use dynamic imports to avoid loading DB logic until needed
+        const { db } = await import('@/core/db');
+        const { user } = await import('@/config/db/schema');
+        const [firstUser] = await db().select({ id: user.id }).from(user).limit(1);
+
+        if (!firstUser) {
+            throw new Error('No users found in database. Please create at least one user (sign up on the website) before running this workflow.');
+        }
+
+        console.log(`Using valid User ID for job record: ${firstUser.id}`);
+
         const jobId = await workflowService.runWorkflow({
             jobType: ColoringJobType.MANUAL,
-            userId: 'system-script',
+            userId: firstUser.id,
             wordRoots: wordRoots,
             count: count,
             provider: provider,
