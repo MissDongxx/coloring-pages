@@ -77,6 +77,14 @@ async function main() {
         console.error(error);
         console.error(`========================================\n`);
         process.exit(1);
+    } finally {
+        try {
+            const { closeDb } = await import('@/core/db');
+            await closeDb();
+            console.log('Database connection closed.');
+        } catch (e) {
+            // Silently fail if closure fails
+        }
     }
 }
 

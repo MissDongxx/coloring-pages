@@ -718,7 +718,8 @@ export class ColoringWorkflowService {
       imageUrl: string;
       rootKeyword?: string;
       modifier?: string;
-    }>
+    }>,
+    userId?: string
   ): Promise<void> {
     await this.log(jobId, 'info', `Step 5: Creating ${uploadedImages.length} coloring page records...`);
 
@@ -736,7 +737,7 @@ export class ColoringWorkflowService {
         try {
           await createColoringPageWithSlugRetry({
             jobId,
-            userId: 'system',
+            userId: userId || 'system',
             slug,
             title,
             description,
@@ -933,7 +934,7 @@ export class ColoringWorkflowService {
       const uploadedImages = await this.uploadImagesToR2(jobId, finalImages);
 
       // Step 5: Create pages
-      await this.createColoringPages(jobId, uploadedImages);
+      await this.createColoringPages(jobId, uploadedImages, options.userId);
 
       // Mark job as completed
       await updateJobStatus(jobId, ColoringJobStatus.COMPLETED);
@@ -1112,7 +1113,7 @@ export class ColoringWorkflowService {
       const uploadedImages = await this.uploadImagesToR2(jobId, finalImages);
 
       // Step 5: Create pages
-      await this.createColoringPages(jobId, uploadedImages);
+      await this.createColoringPages(jobId, uploadedImages, (job as any).userId);
 
       // Mark job as completed
       await updateJobStatus(jobId, ColoringJobStatus.COMPLETED);

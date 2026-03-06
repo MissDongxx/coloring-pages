@@ -70,6 +70,7 @@ export const envConfigs: ConfigMap = {
   coloring_workflow_max_daily: process.env.COLORING_WORKFLOW_MAX_DAILY ?? '100',
   coloring_mdx_path: process.env.COLORING_MDX_PATH ?? 'content/coloring-pages',
   coloring_r2_path: process.env.COLORING_R2_PATH ?? 'coloring-pages',
+  coloring_workflow_provider: process.env.COLORING_WORKFLOW_PROVIDER ?? 'kaggle',
   // Image Quality Settings
   coloring_min_image_width: process.env.COLORING_MIN_IMAGE_WIDTH ?? '512',
   coloring_max_image_width: process.env.COLORING_MAX_IMAGE_WIDTH ?? '4096',
@@ -83,7 +84,7 @@ export const envConfigs: ConfigMap = {
   r2_access_key: process.env.R2_ACCESS_KEY_ID ?? '',
   r2_secret_key: process.env.R2_SECRET_ACCESS_KEY ?? '',
   r2_bucket_name: process.env.R2_BUCKET_NAME ?? '',
-  r2_domain: process.env.R2_DOMAIN ?? '',
+  r2_domain: process.env.R2_DOMAIN ?? process.env.R2_PUBLIC_DOMAIN ?? '',
   siliconflow_api_key: process.env.SILICONFLOW_API_KEY ?? '',
   runware_api_key: process.env.RUNWARE_API_KEY ?? '',
 };
