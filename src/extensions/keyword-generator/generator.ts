@@ -65,156 +65,81 @@ export class KeywordGenerator {
 
   /**
    * Auto-generate keywords across categories
+   * Strategy: Pick 5 random roots from the pool and generate 20 variations for each
    */
-  async autoGenerate(
-    categories: Array<{ name: string; count: number }> = DEFAULT_CATEGORIES
-  ): Promise<KeywordData[]> {
-    const keywords: KeywordData[] = [];
+  async autoGenerate(): Promise<KeywordData[]> {
+    // 1. Collect all available root words from all categories
+    const allRoots: string[] = [];
+    const categories = {
+      animals: [
+        'butterfly', 'cat', 'dog', 'elephant', 'lion', 'tiger', 'bear', 'rabbit',
+        'bird', 'fish', 'dinosaur', 'dragon', 'horse', 'pig', 'cow', 'sheep',
+        'duck', 'frog', 'turtle', 'snake',
+      ],
+      nature: [
+        'flower', 'tree', 'leaf', 'mountain', 'sun', 'moon', 'star', 'cloud',
+        'rain', 'snowflake', 'rainbow', 'ocean wave', 'palm tree', 'cactus', 'mushroom',
+      ],
+      transportation: [
+        'car', 'truck', 'bus', 'train', 'airplane', 'helicopter', 'boat', 'ship',
+        'bicycle', 'rocket', 'scooter', 'tractor', 'police car', 'fire truck', 'ambulance',
+      ],
+      food: [
+        'apple', 'banana', 'orange', 'strawberry', 'pizza', 'hamburger', 'ice cream',
+        'cake', 'cookie', 'candy', 'cupcake', 'donut', 'watermelon', 'grapes', 'carrot',
+      ],
+      holidays: [
+        'christmas tree', 'santa claus', 'easter egg', 'pumpkin', 'turkey',
+        'valentine heart', 'flag', 'fireworks', 'snowman', 'wreath',
+      ],
+      fantasy: [
+        'unicorn', 'mermaid', 'fairy', 'dragon', 'castle', 'knight', 'princess',
+        'wizard', 'magic wand', 'enchanted forest',
+      ],
+      sports: [
+        'basketball', 'soccer ball', 'football', 'baseball', 'tennis racket',
+        'golf club', 'hockey stick', 'bowling ball', 'volleyball', 'swimming',
+      ],
+      space: [
+        'astronaut', 'rocket', 'planet', 'alien', 'ufo', 'star', 'moon',
+        'satellite', 'comet', 'galaxy',
+      ],
+    };
 
-    for (const category of categories) {
-      const categoryKeywords = await this.generateCategoryKeywords(
-        category.name,
-        category.count
-      );
-      keywords.push(...categoryKeywords);
-    }
+    Object.values(categories).forEach(roots => {
+      allRoots.push(...roots);
+    });
 
-    return keywords;
+    // 2. Shuffle and pick 2 random roots
+    const shuffled = [...allRoots].sort(() => 0.5 - Math.random());
+    const selectedRoots = shuffled.slice(0, 2);
+
+    console.log(`[KeywordGenerator] Selected 2 random roots: ${selectedRoots.join(', ')}`);
+
+    // 3. Generate 30 variations for each root
+    return this.generateFromRoots(selectedRoots, 30);
   }
 
   /**
-   * Generate keywords for a specific category
+   * Generate keywords for a specific category (Legacy/Not used in new autoGenerate but kept for API)
    */
   private async generateCategoryKeywords(
     category: string,
     count: number
   ): Promise<KeywordData[]> {
-    // Category-specific keyword lists
-    const categoryKeywords: Record<string, string[]> = {
-      animals: [
-        'butterfly',
-        'cat',
-        'dog',
-        'elephant',
-        'lion',
-        'tiger',
-        'bear',
-        'rabbit',
-        'bird',
-        'fish',
-        'dinosaur',
-        'dragon',
-        'horse',
-        'pig',
-        'cow',
-        'sheep',
-        'duck',
-        'frog',
-        'turtle',
-        'snake',
-      ],
-      nature: [
-        'flower',
-        'tree',
-        'leaf',
-        'mountain',
-        'sun',
-        'moon',
-        'star',
-        'cloud',
-        'rain',
-        'snowflake',
-        'rainbow',
-        'ocean wave',
-        'palm tree',
-        'cactus',
-        'mushroom',
-      ],
-      transportation: [
-        'car',
-        'truck',
-        'bus',
-        'train',
-        'airplane',
-        'helicopter',
-        'boat',
-        'ship',
-        'bicycle',
-        'rocket',
-        'scooter',
-        'tractor',
-        'police car',
-        'fire truck',
-        'ambulance',
-      ],
-      food: [
-        'apple',
-        'banana',
-        'orange',
-        'strawberry',
-        'pizza',
-        'hamburger',
-        'ice cream',
-        'cake',
-        'cookie',
-        'candy',
-        'cupcake',
-        'donut',
-        'watermelon',
-        'grapes',
-        'carrot',
-      ],
-      holidays: [
-        'christmas tree',
-        'santa claus',
-        'easter egg',
-        'pumpkin',
-        'turkey',
-        'valentine heart',
-        'flag',
-        'fireworks',
-        'snowman',
-        'wreath',
-      ],
-      fantasy: [
-        'unicorn',
-        'mermaid',
-        'fairy',
-        'dragon',
-        'castle',
-        'knight',
-        'princess',
-        'wizard',
-        'magic wand',
-        'enchanted forest',
-      ],
-      sports: [
-        'basketball',
-        'soccer ball',
-        'football',
-        'baseball',
-        'tennis racket',
-        'golf club',
-        'hockey stick',
-        'bowling ball',
-        'volleyball',
-        'swimming',
-      ],
-      space: [
-        'astronaut',
-        'rocket',
-        'planet',
-        'alien',
-        'ufo',
-        'star',
-        'moon',
-        'satellite',
-        'comet',
-        'galaxy',
-      ],
+    // This is now redundant but kept to avoid breaking types if any
+    const allCategoryKeywords: Record<string, string[]> = {
+      animals: ['butterfly', 'cat', 'dog', 'elephant', 'lion', 'tiger', 'bear', 'rabbit', 'bird', 'fish', 'dinosaur', 'dragon', 'horse', 'pig', 'cow', 'sheep', 'duck', 'frog', 'turtle', 'snake'],
+      nature: ['flower', 'tree', 'leaf', 'mountain', 'sun', 'moon', 'star', 'cloud', 'rain', 'snowflake', 'rainbow', 'ocean wave', 'palm tree', 'cactus', 'mushroom'],
+      transportation: ['car', 'truck', 'bus', 'train', 'airplane', 'helicopter', 'boat', 'ship', 'bicycle', 'rocket', 'scooter', 'tractor', 'police car', 'fire truck', 'ambulance'],
+      food: ['apple', 'banana', 'orange', 'strawberry', 'pizza', 'hamburger', 'ice cream', 'cake', 'cookie', 'candy', 'cupcake', 'donut', 'watermelon', 'grapes', 'carrot'],
+      holidays: ['christmas tree', 'santa claus', 'easter egg', 'pumpkin', 'turkey', 'valentine heart', 'flag', 'fireworks', 'snowman', 'wreath'],
+      fantasy: ['unicorn', 'mermaid', 'fairy', 'dragon', 'castle', 'knight', 'princess', 'wizard', 'magic wand', 'enchanted forest'],
+      sports: ['basketball', 'soccer ball', 'football', 'baseball', 'tennis racket', 'golf club', 'hockey stick', 'bowling ball', 'volleyball', 'swimming'],
+      space: ['astronaut', 'rocket', 'planet', 'alien', 'ufo', 'star', 'moon', 'satellite', 'comet', 'galaxy'],
     };
 
-    const available = categoryKeywords[category] || [];
+    const available = allCategoryKeywords[category] || [];
     const selected = available.slice(0, Math.min(count, available.length));
 
     return selected.map((keyword) => ({
@@ -342,7 +267,7 @@ export class KeywordGenerator {
         options.count || 5
       );
     } else {
-      keywords = await this.autoGenerate(options.categories);
+      keywords = await this.autoGenerate();
     }
 
     // Generate prompts
