@@ -19,6 +19,7 @@ export type RootType =
   | 'food'          // Food items
   | 'nature'        // Natural phenomena
   | 'place'         // Locations/structures
+  | 'ip'            // IP characters (Hello Kitty, Peppa Pig, Superman, etc.)
   | 'general';      // Default fallback
 
 /**
@@ -69,6 +70,31 @@ const TYPE_PATTERNS: Record<RootType, RegExp[]> = {
     /\b(house|home|castle|palace|tower|bridge|monument|statue|fountain|park|garden|farm|city|town|village|school|hospital|library|museum|church|temple|mosque|synagogue)\b/i,
     /\b(bedroom|kitchen|bathroom|living room|dining room|garage|attic|basement|rooftop|balcony|porch|patio|yard|driveway|sidewalk|street|road|highway|freeway)\b/i,
   ],
+  ip: [
+    // Sanrio characters
+    /\b(hello kitty|kuromi|my melody|cinnamoroll|pompompurin|kerokerokeroppi|bad badtz-maru|little twin stars|pochacco|tuxedosam|hangyodon|osaru no monichi|chococat|spottie dottie|purin|dearluna)\b/i,
+    // Disney characters
+    /\b(mickey mouse|minnie mouse|donald duck|goofy|pluto|daisy duck|chip and dale|winnie the pooh|tigger|piglet|eeyore|rabbit|roo|lumpy|elsa|anna|olaf|moana|maui|ariel|belle|cinderella|snow white|jasmine|aurora|rapunzel|tiana|merida|pocahontas|mulan|sleeping beauty)\b/i,
+    // Popular cartoon characters
+    /\b(peppa pig|george pig|suzy sheep|rebecca rabbit|danny dog|candy cat|pedro pony|emily elephant|edmond elephant|richard rabbit|freddy fox|wendy wolf|gabriella goat|kylie kangaroo|gerald giraffe)\b/i,
+    /\b(paw patrol|chase|marshall|rubble|sky|rocky|zuma|everest|tracker|ryder)\b/i,
+    /\b(spider-man|spiderman|batman|superman|wonder woman|iron man|captain america|thor|hulk|black widow|hawkeye|black panther|doctor strange|scarlet witch|ant-man|wasp|flash|aquaman|cyborg)\b/i,
+    /\b(spongebob|patrick|squidward|sandy|mr krabs|plankton)\b/i,
+    /\b(pokemon|pikachu|charizard|mewtwo|eevee|snorlax|gengar|lucario|mew|gyarados|dragonite|blastoise|venusaur|greninja|ash ketchum|team rocket)\b/i,
+    // Anime characters
+    /\b(doraemon|nobita|shizuka|takeshi|suneo|dora cake)\b/i,
+    /\b(crayon shin-chan|shinchan)\b/i,
+    /\b(naruto|sasuke|sakura|kakashi)\b/i,
+    /\b(dragon ball|goku|vegeta|bulma|piccolo|gohan|trunks|frieza|cell|buu)\b/i,
+    // Studio Ghibli
+    /\b(totoro|chihiro|howl|ponyo|mononoke|haku|calcifer|no-face|kiki|jiji)\b/i,
+    // Others
+    /\b(barbie|ken|skipper|stacie|chelsea|raquelle|ryan)\b/i,
+    /\b(thomas the tank engine|james the red engine|percy|gordon|henry|edward)\b/i,
+    /\b(bob the builder|scoop|muck|dizzy|roley|lofty|wendy|pilchard|bird|travis|spud)\b/i,
+    // General pattern for IP names
+    /\b(sanrio|disney|marvel|dc|pixar|dreamworks)\b/i,
+  ],
   general: [],
 };
 
@@ -95,7 +121,18 @@ export function detectRootType(root: string): RootType {
 const TYPE_TEMPLATES: Record<RootType, Partial<DimensionConfig>> = {
   animal: {
     dimensions: {
-      species: [],  // Will be AI-generated
+      species: [
+        // 热门动物品种
+        'golden retriever', 'labrador', 'german shepherd', 'bulldog', 'poodle',
+        'siamese cat', 'persian cat', 'maine coon', 'british shorthair', 'scottish fold',
+        'african elephant', 'asian elephant', 'bengal tiger', 'siberian tiger', 'white tiger',
+        'african lion', 'mountain lion', 'lion cub', 'cheetah', 'leopard',
+        'grizzly bear', 'polar bear', 'panda bear', 'koala bear', 'black bear',
+        'horse', 'pony', 'zebra', 'giraffe', 'hippopotamus', 'rhinoceros',
+        'dolphin', 'killer whale', 'blue whale', 'shark', 'sea turtle',
+        'eagle', 'owl', 'parrot', 'flamingo', 'peacock', 'penguin',
+        'butterfly', 'bee', 'ladybug', 'dragonfly', 'spider'
+      ],
       style: [
         // 基础风格
         'cute', 'simple', 'easy',
@@ -201,7 +238,17 @@ const TYPE_TEMPLATES: Record<RootType, Partial<DimensionConfig>> = {
 
   plant: {
     dimensions: {
-      variety: [],  // Will be AI-generated
+      variety: [
+        // 热门花卉品种
+        'red rose', 'white rose', 'pink rose', 'yellow rose', 'lavender rose',
+        'sunflower', 'tulip', 'daisy', 'lily', 'orchid', 'lotus',
+        'cherry blossom', 'peony', 'dahlia', 'marigold', 'poppy',
+        'jasmine', 'lavender', 'iris', 'violet', 'bluebonnet',
+        'magnolia', 'camellia', 'gardenia', 'hibiscus', 'bouganvillea',
+        // 树木品种
+        'oak tree', 'pine tree', 'palm tree', 'willow tree', 'bonsai tree',
+        'cherry tree', 'apple tree', 'bamboo', 'cactus', 'succulent'
+      ],
       style: [
         'cute', 'simple', 'easy',
         'botanical illustration', 'scientific', 'realistic',
@@ -273,8 +320,6 @@ const TYPE_TEMPLATES: Record<RootType, Partial<DimensionConfig>> = {
       ]
     },
     patterns: [
-      "{root}",
-      "{style} {root}",
       "{root} {action}",
       "{root} in {scene}",
       "botanical {root} illustration",
@@ -287,7 +332,16 @@ const TYPE_TEMPLATES: Record<RootType, Partial<DimensionConfig>> = {
 
   object: {
     dimensions: {
-      variant: [],  // Will be AI-generated
+      variant: [
+        // 热门物品变体
+        'teddy bear', 'rag doll', 'wooden toy', 'plastic toy', 'stuffed animal',
+        'rubber ball', 'bouncing ball', 'soccer ball', 'basketball', 'baseball',
+        'coloring book', 'story book', 'picture book', 'notebook', 'sketchbook',
+        'colored pencil', 'crayon', 'marker', 'paintbrush', 'watercolor set',
+        'wooden chair', 'rocking chair', 'armchair', 'bean bag', 'stool',
+        'toy car', 'toy train', 'toy airplane', 'building blocks', 'puzzle pieces',
+        'music box', 'kite', 'bubble wand', 'jump rope', 'hula hoop'
+      ],
       style: [
         // 儿童风格
         'cute', 'cartoon', 'simple', 'easy', 'kawaii',
@@ -335,7 +389,18 @@ const TYPE_TEMPLATES: Record<RootType, Partial<DimensionConfig>> = {
 
   fantasy: {
     dimensions: {
-      character: [],  // Will be AI-generated
+      character: [
+        // 热门奇幻角色
+        'unicorn', 'pegasus', 'fairy', 'pixie', 'elf',
+        'dragon', 'baby dragon', 'fire dragon', 'ice dragon', 'sea dragon',
+        'mermaid', 'merman', 'siren', 'sea nymph',
+        'wizard', 'witch', 'sorcerer', 'enchantress', 'magician',
+        'knight', 'paladin', 'warrior', 'samurai', 'viking',
+        'princess', 'prince', 'king', 'queen', 'royal guard',
+        'giant', 'dwarf', 'gnome', 'goblin', 'troll',
+        'phoenix', 'griffin', 'centaur', 'minotaur',
+        'ghost', 'spirit', 'angel', 'cherub', 'cupid'
+      ],
       style: [
         'cute', 'simple', 'easy',
         'realistic', 'detailed', 'epic', 'mythical',
@@ -427,7 +492,24 @@ const TYPE_TEMPLATES: Record<RootType, Partial<DimensionConfig>> = {
 
   holiday: {
     dimensions: {
-      element: [],  // Will be AI-generated
+      element: [
+        // 热门节日元素
+        // Christmas
+        'christmas tree', 'santa claus', 'reindeer', 'snowman', 'candy cane',
+        'christmas stocking', 'ornament', 'gingerbread man', 'mistletoe', 'poinsettia',
+        'christmas wreath', 'bell', 'angel', 'star', 'present', 'gift box',
+        // Easter
+        'easter egg', 'easter bunny', 'chick', 'butterfly', 'flower basket',
+        // Halloween
+        'jack o lantern', 'pumpkin', 'bat', 'spider', 'skeleton',
+        'witch hat', 'ghost', 'black cat', 'candy corn',
+        // Thanksgiving
+        'turkey', 'cornucopia', 'autumn leaves', 'pilgrim', 'mayflower',
+        // Valentine
+        'heart', 'cupid', 'arrow', 'rose', 'love letter',
+        // Other
+        'firework', 'flag', 'balloon', 'confetti', 'party hat'
+      ],
       style: [
         // 儿童风格
         'cute', 'cartoon', 'kawaii', 'simple', 'easy',
@@ -477,7 +559,17 @@ const TYPE_TEMPLATES: Record<RootType, Partial<DimensionConfig>> = {
 
   vehicle: {
     dimensions: {
-      type: [],  // Will be AI-generated
+      type: [
+        // 热门交通工具
+        'sports car', 'sedan', 'suv', 'truck', 'pickup truck',
+        'school bus', 'city bus', 'double decker bus',
+        'steam train', 'electric train', 'high speed train', 'subway train',
+        'passenger airplane', 'jet plane', 'propeller plane', 'helicopter',
+        'sailboat', 'speedboat', 'yacht', 'cruise ship', 'pirate ship',
+        'bicycle', 'mountain bike', 'scooter', 'skateboard', 'roller skates',
+        'rocket', 'spaceship', 'ufo', 'hot air balloon',
+        'fire truck', 'police car', 'ambulance', 'tractor', 'crane'
+      ],
       style: [
         // 儿童风格
         'cute', 'cartoon', 'simple', 'easy',
@@ -511,7 +603,18 @@ const TYPE_TEMPLATES: Record<RootType, Partial<DimensionConfig>> = {
 
   character: {
     dimensions: {
-      role: [],  // Will be AI-generated
+      role: [
+        // 热门角色
+        'princess', 'prince', 'king', 'queen', 'knight',
+        'superhero', 'superheroine', 'villain', 'sidekick',
+        'doctor', 'nurse', 'vet', 'dentist', 'surgeon',
+        'teacher', 'student', 'scientist', 'artist', 'musician',
+        'chef', 'baker', 'waiter', 'farmer', 'gardener',
+        'police officer', 'firefighter', 'soldier', 'pilot', 'astronaut',
+        'pirate', 'ninja', 'cowboy', 'wizard', 'witch',
+        'ballerina', 'soccer player', 'basketball player', 'swimmer', 'gymnast',
+        'detective', 'spy', 'explorer', 'archeologist', 'inventor'
+      ],
       style: [
         // 儿童风格
         'cute', 'cartoon', 'chibi', 'simple', 'easy',
@@ -546,7 +649,23 @@ const TYPE_TEMPLATES: Record<RootType, Partial<DimensionConfig>> = {
 
   food: {
     dimensions: {
-      item: [],  // Will be AI-generated
+      item: [
+        // 热门食物
+        // 水果
+        'apple', 'banana', 'orange', 'strawberry', 'grape',
+        'watermelon', 'pineapple', 'mango', 'peach', 'cherry',
+        'lemon', 'kiwi', 'pear', 'plum', 'blueberry', 'raspberry',
+        // 甜点
+        'cake', 'birthday cake', 'cupcake', 'cookie', 'chocolate chip cookie',
+        'ice cream', 'ice cream cone', 'donut', 'muffin', 'brownie',
+        'candy', 'lollipop', 'candy cane', 'chocolate bar',
+        // 主食
+        'pizza', 'hamburger', 'cheeseburger', 'hot dog', 'sandwich',
+        'burger', 'taco', 'burrito', 'spaghetti', 'mac and cheese',
+        // 其他
+        'cupcake', 'pancake', 'waffle', 'french fries', 'chips',
+        'popcorn', 'pretzel', 'croissant', 'bagel', 'toast'
+      ],
       style: [
         // 儿童风格
         'cute', 'cartoon', 'kawaii', 'simple', 'easy',
@@ -582,7 +701,19 @@ const TYPE_TEMPLATES: Record<RootType, Partial<DimensionConfig>> = {
 
   nature: {
     dimensions: {
-      phenomenon: [],  // Will be AI-generated
+      phenomenon: [
+        // 热门自然现象
+        'sun', 'rising sun', 'setting sun', 'solar eclipse',
+        'moon', 'full moon', 'crescent moon', 'harvest moon', 'lunar eclipse',
+        'star', 'shooting star', 'north star', 'constellation', 'milky way',
+        'cloud', 'cumulus cloud', 'rain cloud', 'storm cloud',
+        'rain', 'heavy rain', 'light rain', 'rainbow', 'double rainbow',
+        'snow', 'snowflake', 'blizzard', 'hail', 'sleet',
+        'lightning', 'thunder', 'tornado', 'hurricane', 'typhoon',
+        'wind', 'breeze', 'tornado', 'whirlwind',
+        'aurora', 'aurora borealis', 'meteor shower', 'comet',
+        'ocean wave', 'tsunami', 'tidal wave', 'fog', 'mist'
+      ],
       style: [
         // 儿童风格
         'cute', 'simple', 'easy', 'cartoon',
@@ -616,7 +747,23 @@ const TYPE_TEMPLATES: Record<RootType, Partial<DimensionConfig>> = {
 
   place: {
     dimensions: {
-      location: [],  // Will be AI-generated
+      location: [
+        // 热门地点
+        // 住宅类
+        'house', 'cottage', 'cabin', 'mansion', 'castle', 'palace',
+        'treehouse', 'igloo', 'lighthouse', 'windmill',
+        // 建筑
+        'tower', 'bridge', 'golden gate bridge', 'tower bridge',
+        'fountain', 'monument', 'statue', 'obelisk',
+        // 场所
+        'park', 'garden', 'playground', 'school', 'library',
+        'hospital', 'museum', 'church', 'temple', 'mosque',
+        'farm', 'barn', 'silo', 'greenhouse',
+        // 特殊地点
+        'beach', 'forest', 'mountain', 'volcano', 'canyon',
+        'waterfall', 'cave', 'desert', 'oasis', 'island',
+        'city', 'town', 'village', 'street', 'market'
+      ],
       style: [
         // 儿童风格
         'cute', 'simple', 'easy', 'cartoon',
@@ -654,9 +801,120 @@ const TYPE_TEMPLATES: Record<RootType, Partial<DimensionConfig>> = {
     ]
   },
 
+  ip: {
+    dimensions: {
+      character: [
+        // IP 系列中的其他角色
+        // Hello Kitty 系列
+        'mimmy', 'daniel', 'mama', 'papa', 'grandpa', 'grandma',
+        'my melody', 'kuromi', 'cinnamoroll', 'pompompurin',
+        // 小猪佩奇系列
+        'george pig', 'mummy pig', 'daddy pig', 'suzy sheep', 'rebecca rabbit',
+        'danny dog', 'candy cat', 'pedro pony', 'emily elephant', 'edmond elephant',
+        // 超级英雄系列
+        'mary jane', 'aunt may', 'gwen stacy', 'joker', 'lex luthor',
+        'lois lane', 'jimmy olsen', 'pepper potts', 'happy hogan',
+        // 迪士尼公主
+        'prince charming', 'prince philip', 'prince naveen', 'flynn rider',
+        'beast', 'aladdin', 'hercules', 'john smith', 'li shang',
+        // Pokemon
+        'ash', 'pikachu', 'misty', 'brock', 'team rocket', 'jessie', 'james',
+        'eevee', 'charizard', 'mewtwo', 'snorlax', 'gengar',
+        // 变形金刚/汪汪队
+        'ryder', 'chase', 'marshall', 'rubble', 'skye', 'rocky', 'zuma', 'everest',
+        // 其他
+        'minnie mouse', 'donald duck', 'goofy', 'pluto', 'daisy duck',
+        'tigger', 'piglet', 'eeyore', 'rabbit', 'roo', 'lumpy',
+        'patrick', 'squidward', 'sandy', 'mr krabs', 'plankton'
+      ],
+      location: [
+        // IP 特有的地点场景
+        // Hello Kitty
+        'hello kitty house', 'london big ben', 'sanrio puroland', 'hello kitty bakery',
+        // 小猪佩奇
+        'peppa house', 'playground', 'school', 'grandpa pig garden', 'muddy puddle',
+        'summer camp', 'the beach', 'snowy mountain', 'miss rabbit zoo',
+        // 超级英雄
+        'gotham city', 'metropolis', 'avengers tower', 'stark industries',
+        'daily bugle', 'wayne manor', 'batcave', 'kent farm', 'daily planet',
+        // 迪士尼
+        'disney castle', 'enchanted forest', 'under the sea', 'princess castle',
+        'pride rock', 'neverland', 'wonderland',
+        // Pokemon
+        'pallet town', 'pewter city', 'cerulean city', 'viridian forest',
+        'pokemon gym', 'professor oak lab', 'team rocket hideout',
+        // 海绵宝宝
+        'bikini bottom', 'jellyfish fields', 'krusty krab', 'chum bucket',
+        'rock bottom', 'goo lagoon',
+        // 其他
+        'hundred acre wood', 'mystery shack', 'gravity falls'
+      ],
+      item: [
+        // IP 特有的道具物品
+        // Hello Kitty
+        'red bow', 'apple', 'cookie', 'ribbon', 'oven', 'tea set', 'tricycle',
+        // 小猪佩奇
+        'teddy bear', 'goldie fish', 'muddy boots', 'rainboots', 'umbrella',
+        'golden boots', 'crown', 'birthday cake',
+        // 超级英雄
+        'web shooter', 'batarang', 'kryptonite', 'captain shield', 'mjolnir',
+        'iron man armor', 'infinity stones', 'batmobile', 'bat signal',
+        // 迪士尼
+        'magic wand', 'glass slipper', 'rose', 'magic lamp', 'flying carpet',
+        'pooh honey pot', 'tigger tail', 'eeyore ribbon',
+        // Pokemon
+        'pokeball', 'pokedex', 'pokemon egg', 'tm badge', 'pokemon berry',
+        'team rocket meowth balloon',
+        // 海绵宝宝
+        'spatula', 'krabby patty', 'jellyfish net', 'shell phone', 'gary shell',
+        // 其他
+        'mickey ears', 'donald sailor hat', 'goofy hat'
+      ],
+      theme: [
+        // IP 特有的主题/剧集场景
+        // Hello Kitty
+        'hello kitty baking cookies', 'hello kitty tea party', 'hello kitty picnic',
+        'hello kitty birthday party', 'hello kitty christmas', 'hello kitty in school',
+        // 小猪佩奇
+        'peppa jumping in muddy puddles', 'peppa family trip', 'peppa playdate',
+        'peppa camping adventure', 'peppa christmas special', 'peppa at school',
+        // 超级英雄
+        'spider-man swinging through city', 'batman patrolling gotham',
+        'superman flying', 'avengers assembling', 'justice league gathering',
+        // 迪士尼
+        'elsa letting it go', 'ariel singing underwater', 'cinderella ball',
+        'snow white with seven dwarfs', 'moana sailing ocean', 'mulan training',
+        // Pokemon
+        'ash catching pokemon', 'pokemon battle', 'pokemon evolution',
+        'team rocket blasting off', 'pokemon contest',
+        // 海绵宝宝
+        'spongebob flipping krabby patties', 'jellyfishing with patrick',
+        'boating school', 'krusty krab cooking', 'bikini bottom adventure'
+      ]
+    },
+    patterns: [
+      "{root} with {character}",
+      "{root} at {location}",
+      "{root} with {item}",
+      "{theme}",
+      "{root} {item} at {location}",
+      "kawaii {root} with {item}",
+      "{root} birthday party with {character}",
+      "detailed {root} at {location}",
+      "therapeutic {root} with {character}"
+    ]
+  },
+
   general: {
     dimensions: {
-      variant: [],  // Will be AI-generated
+      variant: [
+        // 通用热门变体
+        'classic', 'modern', 'vintage', 'retro', 'contemporary',
+        'traditional', 'rustic', 'elegant', 'simple', 'detailed',
+        'colorful', 'monochrome', 'pastel', 'vibrant', 'muted',
+        'small', 'medium', 'large', 'mini', 'giant',
+        'cute', 'beautiful', 'lovely', 'charming', 'delightful'
+      ],
       style: [
         'cute', 'simple', 'easy', 'cartoon',
         'realistic', 'detailed', 'intricate', 'aesthetic',
@@ -679,6 +937,224 @@ const TYPE_TEMPLATES: Record<RootType, Partial<DimensionConfig>> = {
 };
 
 /**
+ * IP 系列配置 - 按 IP 分组的维度值
+ * 确保生成的关键词与 IP 系列匹配
+ */
+const IP_SERIES_CONFIGS: Record<string, Partial<DimensionConfig>> = {
+  // Hello Kitty 系列
+  sanrio: {
+    dimensions: {
+      character: [
+        'mimmy', 'daniel', 'mama', 'papa', 'grandpa', 'grandma',
+        'my melody', 'kuromi', 'cinnamoroll', 'pompompurin',
+        'kerokerokeroppi', 'bad badtz-maru', 'little twin stars'
+      ],
+      location: [
+        'hello kitty house', 'london big ben', 'sanrio puroland',
+        'hello kitty bakery', 'tea party garden', 'sanrio store'
+      ],
+      item: [
+        'red bow', 'apple', 'cookie', 'ribbon', 'oven', 'tea set',
+        'tricycle', 'teddy bear', 'flower basket', 'birthday cake'
+      ],
+      theme: [
+        'hello kitty baking cookies', 'hello kitty tea party',
+        'hello kitty picnic', 'hello kitty birthday party',
+        'hello kitty christmas', 'hello kitty in school'
+      ]
+    }
+  },
+  // 小猪佩奇系列
+  peppa: {
+    dimensions: {
+      character: [
+        'george pig', 'mummy pig', 'daddy pig', 'suzy sheep',
+        'rebecca rabbit', 'danny dog', 'candy cat', 'pedro pony',
+        'emily elephant', 'edmond elephant', 'richard rabbit', 'freddy fox'
+      ],
+      location: [
+        'peppa house', 'playground', 'school', 'grandpa pig garden',
+        'muddy puddle', 'summer camp', 'the beach', 'snowy mountain', 'miss rabbit zoo'
+      ],
+      item: [
+        'teddy bear', 'goldie fish', 'muddy boots', 'rainboots', 'umbrella',
+        'golden boots', 'crown', 'birthday cake'
+      ],
+      theme: [
+        'peppa jumping in muddy puddles', 'peppa family trip',
+        'peppa playdate', 'peppa camping adventure', 'peppa christmas special', 'peppa at school'
+      ]
+    }
+  },
+  // 汪汪队系列
+  paw_patrol: {
+    dimensions: {
+      character: [
+        'ryder', 'chase', 'marshall', 'rubble', 'skye', 'rocky', 'zuma', 'everest'
+      ],
+      location: [
+        'lookout tower', 'adventure bay', 'katie pet parlour', 'farmer yard farm',
+        'jake mountain', 'yumerias special beach', 'barkingburg castle'
+      ],
+      item: [
+        'pup pack', 'pup tag', 'mission paw badge', 'sea patroller', 'air patroller'
+      ],
+      theme: [
+        'paw patrol rescue mission', 'chase police patrol', 'marshall fire rescue',
+        'sky air rescue', 'rubble construction', 'rocky recycling'
+      ]
+    }
+  },
+  // 超级英雄系列 (Marvel/DC)
+  superhero: {
+    dimensions: {
+      character: [
+        'iron man', 'captain america', 'thor', 'hulk', 'black widow', 'hawkeye',
+        'spider-man', 'doctor strange', 'black panther', 'scarlet witch',
+        'batman', 'superman', 'wonder woman', 'flash', 'aquaman', 'joker', 'lex luthor'
+      ],
+      location: [
+        'avengers tower', 'stark industries', 'daily bugle', 'wayne manor',
+        'batcave', 'metropolis', 'gotham city', 'daily planet', 'kent farm'
+      ],
+      item: [
+        'web shooter', 'captain shield', 'mjolnir', 'iron man armor',
+        'infinity stones', 'batarang', 'kryptonite', 'batmobile', 'bat signal'
+      ],
+      theme: [
+        'spider-man swinging through city', 'batman patrolling gotham',
+        'superman flying', 'avengers assembling', 'justice league gathering'
+      ]
+    }
+  },
+  // 迪士尼系列
+  disney: {
+    dimensions: {
+      character: [
+        'mickey mouse', 'minnie mouse', 'donald duck', 'goofy', 'pluto', 'daisy duck',
+        'winnie the pooh', 'tigger', 'piglet', 'eeyore', 'rabbit', 'roo',
+        'elsa', 'anna', 'olaf', 'moana', 'maui', 'ariel', 'belle', 'cinderella',
+        'snow white', 'jasmine', 'aurora', 'rapunzel', 'tiana', 'mulan'
+      ],
+      location: [
+        'disney castle', 'enchanted forest', 'under the sea', 'princess castle',
+        'pride rock', 'neverland', 'wonderland', 'hundred acre wood', 'arendelle'
+      ],
+      item: [
+        'magic wand', 'glass slipper', 'rose', 'magic lamp', 'flying carpet',
+        'pooh honey pot', 'tigger tail', 'eeyore ribbon', 'crown'
+      ],
+      theme: [
+        'elsa letting it go', 'ariel singing underwater', 'cinderella ball',
+        'snow white with seven dwarfs', 'moana sailing ocean', 'mulan training'
+      ]
+    }
+  },
+  // Pokemon 系列
+  pokemon: {
+    dimensions: {
+      character: [
+        'ash', 'pikachu', 'misty', 'brock', 'team rocket', 'jessie', 'james',
+        'eevee', 'charizard', 'mewtwo', 'snorlax', 'gengar', 'lucario', 'mew'
+      ],
+      location: [
+        'pallet town', 'pewter city', 'cerulean city', 'viridian forest',
+        'pokemon gym', 'professor oak lab', 'team rocket hideout'
+      ],
+      item: [
+        'pokeball', 'pokedex', 'pokemon egg', 'tm badge', 'pokemon berry',
+        'team rocket meowth balloon'
+      ],
+      theme: [
+        'ash catching pokemon', 'pokemon battle', 'pokemon evolution',
+        'team rocket blasting off', 'pokemon contest'
+      ]
+    }
+  },
+  // 海绵宝宝系列
+  spongebob: {
+    dimensions: {
+      character: [
+        'patrick', 'squidward', 'sandy', 'mr krabs', 'plankton', 'gary'
+      ],
+      location: [
+        'bikini bottom', 'jellyfish fields', 'krusty krab', 'chum bucket',
+        'rock bottom', 'goo lagoon'
+      ],
+      item: [
+        'spatula', 'krabby patty', 'jellyfish net', 'shell phone', 'gary shell'
+      ],
+      theme: [
+        'spongebob flipping krabby patties', 'jellyfishing with patrick',
+        'boating school', 'krusty krab cooking', 'bikini bottom adventure'
+      ]
+    }
+  }
+};
+
+/**
+ * Root 到 IP 系列的映射
+ */
+const ROOT_TO_IP_SERIES: Record<string, string> = {
+  // Sanrio
+  'hello kitty': 'sanrio',
+  'hellokitty': 'sanrio',
+  'kuromi': 'sanrio',
+  'my melody': 'sanrio',
+  'cinnamoroll': 'sanrio',
+  'pompompurin': 'sanrio',
+  // 小猪佩奇
+  'peppa pig': 'peppa',
+  'peppapig': 'peppa',
+  'george pig': 'peppa',
+  // 汪汪队
+  'paw patrol': 'paw_patrol',
+  'pawpatrol': 'paw_patrol',
+  'chase': 'paw_patrol',
+  'marshall': 'paw_patrol',
+  // 超级英雄 - Marvel
+  'spider-man': 'superhero',
+  'spiderman': 'superhero',
+  'iron man': 'superhero',
+  'captain america': 'superhero',
+  'thor': 'superhero',
+  'hulk': 'superhero',
+  'black panther': 'superhero',
+  'doctor strange': 'superhero',
+  // 超级英雄 - DC
+  'batman': 'superhero',
+  'superman': 'superhero',
+  'wonder woman': 'superhero',
+  'flash': 'superhero',
+  'aquaman': 'superhero',
+  // 迪士尼
+  'mickey mouse': 'disney',
+  'minnie mouse': 'disney',
+  'donald duck': 'disney',
+  'winnie the pooh': 'disney',
+  'elsa': 'disney',
+  'anna': 'disney',
+  'moana': 'disney',
+  'ariel': 'disney',
+  'cinderella': 'disney',
+  'snow white': 'disney',
+  'jasmine': 'disney',
+  'rapunzel': 'disney',
+  'mulan': 'disney',
+  'belle': 'disney',
+  'aurora': 'disney',
+  'tiana': 'disney',
+  // Pokemon
+  'pokemon': 'pokemon',
+  'pikachu': 'pokemon',
+  'ash': 'pokemon',
+  // 海绵宝宝
+  'spongebob': 'spongebob',
+  'sponge bob': 'spongebob',
+  'patrick': 'spongebob'
+};
+
+/**
  * Generate AI-powered dimension config for a root
  *
  * This function uses type detection and smart templates to create
@@ -689,7 +1165,25 @@ const TYPE_TEMPLATES: Record<RootType, Partial<DimensionConfig>> = {
  */
 export function generateAIConfig(root: string): AIConfigResult {
   const rootType = detectRootType(root);
-  const template = TYPE_TEMPLATES[rootType];
+  let template = TYPE_TEMPLATES[rootType];
+
+  // 特殊处理 IP 类型：根据 root 匹配对应的 IP 系列
+  if (rootType === 'ip') {
+    const lowerRoot = root.toLowerCase().trim();
+    const ipSeries = ROOT_TO_IP_SERIES[lowerRoot];
+
+    if (ipSeries && IP_SERIES_CONFIGS[ipSeries]) {
+      // 找到匹配的 IP 系列配置，合并通用模板
+      const ipConfig = IP_SERIES_CONFIGS[ipSeries];
+      template = {
+        ...template,
+        dimensions: {
+          ...template.dimensions,
+          ...ipConfig.dimensions
+        }
+      };
+    }
+  }
 
   // Build the complete config
   const config: DimensionConfig = {
