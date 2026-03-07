@@ -873,13 +873,20 @@ export class ColoringWorkflowService {
 
       // Step 1.5: Deduplicate - filter out keywords that already have pages in DB
       await this.log(jobId, 'info', `Deduplicating ${allKeywords.length} keywords against existing pages...`);
-      const dedupResults = await Promise.all(
-        allKeywords.map(async (kw: any) => {
-          const slug = `${kw.keyword.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-coloring-page`;
-          const existing = await findColoringPage({ slug, status: ColoringPageStatus.PUBLISHED });
-          return { kw, exists: !!existing };
-        })
-      );
+      // Use concurrency control to avoid overwhelming the database
+      const CONCURRENCY = 5;
+      const dedupResults: any[] = [];
+      for (let i = 0; i < allKeywords.length; i += CONCURRENCY) {
+        const batch = allKeywords.slice(i, i + CONCURRENCY);
+        const batchResults = await Promise.all(
+          batch.map(async (kw: any) => {
+            const slug = `${kw.keyword.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-coloring-page`;
+            const existing = await findColoringPage({ slug, status: ColoringPageStatus.PUBLISHED });
+            return { kw, exists: !!existing };
+          })
+        );
+        dedupResults.push(...batchResults);
+      }
       const keywords = dedupResults.filter(r => !r.exists).map(r => r.kw);
       const skippedCount = allKeywords.length - keywords.length;
       await this.log(jobId, 'info', `Dedup complete: ${skippedCount} existing, ${keywords.length} new keywords to process`);
