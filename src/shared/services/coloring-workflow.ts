@@ -95,16 +95,17 @@ export class ColoringWorkflowService {
 
     // Save to database periodically (but not too frequently to avoid connection issues)
     const logs = this.jobLogs.get(jobId)!;
-    // Only save on error, or every 50 logs to reduce DB writes
-    if (level === 'error' || logs.length % 50 === 0) {
+    // Only save on error, or every 100 logs to significantly reduce DB writes
+    if (level === 'error' || logs.length % 100 === 0) {
       // Only keep last 50 logs to prevent oversized JSON
       const logsToSave = logs.slice(-50);
-      // Non-blocking DB write - don't await to avoid holding connections
-      updateColoringJob(jobId, {
-        logs: JSON.stringify(logsToSave)
-      }).catch(() => {
+      try {
+        await updateColoringJob(jobId, {
+          logs: JSON.stringify(logsToSave)
+        });
+      } catch {
         // Silently fail - don't let log errors crash the workflow
-      });
+      }
     }
   }
 
@@ -116,12 +117,13 @@ export class ColoringWorkflowService {
     if (logs && logs.length > 0) {
       // Only keep last 50 logs to prevent oversized JSON
       const logsToSave = logs.slice(-50);
-      // Non-blocking DB write
-      await updateColoringJob(jobId, {
-        logs: JSON.stringify(logsToSave)
-      }).catch(() => {
-        // Silently fail
-      });
+      try {
+        await updateColoringJob(jobId, {
+          logs: JSON.stringify(logsToSave)
+        });
+      } catch {
+        // Silently fail - don't let log errors crash the workflow
+      }
     }
   }
 
