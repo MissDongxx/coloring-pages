@@ -16,7 +16,7 @@ import {
   ColoringJobStatus,
   ColoringJobType,
 } from '@/shared/models/coloring_job';
-import { createColoringPageWithSlugRetry, ColoringPageStatus } from '@/shared/models/coloring_page';
+import { batchCreateColoringPages, createColoringPageWithSlugRetry, ColoringPageStatus } from '@/shared/models/coloring_page';
 import { KaggleClient } from '@/shared/services/kaggle';
 import AdmZip from 'adm-zip';
 import { revalidatePath } from 'next/cache';
@@ -715,44 +715,39 @@ export class ColoringWorkflowService {
   ): Promise<void> {
     await this.log(jobId, 'info', `Step 5: Creating ${uploadedImages.length} coloring page records...`);
 
-    let successCount = 0;
-    let failCount = 0;
     const newSlugs: string[] = []; // Track successfully created slugs
 
     try {
-      for (const img of uploadedImages) {
+      const pagesToCreate = uploadedImages.map(img => {
         const slug = this.generateSlug(img.keyword);
         const title = this.generateTitle(img.keyword);
-        const description = `A beautiful ${img.keyword} coloring page for kids`;
 
-        await this.log(jobId, 'info', `Creating page: ${slug}`, { category: img.category, keyword: img.keyword });
+        return {
+          jobId,
+          userId: userId || 'system',
+          slug,
+          title,
+          description: `A beautiful ${img.keyword} coloring page for kids`,
+          category: img.category,
+          keyword: img.keyword,
+          rootKeyword: img.rootKeyword || null,
+          modifier: img.modifier || null,
+          prompt: `coloring page of ${img.keyword}`,
+          imageUrl: img.imageUrl,
+          status: ColoringPageStatus.PUBLISHED,
+          publishedAt: new Date(),
+          sort: 0,
+        };
+      });
 
-        try {
-          await createColoringPageWithSlugRetry({
-            jobId,
-            userId: userId || 'system',
-            slug,
-            title,
-            description,
-            category: img.category,
-            keyword: img.keyword,
-            rootKeyword: img.rootKeyword || null,
-            modifier: img.modifier || null,
-            prompt: `coloring page of ${img.keyword}`,
-            imageUrl: img.imageUrl,
-            status: ColoringPageStatus.PUBLISHED,
-            publishedAt: new Date(),
-            sort: 0,
-          });
-          successCount++;
-          newSlugs.push(slug); // Track the actual slug that was created
-          await this.log(jobId, 'info', `Page created: ${slug}`);
-        } catch (pageError) {
-          failCount++;
-          await this.log(jobId, 'error', `Failed to create page for ${img.keyword}`, {
-            error: pageError instanceof Error ? pageError.message : String(pageError)
-          });
-        }
+      // Use batch creation for efficiency and to reduce DB connection pool pressure
+      const createdPages = await batchCreateColoringPages(pagesToCreate);
+
+      const successCount = createdPages.length;
+      const failCount = uploadedImages.length - successCount;
+
+      for (const page of createdPages) {
+        if (page.slug) newSlugs.push(page.slug);
       }
 
       await this.log(jobId, 'info', `Pages created: ${successCount} success, ${failCount} failed`);
@@ -777,6 +772,7 @@ export class ColoringWorkflowService {
       throw error;
     }
   }
+
 
   /**
    * Generate SEO-friendly slug: {keyword}-coloring-page (max 70 chars)
