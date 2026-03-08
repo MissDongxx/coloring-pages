@@ -18,18 +18,20 @@ export function Dropdown({
   placeholder,
   metadata,
   className,
+  id,
 }: {
   value: NavItem[];
   placeholder?: string;
   metadata: Record<string, any>;
   className?: string;
+  id?: string;
 }) {
   if (!value || value.length === 0) {
     return null;
   }
 
   return (
-    <DropdownMenu>
+    <DropdownMenu id={id}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"

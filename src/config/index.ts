@@ -47,7 +47,10 @@ export const envConfigs: ConfigMap = {
     process.env.DB_MIGRATIONS_OUT ?? './src/config/db/migrations',
   db_singleton_enabled: process.env.DB_SINGLETON_ENABLED || 'false',
   db_max_connections: process.env.DB_MAX_CONNECTIONS || '1',
-  auth_url: process.env.AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || '',
+  auth_url:
+    (typeof window !== 'undefined'
+      ? process.env.NEXT_PUBLIC_AUTH_URL || '/api/auth'
+      : process.env.AUTH_URL || process.env.NEXT_PUBLIC_APP_URL) || '',
   auth_secret: process.env.AUTH_SECRET ?? '', // openssl rand -base64 32
   version: packageJson.version,
   locale_detect_enabled:
