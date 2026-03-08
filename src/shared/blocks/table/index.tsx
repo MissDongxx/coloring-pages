@@ -104,7 +104,6 @@ export function Table({
                   } else if (column.type === 'dropdown') {
                     cellContent = (
                       <Dropdown
-                        id={`dropdown-${idx}-${iidx}`}
                         placeholder={column.placeholder}
                         value={content}
                         metadata={column.metadata}
