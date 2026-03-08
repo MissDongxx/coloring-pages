@@ -16,7 +16,7 @@ import {
   ColoringJobStatus,
   ColoringJobType,
 } from '@/shared/models/coloring_job';
-import { createColoringPageWithSlugRetry, ColoringPageStatus, findColoringPage } from '@/shared/models/coloring_page';
+import { createColoringPageWithSlugRetry, ColoringPageStatus } from '@/shared/models/coloring_page';
 import { KaggleClient } from '@/shared/services/kaggle';
 import AdmZip from 'adm-zip';
 import { revalidatePath } from 'next/cache';
@@ -715,6 +715,7 @@ export class ColoringWorkflowService {
 
     let successCount = 0;
     let failCount = 0;
+    const newSlugs: string[] = []; // Track successfully created slugs
 
     try {
       for (const img of uploadedImages) {
@@ -742,6 +743,7 @@ export class ColoringWorkflowService {
             sort: 0,
           });
           successCount++;
+          newSlugs.push(slug); // Track the actual slug that was created
           await this.log(jobId, 'info', `Page created: ${slug}`);
         } catch (pageError) {
           failCount++;
@@ -752,6 +754,19 @@ export class ColoringWorkflowService {
       }
 
       await this.log(jobId, 'info', `Pages created: ${successCount} success, ${failCount} failed`);
+
+      // Update dedup file with newly created slugs
+      if (newSlugs.length > 0) {
+        const dedupFilePath = path.join(this.tempDir, 'existing_keywords.txt');
+        try {
+          // Append new slugs to file
+          const content = newSlugs.join('\n') + '\n';
+          await fs.appendFile(dedupFilePath, content, 'utf-8');
+          await this.log(jobId, 'info', `Updated dedup file with ${newSlugs.length} new slugs`);
+        } catch (e) {
+          await this.log(jobId, 'warn', `Failed to update dedup file: ${e}`);
+        }
+      }
     } catch (error) {
       await this.log(jobId, 'error', 'Failed to create coloring pages', { error: error instanceof Error ? error.message : String(error) });
       await updateColoringJob(jobId, {
@@ -862,8 +877,8 @@ export class ColoringWorkflowService {
       const allKeywords = keywordsData.keywords || [];
 
       // Step 1.5: Deduplicate - filter out keywords that already have pages in DB
-      // Process sequentially using file-based deduplication to avoid DB connection issues
-      await this.log(jobId, 'info', `Deduplicating ${allKeywords.length} keywords against existing pages (sequential)...`);
+      // Use file-based deduplication ONLY to avoid DB connection pool exhaustion
+      await this.log(jobId, 'info', `Deduplicating ${allKeywords.length} keywords against existing pages (file-only)...`);
 
       // Read existing slugs from file for fast lookup
       const dedupFilePath = path.join(this.tempDir, 'existing_keywords.txt');
@@ -875,54 +890,26 @@ export class ColoringWorkflowService {
           existingSlugs = new Set(content.trim().split('\n').filter(Boolean));
         }
       } catch (e) {
-        // File doesn't exist yet, will create it
+        // File doesn't exist yet
+        await this.log(jobId, 'warn', `Dedup file not found. Please run initDedupFile() first or ensure file exists at ${dedupFilePath}`);
+      }
+
+      // If file is empty, warn user but continue (all keywords will be processed)
+      if (existingSlugs.size === 0) {
+        await this.log(jobId, 'warn', `Dedup file is empty. All keywords will be processed. Run initDedupFile() to populate it.`);
       }
 
       const dedupResults: any[] = [];
-      let newSlugs: string[] = [];
 
-      // Sequential processing - one by one
+      // Sequential processing - check against file cache ONLY (no DB queries)
       for (const kw of allKeywords) {
         const baseSlug = kw.keyword.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
         const slugWithSuffix = `${baseSlug}-coloring-page`;
-        let exists = false;
-        let matchedSlug: string | null = null;
 
-        // Check file first (fast path) - try both formats
-        if (existingSlugs.has(slugWithSuffix)) {
-          exists = true;
-          matchedSlug = slugWithSuffix;
-        } else if (existingSlugs.has(baseSlug)) {
-          exists = true;
-          matchedSlug = baseSlug;
-        } else {
-          // Check database (slow path) - try both formats
-          let existing = await findColoringPage({ slug: slugWithSuffix, status: ColoringPageStatus.PUBLISHED });
-          if (existing) {
-            exists = true;
-            matchedSlug = slugWithSuffix;
-          } else {
-            existing = await findColoringPage({ slug: baseSlug, status: ColoringPageStatus.PUBLISHED });
-            if (existing) {
-              exists = true;
-              matchedSlug = baseSlug;
-            }
-          }
-          if (exists && matchedSlug) {
-            existingSlugs.add(matchedSlug);
-            newSlugs.push(matchedSlug);
-          }
-        }
+        // Check file cache - try both formats
+        const exists = existingSlugs.has(slugWithSuffix) || existingSlugs.has(baseSlug);
 
         dedupResults.push({ kw, exists });
-      }
-
-      // Update dedup file with newly found slugs
-      if (newSlugs.length > 0) {
-        const existingContent = existingSlugs.size > 0
-          ? Array.from(existingSlugs).join('\n') + '\n'
-          : '';
-        await fs.writeFile(dedupFilePath, existingContent + newSlugs.join('\n') + '\n');
       }
 
       const keywords = dedupResults.filter(r => !r.exists).map(r => r.kw);
