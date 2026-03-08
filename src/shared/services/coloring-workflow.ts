@@ -93,23 +93,18 @@ export class ColoringWorkflowService {
       console.log(consoleMsg, data || '');
     }
 
-    // Save to database periodically (but not too frequently to avoid size issues)
+    // Save to database periodically (but not too frequently to avoid connection issues)
     const logs = this.jobLogs.get(jobId)!;
-    // Only save on error, or every 20 logs to reduce DB writes
-    if (level === 'error' || logs.length % 20 === 0) {
-      // Only keep last 100 logs to prevent oversized JSON
-      const logsToSave = logs.slice(-100);
-      try {
-        await updateColoringJob(jobId, {
-          logs: JSON.stringify(logsToSave)
-        });
-      } catch (dbError: any) {
-        // If DB update fails due to size, try with even fewer logs
-        const minimalLogs = logs.slice(-20);
-        await updateColoringJob(jobId, {
-          logs: JSON.stringify(minimalLogs)
-        });
-      }
+    // Only save on error, or every 50 logs to reduce DB writes
+    if (level === 'error' || logs.length % 50 === 0) {
+      // Only keep last 50 logs to prevent oversized JSON
+      const logsToSave = logs.slice(-50);
+      // Non-blocking DB write - don't await to avoid holding connections
+      updateColoringJob(jobId, {
+        logs: JSON.stringify(logsToSave)
+      }).catch(() => {
+        // Silently fail - don't let log errors crash the workflow
+      });
     }
   }
 
@@ -119,19 +114,14 @@ export class ColoringWorkflowService {
   private async flushLogs(jobId: string): Promise<void> {
     const logs = this.jobLogs.get(jobId);
     if (logs && logs.length > 0) {
-      // Only keep last 100 logs to prevent oversized JSON
-      const logsToSave = logs.slice(-100);
-      try {
-        await updateColoringJob(jobId, {
-          logs: JSON.stringify(logsToSave)
-        });
-      } catch (dbError: any) {
-        // If DB update fails due to size, try with even fewer logs
-        const minimalLogs = logs.slice(-20);
-        await updateColoringJob(jobId, {
-          logs: JSON.stringify(minimalLogs)
-        });
-      }
+      // Only keep last 50 logs to prevent oversized JSON
+      const logsToSave = logs.slice(-50);
+      // Non-blocking DB write
+      await updateColoringJob(jobId, {
+        logs: JSON.stringify(logsToSave)
+      }).catch(() => {
+        // Silently fail
+      });
     }
   }
 
@@ -872,21 +862,69 @@ export class ColoringWorkflowService {
       const allKeywords = keywordsData.keywords || [];
 
       // Step 1.5: Deduplicate - filter out keywords that already have pages in DB
-      await this.log(jobId, 'info', `Deduplicating ${allKeywords.length} keywords against existing pages...`);
-      // Use concurrency control to avoid overwhelming the database
-      const CONCURRENCY = 5;
-      const dedupResults: any[] = [];
-      for (let i = 0; i < allKeywords.length; i += CONCURRENCY) {
-        const batch = allKeywords.slice(i, i + CONCURRENCY);
-        const batchResults = await Promise.all(
-          batch.map(async (kw: any) => {
-            const slug = `${kw.keyword.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-coloring-page`;
-            const existing = await findColoringPage({ slug, status: ColoringPageStatus.PUBLISHED });
-            return { kw, exists: !!existing };
-          })
-        );
-        dedupResults.push(...batchResults);
+      // Process sequentially using file-based deduplication to avoid DB connection issues
+      await this.log(jobId, 'info', `Deduplicating ${allKeywords.length} keywords against existing pages (sequential)...`);
+
+      // Read existing slugs from file for fast lookup
+      const dedupFilePath = path.join(this.tempDir, 'existing_keywords.txt');
+      let existingSlugs = new Set<string>();
+
+      try {
+        if (await fs.access(dedupFilePath).then(() => true).catch(() => false)) {
+          const content = await fs.readFile(dedupFilePath, 'utf-8');
+          existingSlugs = new Set(content.trim().split('\n').filter(Boolean));
+        }
+      } catch (e) {
+        // File doesn't exist yet, will create it
       }
+
+      const dedupResults: any[] = [];
+      let newSlugs: string[] = [];
+
+      // Sequential processing - one by one
+      for (const kw of allKeywords) {
+        const baseSlug = kw.keyword.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        const slugWithSuffix = `${baseSlug}-coloring-page`;
+        let exists = false;
+        let matchedSlug: string | null = null;
+
+        // Check file first (fast path) - try both formats
+        if (existingSlugs.has(slugWithSuffix)) {
+          exists = true;
+          matchedSlug = slugWithSuffix;
+        } else if (existingSlugs.has(baseSlug)) {
+          exists = true;
+          matchedSlug = baseSlug;
+        } else {
+          // Check database (slow path) - try both formats
+          let existing = await findColoringPage({ slug: slugWithSuffix, status: ColoringPageStatus.PUBLISHED });
+          if (existing) {
+            exists = true;
+            matchedSlug = slugWithSuffix;
+          } else {
+            existing = await findColoringPage({ slug: baseSlug, status: ColoringPageStatus.PUBLISHED });
+            if (existing) {
+              exists = true;
+              matchedSlug = baseSlug;
+            }
+          }
+          if (exists && matchedSlug) {
+            existingSlugs.add(matchedSlug);
+            newSlugs.push(matchedSlug);
+          }
+        }
+
+        dedupResults.push({ kw, exists });
+      }
+
+      // Update dedup file with newly found slugs
+      if (newSlugs.length > 0) {
+        const existingContent = existingSlugs.size > 0
+          ? Array.from(existingSlugs).join('\n') + '\n'
+          : '';
+        await fs.writeFile(dedupFilePath, existingContent + newSlugs.join('\n') + '\n');
+      }
+
       const keywords = dedupResults.filter(r => !r.exists).map(r => r.kw);
       const skippedCount = allKeywords.length - keywords.length;
       await this.log(jobId, 'info', `Dedup complete: ${skippedCount} existing, ${keywords.length} new keywords to process`);
@@ -974,6 +1012,31 @@ export class ColoringWorkflowService {
       // Cleanup
       await this.cleanup(jobId, csvPath, imagesDir);
     }
+  }
+
+  /**
+   * Initialize the deduplication file with all existing published slugs from database
+   * Call this once to populate the file before running workflows
+   */
+  async initDedupFile(): Promise<{ count: number; filePath: string }> {
+    await this.ensureTempDir();
+
+    const { getAllPublishedSlugs } = await import('@/shared/models/coloring_page');
+    const dedupFilePath = path.join(this.tempDir, 'existing_keywords.txt');
+
+    // Get all published slugs from database
+    const slugs = await getAllPublishedSlugs();
+
+    // Write to file (one slug per line)
+    const content = slugs.join('\n') + '\n';
+    await fs.writeFile(dedupFilePath, content, 'utf-8');
+
+    console.log(`[DedupFile] Initialized with ${slugs.length} existing slugs: ${dedupFilePath}`);
+
+    return {
+      count: slugs.length,
+      filePath: dedupFilePath,
+    };
   }
 
   /**

@@ -612,3 +612,15 @@ export async function getAllGeneratedKeywords(): Promise<Set<string>> {
 
   return new Set(results.map((r: { keyword: string | null }) => r.keyword).filter((k: string | null): k is string => k !== null && k !== ''));
 }
+
+/**
+ * Get all published page slugs for deduplication
+ */
+export async function getAllPublishedSlugs(): Promise<string[]> {
+  const results = await db()
+    .select({ slug: coloringPage.slug })
+    .from(coloringPage)
+    .where(eq(coloringPage.status, ColoringPageStatus.PUBLISHED));
+
+  return results.map((r: { slug: string | null }) => r.slug).filter((s: string | null): s is string => s !== null && s !== '');
+}
