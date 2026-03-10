@@ -1,6 +1,12 @@
 import { parseArgs } from 'util';
 import { getWorkflowService } from '@/shared/services/coloring-workflow';
 import { ColoringJobType } from '@/shared/models/coloring_job';
+import {
+  getPendingKeywords,
+  markKeywordsAsProcessed,
+  areAllKeywordsProcessed,
+  resetAllKeywords,
+} from '@/shared/services/gist-keywords';
 import dotenv from 'dotenv';
 import path from 'path';
 
@@ -36,8 +42,8 @@ async function main() {
     const provider = (values.provider === 'replicate' || values.provider === 'kaggle') ? values.provider : 'kaggle';
 
     console.log('Workflow Options:', {
-        wordRoots: wordRoots || 'Auto-generated (No roots provided)',
-        count: count || 'Default',
+        wordRoots: wordRoots || 'Auto-generated from Gist (No roots provided)',
+        count: count || '30 (default)',
         provider: provider,
     });
 
@@ -56,11 +62,48 @@ async function main() {
 
         console.log(`Using valid User ID for job record: ${firstUser.id}`);
 
+        let finalWordRoots = wordRoots;
+        let finalCount = count;
+        let keywordIds: number[] | undefined;
+
+        // If no word roots provided, fetch from Gist
+        if (!finalWordRoots) {
+            console.log('[Workflow] No word roots provided, fetching from Gist...');
+
+            let gistResult = await getPendingKeywords();
+
+            // If no pending keywords, check if we need to reset
+            if (!gistResult) {
+                console.log('[Workflow] No pending keywords found, checking if all are processed...');
+                const allProcessed = await areAllKeywordsProcessed();
+
+                if (allProcessed) {
+                    console.log('[Workflow] All keywords have been processed. Resetting for next cycle...');
+                    await resetAllKeywords();
+
+                    // Fetch again after reset
+                    gistResult = await getPendingKeywords();
+                }
+            }
+
+            if (!gistResult || gistResult.count === 0) {
+                console.log('[Workflow] No keywords available to process. Skipping workflow.');
+                process.exit(0);
+                return;
+            }
+
+            finalWordRoots = gistResult.keywords;
+            keywordIds = gistResult.ids;
+            finalCount = 30; // Always use 30 for Gist keywords
+
+            console.log(`[Workflow] Found ${gistResult.count} keyword(s) from Gist: ${finalWordRoots.join(', ')}`);
+        }
+
         const jobId = await workflowService.runWorkflow({
             jobType: ColoringJobType.MANUAL,
             userId: firstUser.id,
-            wordRoots: wordRoots,
-            count: count,
+            wordRoots: finalWordRoots,
+            count: finalCount,
             provider: provider,
         });
 
@@ -68,6 +111,13 @@ async function main() {
         console.log(`✅ Workflow completed successfully!`);
         console.log(`✅ Job ID: ${jobId}`);
         console.log(`========================================\n`);
+
+        // Mark keywords as processed if they came from Gist
+        if (keywordIds && keywordIds.length > 0) {
+            console.log(`[Workflow] Marking ${keywordIds.length} keyword(s) as processed in Gist...`);
+            await markKeywordsAsProcessed(keywordIds);
+            console.log('[Workflow] Keywords marked successfully.');
+        }
 
         // Explicitly exit to prevent hanging promises
         process.exit(0);
