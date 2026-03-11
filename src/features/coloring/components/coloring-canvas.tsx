@@ -901,37 +901,57 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category,
     if (magicMode) {
       // If user has selected a gradient, use gradient mode
       if (selectedGradient) {
-        // Get gradients based on active gradient category
-        let gradients;
-        switch (activeGradientCategory) {
-          case "neon":
-            gradients = NEON_GRADIENTS;
-            break;
-          case "pastel":
-            gradients = PASTEL_GRADIENTS;
-            break;
-          case "nature":
-            gradients = NATURE_GRADIENTS;
-            break;
-          case "sunset":
-            gradients = SUNSET_GRADIENTS;
-            break;
-          case "cool":
-            gradients = COOL_GRADIENTS;
-            break;
-          default:
-            gradients = NEON_GRADIENTS;
+        // Check if AI Palette gradients should be used
+        if (aiPalette.length > 0 && aiPaletteType === "gradient") {
+          // Generate AI gradient on the fly
+          const halfLength = Math.floor(aiPalette.length / 2);
+          const randomIndex = Math.floor(Math.random() * halfLength);
+          const aiGradient = {
+            id: -randomIndex - 1,
+            colors: [aiPalette[randomIndex], aiPalette[randomIndex + halfLength] || aiPalette[randomIndex]],
+            name: `AI Gradient ${randomIndex + 1}`
+          };
+          handleGradientSelect(aiGradient);
+          floodFill(x, y, aiGradient.colors[0], aiGradient);
+        } else {
+          // Get gradients based on active gradient category
+          let gradients;
+          switch (activeGradientCategory) {
+            case "neon":
+              gradients = NEON_GRADIENTS;
+              break;
+            case "pastel":
+              gradients = PASTEL_GRADIENTS;
+              break;
+            case "nature":
+              gradients = NATURE_GRADIENTS;
+              break;
+            case "sunset":
+              gradients = SUNSET_GRADIENTS;
+              break;
+            case "cool":
+              gradients = COOL_GRADIENTS;
+              break;
+            default:
+              gradients = NEON_GRADIENTS;
+          }
+          const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];
+          handleGradientSelect(randomGradient);
+          floodFill(x, y, randomGradient.colors[0], randomGradient);
         }
-        const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];
-        handleGradientSelect(randomGradient);
-        floodFill(x, y, randomGradient.colors[0], randomGradient);
       } else {
-        // Solid mode: Use random color from active solid category
-        const activePalette = PREDEFINED_PALETTES.find(p => p.id === activeSolidCategory);
-        if (activePalette && activePalette.colors.length > 0) {
-          const randomColor = activePalette.colors[Math.floor(Math.random() * activePalette.colors.length)];
+        // Solid mode: Use random color from AI Palette (if available) or active solid category
+        if (aiPalette.length > 0) {
+          const randomColor = aiPalette[Math.floor(Math.random() * aiPalette.length)];
           setSelectedColor(randomColor);
           floodFill(x, y, randomColor, null);
+        } else {
+          const activePalette = PREDEFINED_PALETTES.find(p => p.id === activeSolidCategory);
+          if (activePalette && activePalette.colors.length > 0) {
+            const randomColor = activePalette.colors[Math.floor(Math.random() * activePalette.colors.length)];
+            setSelectedColor(randomColor);
+            floodFill(x, y, randomColor, null);
+          }
         }
       }
     } else {
@@ -1388,7 +1408,7 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category,
                 <div className="grid grid-cols-8 gap-1.5">
                   {PREDEFINED_PALETTES.find(p => p.id === activeSolidCategory)?.colors.map((color, idx) => (
                     <button
-                      key={typeof color === 'string' ? color : `${color}-${idx}`}
+                      key={`${color}-${idx}`}
                       className={`aspect-square rounded-md border-2 transition-all hover:scale-110 ${selectedColor === color && !selectedGradient
                         ? "border-primary ring-2 ring-primary ring-offset-1"
                         : "border-transparent hover:border-gray-300"

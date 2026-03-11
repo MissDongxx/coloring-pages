@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
@@ -32,7 +33,7 @@ import {
 } from "@/shared/components/ui/breadcrumb";
 import type { Category } from '@/features/coloring/types/coloring-page';
 import { parseSeoHubSlug, validateSeoHub } from '@/features/coloring/lib/seo-hub';
-import { getPagesForHub, findColoringPage, ColoringPageStatus, findHubBySlugPrefix, getColoringPages } from '@/shared/models/coloring_page';
+import { getPagesForHub, findColoringPage, ColoringPageStatus, findHubBySlugPrefix, getColoringPages, getPagesCountForHub } from '@/shared/models/coloring_page';
 
 export const revalidate = 3600;
 
@@ -232,11 +233,18 @@ export async function generateMetadata({
 
 export default async function DynamicPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; slug: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
   const { locale, slug } = await params;
+  const { page: pageParam } = await searchParams;
   setRequestLocale(locale);
+
+  // Parse page parameter, default to 1
+  const currentPage = parseInt(pageParam || '1', 10);
+  const itemsPerPage = 50; // 每页显示50张图片
 
   // 1. try to get static page from
   // content/pages/**/*.mdx
@@ -441,9 +449,22 @@ export default async function DynamicPage({
       modifier = dbHub.modifier;
     }
 
-    const pages = await getPagesForHub({
+    // Get total count for pagination
+    const totalCount = await getPagesCountForHub({
       rootKeyword: root,
       modifier: modifier
+    });
+
+    const totalPages = Math.ceil(totalCount / itemsPerPage);
+
+    // Validate page number
+    const validPage = currentPage < 1 ? 1 : currentPage > totalPages && totalPages > 0 ? totalPages : currentPage;
+
+    const pages = await getPagesForHub({
+      rootKeyword: root,
+      modifier: modifier,
+      page: validPage,
+      limit: itemsPerPage
     });
 
     if (pages.length === 0 && !dbHub) {
@@ -468,13 +489,17 @@ export default async function DynamicPage({
       themeName,
       staticPageSlug,
       [], // hub pages don't have subcategories
-      pageItems.length
+      totalCount
     );
 
     // Get cross-category links for internal linking
     const hubCategories = getAllCategories()
       .slice(0, 6)
       .map(c => ({ name: c.name, slug: c.slug, icon: c.icon, count: c.count, imageSrc: getRandomCategoryCover(c.slug) }));
+
+    const slug = modifier
+      ? `${modifier}-${root}-coloring-pages`
+      : `${root}-coloring-pages`;
 
     return (
       <div className="container mx-auto px-4 pt-16 pb-8 md:pt-20 md:pb-8 max-w-6xl">
@@ -503,13 +528,69 @@ export default async function DynamicPage({
         <div className="text-center mb-12">
           <h1 className="text-3xl md:text-4xl font-bold mb-4">{hubTitle}</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Discover our collection of free printable {modifier ? modifier + ' ' : ''}{root} coloring pages.
+            Discover our collection of {totalCount} free printable {modifier ? modifier + ' ' : ''}{root} coloring pages.
           </p>
+          {totalPages > 1 && (
+            <p className="text-sm text-muted-foreground mt-2">
+              Page {validPage} of {totalPages}
+            </p>
+          )}
         </div>
 
         <section>
           <PopularGrid items={pageItems} />
         </section>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-8">
+            {validPage > 1 && (
+              <Link
+                href={`/${slug}${validPage - 1 > 1 ? `?page=${validPage - 1}` : ''}`}
+                className="px-4 py-2 rounded-md border hover:bg-accent text-sm"
+              >
+                Previous
+              </Link>
+            )}
+
+            {/* Page numbers */}
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let pageNum;
+              if (totalPages <= 5) {
+                pageNum = i + 1;
+              } else if (validPage <= 3) {
+                pageNum = i + 1;
+              } else if (validPage >= totalPages - 2) {
+                pageNum = totalPages - 4 + i;
+              } else {
+                pageNum = validPage - 2 + i;
+              }
+
+              return (
+                <Link
+                  key={pageNum}
+                  href={`/${slug}${pageNum > 1 ? `?page=${pageNum}` : ''}`}
+                  className={`px-4 py-2 rounded-md border text-sm ${
+                    pageNum === validPage
+                      ? 'bg-primary text-primary-foreground'
+                      : 'hover:bg-accent'
+                  }`}
+                >
+                  {pageNum}
+                </Link>
+              );
+            })}
+
+            {validPage < totalPages && (
+              <Link
+                href={`/${slug}?page=${validPage + 1}`}
+                className="px-4 py-2 rounded-md border hover:bg-accent text-sm"
+              >
+                Next
+              </Link>
+            )}
+          </div>
+        )}
 
         {/* Cross-category navigation */}
         <section className="mt-16 pt-8 border-t">
