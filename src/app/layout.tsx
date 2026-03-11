@@ -111,6 +111,7 @@ export default async function RootLayout({
         <link rel="icon" href={envConfigs.app_favicon} />
 
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="p:domain_verify" content="a7118ca0b8749c20eb6d7ae8d7480b01" />
 
         {/* inject locales */}
         {locales ? (
