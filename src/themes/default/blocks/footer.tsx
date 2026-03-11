@@ -1,7 +1,6 @@
 import { Link } from '@/core/i18n/navigation';
 import {
   BrandLogo,
-  BuiltWith,
   Copyright,
   LocaleSelector,
   ThemeToggler,
@@ -15,7 +14,7 @@ export function Footer({ footer }: { footer: FooterType }) {
     <footer
       id={footer.id}
       className={`py-8 sm:py-8 ${footer.className || ''} overflow-x-hidden`}
-      // overflow-x-hidden防止-footer-撑出水平滚动条
+    // overflow-x-hidden防止-footer-撑出水平滚动条
     >
       <div className="container space-y-8 overflow-x-hidden">
         <div className="grid min-w-0 gap-12 md:grid-cols-5">
@@ -55,7 +54,6 @@ export function Footer({ footer }: { footer: FooterType }) {
         </div>
 
         <div className="flex min-w-0 flex-wrap items-center gap-4 sm:gap-8">
-          {footer.show_built_with !== false ? <BuiltWith /> : null}
           <div className="min-w-0 flex-1" />
           {footer.show_theme !== false ? <ThemeToggler type="toggle" /> : null}
           {footer.show_locale !== false ? (

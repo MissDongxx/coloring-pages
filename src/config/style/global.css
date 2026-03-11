@@ -22,7 +22,7 @@
     content: "";
     position: fixed;
     z-index: -1;
-    opacity: 0.15;
+    opacity: 0.05;
     background-repeat: no-repeat;
     background-size: clamp(225px, 27vw, 450px);
     /* Scaled ~1.5x */
