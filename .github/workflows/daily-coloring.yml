@@ -1,4 +1,4 @@
-name: Coloring Page Generation from Gist Keywords
+name: Coloring Page Generation from Local Keywords
 
 on:
   schedule:
@@ -38,6 +38,13 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Download keywords.csv from artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: keywords-data-miner
+          path: .
+        continue-on-error: true
 
       - name: Install Node.js
         uses: actions/setup-node@v4
@@ -100,9 +107,6 @@ jobs:
           DEEPSEEK_API: ${{ secrets.DEEPSEEK_API }}
           SILICONFLOW_API_KEY: ${{ secrets.SILICONFLOW_API_KEY }}
 
-          # Gist Keywords Config
-          GIST_COLORING_TOKEN: ${{ secrets.GIST_COLORING_TOKEN }}
-
         run: |
           # Only pass arguments if they were provided manually via workflow_dispatch
           if [ -n "${{ github.event.inputs.wordRoots }}" ] && [ -n "${{ github.event.inputs.count }}" ]; then
@@ -111,3 +115,10 @@ jobs:
             # Default scheduled run or empty inputs
             pnpm run-workflow
           fi
+
+      - name: Upload keywords.csv as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: keywords-data-workflow
+          path: keywords.csv
+          retention-days: 90

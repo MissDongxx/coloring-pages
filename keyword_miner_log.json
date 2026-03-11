@@ -1,0 +1,122 @@
+[
+  {
+    "timestamp": "2026-03-11T13:51:24.752538",
+    "success": true,
+    "query_keyword": "christmas coloring pages",
+    "related_queries_count": 11,
+    "extracted_count": 0,
+    "new_records": 0,
+    "total_records": 28,
+    "error": null
+  },
+  {
+    "timestamp": "2026-03-11T13:56:06.339666",
+    "success": true,
+    "query_keyword": "coco wyo coloring books",
+    "related_queries_count": 0,
+    "extracted_count": 0,
+    "new_records": 0,
+    "total_records": 28,
+    "error": "No related queries found"
+  },
+  {
+    "timestamp": "2026-03-11T14:07:09.525696",
+    "success": false,
+    "query_keyword": "among us coloring page",
+    "related_queries_count": 0,
+    "extracted_count": 0,
+    "new_records": 0,
+    "total_records": 0,
+    "error": "HTTPSConnectionPool(host='api.github.com', port=443): Max retries exceeded with url: /gists/b34e03eecb67ee83475f108117b1858d (Caused by SSLError(SSLEOFError(8, 'EOF occurred in violation of protocol (_ssl.c:1129)')))"
+  },
+  {
+    "timestamp": "2026-03-11T14:07:42.173859",
+    "success": true,
+    "query_keyword": "",
+    "related_queries_count": 0,
+    "extracted_count": 0,
+    "new_records": 0,
+    "total_records": 1,
+    "error": "No related queries found"
+  },
+  {
+    "timestamp": "2026-03-11T14:09:05.358421",
+    "success": true,
+    "query_keyword": "easter egg coloring pages",
+    "related_queries_count": 0,
+    "extracted_count": 0,
+    "new_records": 0,
+    "total_records": 28,
+    "error": "No related queries found"
+  },
+  {
+    "timestamp": "2026-03-11T14:24:36.290126",
+    "success": false,
+    "query_keyword": "demon slayer coloring pages",
+    "related_queries_count": 0,
+    "extracted_count": 0,
+    "new_records": 0,
+    "total_records": 0,
+    "error": "Google Trends query failed"
+  },
+  {
+    "timestamp": "2026-03-11T14:27:56.084754",
+    "success": false,
+    "query_keyword": "reverse coloring book",
+    "related_queries_count": 0,
+    "extracted_count": 0,
+    "new_records": 0,
+    "total_records": 0,
+    "error": "Google Trends query failed"
+  },
+  {
+    "timestamp": "2026-03-11T14:29:39.680847",
+    "success": false,
+    "query_keyword": "axolotl coloring page",
+    "related_queries_count": 0,
+    "extracted_count": 0,
+    "new_records": 0,
+    "total_records": 0,
+    "error": "Google Trends query failed"
+  },
+  {
+    "timestamp": "2026-03-11T14:33:04.543746",
+    "success": false,
+    "query_keyword": "bluey coloring page",
+    "related_queries_count": 0,
+    "extracted_count": 0,
+    "new_records": 0,
+    "total_records": 0,
+    "error": "Google Trends query failed"
+  },
+  {
+    "timestamp": "2026-03-11T14:59:38.504726",
+    "success": false,
+    "query_keyword": "christmas coloring pages",
+    "related_queries_count": 0,
+    "extracted_count": 0,
+    "new_records": 0,
+    "total_records": 0,
+    "error": "Google Trends query failed"
+  },
+  {
+    "timestamp": "2026-03-11T15:01:48.821634",
+    "success": false,
+    "query_keyword": "coloring pages for adults",
+    "related_queries_count": 0,
+    "extracted_count": 0,
+    "new_records": 0,
+    "total_records": 0,
+    "error": "Google Trends query failed"
+  },
+  {
+    "timestamp": "2026-03-11T15:10:13.434050",
+    "success": false,
+    "query_keyword": "sonic coloring page",
+    "related_queries_count": 0,
+    "extracted_count": 0,
+    "new_records": 0,
+    "total_records": 0,
+    "error": "Google Trends query failed"
+  }
+]

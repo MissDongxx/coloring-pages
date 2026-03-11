@@ -42,7 +42,7 @@ async function main() {
     const provider = (values.provider === 'replicate' || values.provider === 'kaggle') ? values.provider : 'kaggle';
 
     console.log('Workflow Options:', {
-        wordRoots: wordRoots || 'Auto-generated from Gist (No roots provided)',
+        wordRoots: wordRoots || 'Auto-generated from local CSV (No roots provided)',
         count: count || '30 (default)',
         provider: provider,
     });
@@ -66,9 +66,9 @@ async function main() {
         let finalCount = count;
         let keywordIds: number[] | undefined;
 
-        // If no word roots provided, fetch from Gist
+        // If no word roots provided, fetch from local CSV
         if (!finalWordRoots) {
-            console.log('[Workflow] No word roots provided, fetching from Gist...');
+            console.log('[Workflow] No word roots provided, fetching from local CSV...');
 
             let gistResult = await getPendingKeywords();
 
@@ -89,14 +89,13 @@ async function main() {
             if (!gistResult || gistResult.count === 0) {
                 console.log('[Workflow] No keywords available to process. Skipping workflow.');
                 process.exit(0);
-                return;
             }
 
             finalWordRoots = gistResult.keywords;
             keywordIds = gistResult.ids;
             finalCount = 30; // Always use 30 for Gist keywords
 
-            console.log(`[Workflow] Found ${gistResult.count} keyword(s) from Gist: ${finalWordRoots.join(', ')}`);
+            console.log(`[Workflow] Found ${gistResult.count} keyword(s) from local CSV: ${finalWordRoots.join(', ')}`);
         }
 
         const jobId = await workflowService.runWorkflow({
@@ -112,9 +111,9 @@ async function main() {
         console.log(`✅ Job ID: ${jobId}`);
         console.log(`========================================\n`);
 
-        // Mark keywords as processed if they came from Gist
+        // Mark keywords as processed if they came from local CSV
         if (keywordIds && keywordIds.length > 0) {
-            console.log(`[Workflow] Marking ${keywordIds.length} keyword(s) as processed in Gist...`);
+            console.log(`[Workflow] Marking ${keywordIds.length} keyword(s) as processed in local CSV...`);
             await markKeywordsAsProcessed(keywordIds);
             console.log('[Workflow] Keywords marked successfully.');
         }
