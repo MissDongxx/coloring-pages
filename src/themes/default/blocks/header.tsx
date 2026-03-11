@@ -94,8 +94,8 @@ export function Header({ header }: { header: HeaderType }) {
                   <Link
                     href={item.url || ''}
                     target={item.target || '_self'}
-                    className={`flex flex-row items-center gap-2 px-4 py-1.5 text-sm ${item.is_active || pathname.endsWith(item.url as string)
-                      ? 'bg-muted/40 text-muted-foreground'
+                    className={`flex flex-row items-center gap-2 px-6 py-2 text-base font-bold rounded-full transition-all border-2 border-transparent hover:border-border hover:bg-muted/40 ${item.is_active || pathname.endsWith(item.url as string)
+                      ? 'bg-primary text-primary-foreground border-primary shadow-sm hover:bg-primary/90'
                       : ''
                       }`}
                   >
@@ -108,9 +108,9 @@ export function Header({ header }: { header: HeaderType }) {
 
             return (
               <NavigationMenuItem key={idx}>
-                <NavigationMenuTrigger className="flex flex-row items-center gap-2 text-sm">
+                <NavigationMenuTrigger className="flex flex-row items-center gap-2 text-base font-bold rounded-full px-6 py-2 border-2 border-transparent hover:border-border hover:bg-muted/40 transition-all">
                   {item.icon && (
-                    <SmartIcon name={item.icon as string} className="h-4 w-4" />
+                    <SmartIcon name={item.icon as string} className="h-5 w-5" />
                   )}
                   {item.title}
                 </NavigationMenuTrigger>
@@ -294,11 +294,11 @@ export function Header({ header }: { header: HeaderType }) {
                         href={button.url || ''}
                         target={button.target || '_self'}
                         className={cn(
-                          'focus-visible:ring-ring inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',
-                          'h-7 px-3 ring-0',
+                          'focus-visible:ring-ring inline-flex items-center justify-center gap-2 rounded-full text-base font-bold whitespace-nowrap transition-all focus-visible:ring-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',
+                          'h-11 px-6',
                           button.variant === 'outline'
-                            ? 'bg-background border-primary ring-foreground/10 hover:bg-muted/50 dark:ring-foreground/15 dark:hover:bg-muted/50 border border-transparent shadow-sm ring-1 shadow-black/15 duration-200'
-                            : 'bg-primary text-primary-foreground hover:bg-primary/90 border-[0.5px] border-white/25 shadow-md ring-1 shadow-black/20 ring-(--ring-color) [--ring-color:color-mix(in_oklab,var(--color-foreground)15%,var(--color-primary))]'
+                            ? 'bg-background border-2 border-border hover:bg-accent hover:text-accent-foreground shadow-sm hover:-translate-y-0.5'
+                            : 'bg-primary text-primary-foreground border-2 border-primary shadow-sm hover:bg-primary/90 hover:-translate-y-0.5'
                         )}
                       >
                         {button.icon && (

@@ -12,6 +12,85 @@
 
   body {
     @apply bg-background text-foreground font-sans;
+    position: relative;
+  }
+
+  /* Shared base for all background images */
+  .bg-image,
+  body::before,
+  body::after {
+    content: "";
+    position: fixed;
+    z-index: -1;
+    opacity: 0.15;
+    background-repeat: no-repeat;
+    background-size: clamp(225px, 27vw, 450px);
+    /* Scaled ~1.5x */
+    background-blend-mode: multiply;
+    pointer-events: none;
+    width: clamp(225px, 27vw, 450px);
+    height: clamp(225px, 27vw, 450px);
+    transform-origin: center;
+  }
+
+  /* 1. Top Left */
+  body::before {
+    background-image: url('/imgs/bg/Animals_cute_baby_lion.png');
+    top: 5%;
+    left: 5%;
+    transform: rotate(-15deg);
+  }
+
+  /* 2. Bottom Right */
+  body::after {
+    background-image: url('/imgs/bg/Profession_firefighter_hero.png');
+    top: 5%;
+    right: 5%;
+    transform: rotate(22deg);
+  }
+}
+
+/* 3. Center Left */
+.bg-layer-1 {
+  background-image: url('/imgs/bg/Space_alien_planet.png');
+  top: 35%;
+  left: 5%;
+  transform: rotate(10deg);
+}
+
+/* 4. Center Right */
+.bg-layer-2 {
+  background-image: url('/imgs/bg/Fantasy_unicorn_garden.png');
+  top: 55%;
+  right: 5%;
+  transform: rotate(-25deg);
+}
+
+/* 5. Top Center (Middle) */
+.bg-layer-3 {
+  background-image: url('/imgs/bg/IP_SciFi_baby_alien.png');
+  top: 1%;
+  left: 50%;
+  transform: translateX(-50%) rotate(18deg);
+}
+
+/* 6. Bottom Center (Middle) */
+.bg-layer-4 {
+  background-image: url('/imgs/bg/Space_solar_system.png');
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) rotate(-12deg);
+}
+
+@layer base {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-serif tracking-wide;
   }
 }
 

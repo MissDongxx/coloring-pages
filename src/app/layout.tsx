@@ -1,6 +1,6 @@
 import '@/config/style/global.css';
 
-import { JetBrains_Mono, Merriweather, Noto_Sans_Mono } from 'next/font/google';
+import { Fredoka, Nunito, JetBrains_Mono } from 'next/font/google';
 import { getLocale, setRequestLocale } from 'next-intl/server';
 import NextTopLoader from 'nextjs-toploader';
 
@@ -13,17 +13,17 @@ import { getAffiliateService } from '@/shared/services/affiliate';
 import { getAnalyticsService } from '@/shared/services/analytics';
 import { getCustomerService } from '@/shared/services/customer_service';
 
-const notoSansMono = Noto_Sans_Mono({
+const nunito = Nunito({
   subsets: ['latin'],
   variable: '--font-sans',
   display: 'swap',
   preload: true,
 });
 
-const merriweather = Merriweather({
+const fredoka = Fredoka({
   subsets: ['latin'],
-  weight: ['400', '700'],
-  variable: '--font-serif',
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-serif', // We will map this to heading font or use for display
   display: 'swap',
   preload: true,
 });
@@ -104,7 +104,7 @@ export default async function RootLayout({
   return (
     <html
       lang={locale}
-      className={`${notoSansMono.variable} ${merriweather.variable} ${jetbrainsMono.variable}`}
+      className={`${nunito.variable} ${fredoka.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
       <head>
@@ -147,6 +147,12 @@ export default async function RootLayout({
         {customerServiceHeadScripts}
       </head>
       <body suppressHydrationWarning className="overflow-x-hidden">
+        {/* Background Decorative Layers */}
+        <div className="bg-image bg-layer-1" />
+        <div className="bg-image bg-layer-2" />
+        <div className="bg-image bg-layer-3" />
+        <div className="bg-image bg-layer-4" />
+
         <NextTopLoader
           color="#6466F1"
           initialPosition={0.08}
