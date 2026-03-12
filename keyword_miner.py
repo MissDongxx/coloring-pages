@@ -13,6 +13,14 @@ import json
 from datetime import datetime
 from pytrends.request import TrendReq
 
+# Import gist client for remote storage
+try:
+    from scripts.gist_client import load_keywords, save_keywords as save_to_gist
+    USE_GIST = True
+except ImportError:
+    USE_GIST = False
+    print("[Warning] gist_client not available, using local file only")
+
 # ==================== 配置 ====================
 KEYWORDS_FILE = 'keywords.csv'  # 本地关键词文件
 KEYWORD_PREFIXES = [
@@ -71,8 +79,19 @@ def save_log_to_file(log_data, filename='keyword_miner_log.json'):
 
 
 # ==================== 本地文件操作 ====================
-def load_keywords_from_file(filename=KEYWORDS_FILE):
-    """从本地CSV文件加载关键词"""
+def load_keywords_from_file(filename=KEYWORDS_FILE, use_gist=True):
+    """从Gist或本地CSV文件加载关键词"""
+    # Try to load from gist first
+    if use_gist and USE_GIST and os.getenv('GIST_ID'):
+        try:
+            keywords = load_keywords(use_gist=True)
+            if keywords:
+                log(f"  📦 从 Gist 加载了 {len(keywords)} 条关键词")
+                return keywords
+        except Exception as e:
+            log(f"  ⚠️  从 Gist 加载失败: {e}")
+
+    # Fallback to local file
     if not os.path.exists(filename):
         return []
 
@@ -91,8 +110,9 @@ def load_keywords_from_file(filename=KEYWORDS_FILE):
     return keywords
 
 
-def save_keywords_to_file(keywords, filename=KEYWORDS_FILE):
-    """保存关键词到本地CSV文件"""
+def save_keywords_to_file(keywords, filename=KEYWORDS_FILE, use_gist=True):
+    """保存关键词到本地CSV文件和Gist"""
+    # Always save to local file first
     with open(filename, 'w', encoding='utf-8', newline='') as f:
         fieldnames = ['root-keyword', 'root-num', 'keyword-raw', 'keyword', 'index', 'created']
         writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -107,6 +127,17 @@ def save_keywords_to_file(keywords, filename=KEYWORDS_FILE):
                 'index': kw.get('index', 0),
                 'created': kw.get('created', 0)
             })
+
+    # Try to save to gist
+    if use_gist and USE_GIST and os.getenv('GIST_ID'):
+        try:
+            success = save_to_gist(keywords, use_gist=True)
+            if success:
+                log(f"  📦 已同步到 Gist")
+            else:
+                log(f"  ⚠️  同步到 Gist 失败")
+        except Exception as e:
+            log(f"  ⚠️  同步到 Gist 出错: {e}")
 
 
 # ==================== 关键词处理 ====================

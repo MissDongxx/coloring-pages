@@ -17,13 +17,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download keywords.csv from artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: keywords-data-miner
-          path: .
-        continue-on-error: true
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -34,12 +27,8 @@ jobs:
           pip install pytrends requests pandas
 
       - name: Run keyword miner
+        env:
+          GIST_ID: ${{ secrets.GIST_ID }}
+          GIST_COLORING_TOKEN: ${{ secrets.GIST_COLORING_TOKEN }}
         run: |
           python3 keyword_miner.py
-
-      - name: Upload keywords.csv as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: keywords-data-miner
-          path: keywords.csv
-          retention-days: 90
