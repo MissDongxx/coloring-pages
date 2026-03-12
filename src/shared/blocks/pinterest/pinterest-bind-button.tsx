@@ -29,8 +29,8 @@ interface PinterestBindButtonProps {
 }
 
 /**
- * Pinterest 绑定/解绑按钮组件
- * 用于用户绑定或解绑 Pinterest 账号
+ * Pinterest bind/unbind button component
+ * Used for users to bind or unbind their Pinterest account
  */
 export const PinterestBindButton = React.memo(function PinterestBindButton({
   variant = 'outline',
@@ -73,16 +73,16 @@ export const PinterestBindButton = React.memo(function PinterestBindButton({
     };
   }, []);
 
-  // 绑定 Pinterest
+  // Bind Pinterest
   const handleBind = () => {
     setActionLoading(true);
-    // 跳转到授权页面
+    // Redirect to authorization page
     window.location.href = '/api/pinterest/authorize';
   };
 
-  // 解绑 Pinterest
+  // Unbind Pinterest
   const handleUnbind = async () => {
-    if (!confirm('确定要解除 Pinterest 绑定吗？')) {
+    if (!confirm('Are you sure you want to unbind your Pinterest account?')) {
       return;
     }
 
@@ -94,31 +94,31 @@ export const PinterestBindButton = React.memo(function PinterestBindButton({
 
       if (response.ok) {
         const data = await response.json();
-        toast.success(data.message || '已解除 Pinterest 绑定');
+        toast.success(data.message || 'Pinterest unbind successful');
         setStatus({ connected: false });
       } else {
         const error = await response.json();
-        toast.error(error.error || '解绑失败');
+        toast.error(error.error || 'Failed to unbind');
       }
     } catch (error) {
       console.error('Failed to disconnect Pinterest:', error);
-      toast.error('解绑失败，请重试');
+      toast.error('Failed to unbind, please try again');
     } finally {
       setActionLoading(false);
     }
   };
 
-  // 加载中状态
+  // Loading state
   if (loading) {
     return (
       <Button variant={variant} size={size} className={className} disabled>
         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        加载中...
+        Loading...
       </Button>
     );
   }
 
-  // 未绑定状态 - 显示绑定按钮
+  // Not connected state - show bind button
   if (!status?.connected) {
     return (
       <Button
@@ -133,19 +133,19 @@ export const PinterestBindButton = React.memo(function PinterestBindButton({
         ) : (
           <LinkIcon className="mr-2 h-4 w-4" />
         )}
-        绑定 Pinterest
+        Connect Pinterest
       </Button>
     );
   }
 
-  // 已绑定状态 - 显示绑定信息和解绑按钮
+  // Connected state - show connection info and unbind button
   return (
     <div className="flex items-center gap-2">
       <div className="flex items-center gap-1 text-sm text-muted-foreground">
         <Check className="h-4 w-4 text-green-500" />
-        <span>已绑定</span>
+        <span>Connected</span>
         {status.tokenExpired && (
-          <span className="text-amber-500">(Token 已过期)</span>
+          <span className="text-amber-500">(Token expired)</span>
         )}
       </div>
       <Button
@@ -166,8 +166,8 @@ export const PinterestBindButton = React.memo(function PinterestBindButton({
 
 
 /**
- * 简单的分享到 Pinterest 按钮
- * 用于分享内容到 Pinterest
+ * Simple share to Pinterest button
+ * Used to share content to Pinterest
  */
 export const PinterestShareButton = React.memo(function PinterestShareButton({
   mediaUrl,
@@ -218,12 +218,12 @@ export const PinterestShareButton = React.memo(function PinterestShareButton({
 
   const handleShare = async () => {
     if (!status?.connected) {
-      toast.error('请先绑定 Pinterest 账号');
+      toast.error('Please bind your Pinterest account first');
       return;
     }
 
     if (status.tokenExpired) {
-      toast.error('Pinterest Token 已过期，请重新绑定');
+      toast.error('Pinterest Token has expired, please rebind');
       return;
     }
 
@@ -247,11 +247,11 @@ export const PinterestShareButton = React.memo(function PinterestShareButton({
         setSuccessDialogOpen(true);
       } else {
         const error = await response.json();
-        toast.error(error.error || '分享失败');
+        toast.error(error.error || 'Share failed');
       }
     } catch (error) {
       console.error('Failed to share to Pinterest:', error);
-      toast.error('分享失败，请重试');
+      toast.error('Share failed, please try again');
     } finally {
       setSharing(false);
     }
@@ -266,12 +266,12 @@ export const PinterestShareButton = React.memo(function PinterestShareButton({
     return (
       <Button variant={variant} size={size} className={className} disabled>
         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        分享到 Pinterest
+        Share to Pinterest
       </Button>
     );
   }
 
-  // 未绑定状态 - 显示跳转到设置页面的按钮
+  // Not connected state - show button to redirect to settings page
   if (!status?.connected) {
     return (
       <Button
@@ -291,12 +291,12 @@ export const PinterestShareButton = React.memo(function PinterestShareButton({
         >
           <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z" />
         </svg>
-        绑定 Pinterest
+        Connect Pinterest
       </Button>
     );
   }
 
-  // Token 已过期状态
+  // Token expired state
   if (status.tokenExpired) {
     return (
       <Button
@@ -316,7 +316,7 @@ export const PinterestShareButton = React.memo(function PinterestShareButton({
         >
           <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z" />
         </svg>
-        重新绑定 Pinterest
+        Reconnect Pinterest
       </Button>
     );
   }
@@ -341,15 +341,15 @@ export const PinterestShareButton = React.memo(function PinterestShareButton({
             <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z" />
           </svg>
         )}
-        {sharing ? '分享中...' : '分享到 Pinterest'}
+        {sharing ? 'Sharing...' : 'Share to Pinterest'}
       </Button>
 
       <Dialog open={successDialogOpen} onOpenChange={setSuccessDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>分享成功！</DialogTitle>
+            <DialogTitle>Share Successful!</DialogTitle>
             <DialogDescription>
-              您的涂色作品已成功分享到 Pinterest
+              Your coloring page has been successfully shared to Pinterest
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-4 py-4">
@@ -362,12 +362,12 @@ export const PinterestShareButton = React.memo(function PinterestShareButton({
               <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z" />
               </svg>
-              点击 Pinterest 查看
+              View on Pinterest
               <ExternalLink className="h-4 w-4" />
             </a>
           </div>
           <DialogFooter>
-            <Button onClick={handleCloseDialog}>关闭</Button>
+            <Button onClick={handleCloseDialog}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

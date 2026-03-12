@@ -6,9 +6,9 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
- * Pinterest OAuth 2.0 授权流程
- * 用户点击"绑定 Pinterest"按钮后，重定向到此端点
- * 然后重定向到 Pinterest 授权页面
+ * Pinterest OAuth 2.0 authorization flow
+ * After user clicks "Connect Pinterest" button, redirect to this endpoint
+ * Then redirect to Pinterest authorization page
  */
 export async function GET(request: NextRequest) {
   const auth = await getAuth();
@@ -34,11 +34,11 @@ export async function GET(request: NextRequest) {
 
   const appId = envConfigs.pinterest_app_id;
   const appUrl = envConfigs.app_url || 'http://localhost:3000';
-  // 去除末尾斜杠，防止双斜杠问题
+  // Remove trailing slash to prevent double slash issues
   const baseUrl = appUrl.replace(/\/+$/, '');
   const redirectUri = `${baseUrl}/api/pinterest/callback`;
 
-  // 生成 state 参数用于防止 CSRF 攻击
+  // Generate state parameter to prevent CSRF attacks
   const state = Buffer.from(
     JSON.stringify({
       userId: session.user.id,
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     })
   ).toString('base64');
 
-  // 构建 Pinterest OAuth 授权 URL
+  // Build Pinterest OAuth authorization URL
   const authUrl = new URL('https://www.pinterest.com/oauth/');
   authUrl.searchParams.set('response_type', 'code');
   authUrl.searchParams.set('client_id', appId);
@@ -54,6 +54,6 @@ export async function GET(request: NextRequest) {
   authUrl.searchParams.set('scope', 'boards:read,boards:write,pins:read,pins:write');
   authUrl.searchParams.set('state', state);
 
-  // 重定向到 Pinterest 授权页面
+  // Redirect to Pinterest authorization page
   return NextResponse.redirect(authUrl.toString());
 }

@@ -8,7 +8,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
- * 获取用户的 Pinterest 绑定状态
+ * Get user's Pinterest binding status
  */
 export async function GET(request: NextRequest) {
   const auth = await getAuth();
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // 查找用户的 Pinterest 账号绑定
+    // Find user's Pinterest account binding
     const accounts = await db()
       .select()
       .from(account)
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // 检查 token 是否过期
+    // Check if token has expired
     const isExpired = pinterestAccount.accessTokenExpiresAt
       ? new Date(pinterestAccount.accessTokenExpiresAt) < new Date()
       : false;
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * 解除 Pinterest 绑定
+ * Unbind Pinterest account
  */
 export async function DELETE(request: NextRequest) {
   const auth = await getAuth();
@@ -78,7 +78,7 @@ export async function DELETE(request: NextRequest) {
   }
 
   try {
-    // 查找并删除用户的 Pinterest 账号绑定
+    // Find and delete user's Pinterest account binding
     const accounts = await db()
       .select()
       .from(account)
@@ -91,7 +91,7 @@ export async function DELETE(request: NextRequest) {
     if (!pinterestAccount) {
       return NextResponse.json({
         success: true,
-        message: '未找到 Pinterest 绑定',
+        message: 'No Pinterest binding found',
       });
     }
 
@@ -101,7 +101,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Pinterest 绑定已解除',
+      message: 'Pinterest binding has been removed',
     });
   } catch (error: any) {
     console.error('Error disconnecting Pinterest:', error);

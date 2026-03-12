@@ -10,7 +10,7 @@ import { HubGrid } from '@/features/coloring/components/hub-grid';
 import { Features } from '@/features/coloring/components/features';
 import { Palette, Sparkles, Download } from 'lucide-react';
 
-// 自定义图标组件
+// Custom icon components
 function PaletteIcon() {
   return (
     <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-12 h-12">
@@ -88,7 +88,7 @@ export default async function LandingPage({
         High-Quality PDF Coloring Pages for Kids, Parents, and Teachers
       </p>
 
-      {/* 简短介绍 - SEO转化钩子 */}
+      {/* Brief intro - SEO conversion hook */}
       <p className="text-center text-muted-foreground max-w-2xl mx-auto mb-12">
         Download hundreds of free printable coloring pages in high-quality PDF format.
         Perfect for kids, parents, and teachers. No registration required.
@@ -136,7 +136,7 @@ export default async function LandingPage({
         ]}
       />
 
-      {/* 热门涂色页 - 移到最下方 */}
+      {/* Popular coloring pages - moved to bottom */}
       <section className="py-12">
         <h2 className="text-2xl md:text-3xl font-bold mb-8 text-center">
           Popular Coloring Pages

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { envConfigs } from '@/config';
 import { db } from '@/core/db';
-import { account, user } from '@/config/db/schema';
+import { account } from '@/config/db/schema';
 import { eq } from 'drizzle-orm';
 import { getUuid } from '@/shared/lib/hash';
 
@@ -9,8 +9,8 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
- * Pinterest OAuth 2.0 回调处理
- * 处理 Pinterest 授权后的回调，获取 token 并保存到数据库
+ * Pinterest OAuth 2.0 callback handler
+ * Handles the callback after Pinterest authorization, retrieves token and saves to database
  */
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -26,13 +26,13 @@ export async function GET(request: NextRequest) {
   if (error) {
     const errorDescription = searchParams.get('error_description') || error;
     return NextResponse.redirect(
-      `${baseUrl}/settings?error=${encodeURIComponent(`Pinterest 授权失败: ${errorDescription}`)}`
+      `${baseUrl}/settings?error=${encodeURIComponent(`Pinterest authorization failed: ${errorDescription}`)}`
     );
   }
 
   if (!code) {
     return NextResponse.redirect(
-      `${baseUrl}/settings?error=${encodeURIComponent('无效的回调：缺少 code 参数')}`
+      `${baseUrl}/settings?error=${encodeURIComponent('Invalid callback: missing code parameter')}`
     );
   }
 
@@ -41,28 +41,28 @@ export async function GET(request: NextRequest) {
     !envConfigs.pinterest_app_secret
   ) {
     return NextResponse.redirect(
-      `${baseUrl}/settings?error=${encodeURIComponent('Pinterest 配置错误：缺少 APP_ID 或 APP_SECRET')}`
+      `${baseUrl}/settings?error=${encodeURIComponent('Pinterest configuration error: missing APP_ID or APP_SECRET')}`
     );
   }
 
   let userId: string | null = null;
 
-  // 验证 state 参数（防止 CSRF 攻击）
+  // Verify state parameter (prevent CSRF attacks)
   if (state) {
     try {
       const stateData = JSON.parse(Buffer.from(state, 'base64').toString());
       userId = stateData.userId;
 
-      // 验证时间戳（state 有效期 30 分钟）
+      // Verify timestamp (state valid for 30 minutes)
       const stateAge = Date.now() - (stateData.timestamp || 0);
       if (stateAge > 30 * 60 * 1000) {
         return NextResponse.redirect(
-          `${baseUrl}/settings?error=${encodeURIComponent('授权链接已过期，请重试')}`
+          `${baseUrl}/settings?error=${encodeURIComponent('Authorization link has expired, please try again')}`
         );
       }
     } catch {
       return NextResponse.redirect(
-        `${baseUrl}/settings?error=${encodeURIComponent('无效的 state 参数')}`
+        `${baseUrl}/settings?error=${encodeURIComponent('Invalid state parameter')}`
       );
     }
   }
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
 
     const authString = Buffer.from(`${appId}:${appSecret}`).toString('base64');
 
-    // 交换 code 获取 access token
+    // Exchange code for access token
     const tokenResponse = await fetch('https://api.pinterest.com/v5/oauth/token', {
       method: 'POST',
       headers: {
@@ -93,17 +93,17 @@ export async function GET(request: NextRequest) {
     if (!tokenResponse.ok) {
       console.error('Pinterest token error:', data);
       return NextResponse.redirect(
-        `${baseUrl}/settings?error=${encodeURIComponent(`获取 Token 失败: ${data.error_description || data.error || '未知错误'}`)}`
+        `${baseUrl}/settings?error=${encodeURIComponent(`Failed to get token: ${data.error_description || data.error || 'Unknown error'}`)}`
       );
     }
 
     const refreshToken = data.refresh_token;
     const accessToken = data.access_token;
-    const expiresIn = data.expires_in; // 通常是 3600 秒（1小时）
+    const expiresIn = data.expires_in; // Usually 3600 seconds (1 hour)
 
-    // 如果有 userId，保存到数据库
+    // If userId exists, save to database
     if (userId) {
-      // 检查是否已存在 Pinterest 账号绑定
+      // Check if Pinterest account binding already exists
       const existingAccounts = await db()
         .select()
         .from(account)
@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
       const expiresAt = new Date(now.getTime() + expiresIn * 1000);
 
       if (pinterestAccount) {
-        // 更新现有账号
+        // Update existing account
         await db()
           .update(account)
           .set({
@@ -128,12 +128,12 @@ export async function GET(request: NextRequest) {
           })
           .where(eq(account.id, pinterestAccount.id));
       } else {
-        // 创建新账号记录
+        // Create new account record
         await db()
           .insert(account)
           .values({
             id: getUuid(),
-            accountId: 'pinterest_user', // Pinterest 没有用户 ID，使用固定值
+            accountId: 'pinterest_user', // Pinterest doesn't have user ID, use fixed value
             providerId: 'pinterest',
             userId: userId,
             accessToken: accessToken,
@@ -146,15 +146,15 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 重定向回设置页面，显示成功消息
+    // Redirect back to settings page with success message
     return NextResponse.redirect(
-      `${baseUrl}/settings?success=${encodeURIComponent('Pinterest 绑定成功！')}`
+      `${baseUrl}/settings?success=${encodeURIComponent('Pinterest binding successful!')}`
     );
 
   } catch (error: any) {
     console.error('Pinterest callback error:', error);
     return NextResponse.redirect(
-      `${baseUrl}/settings?error=${encodeURIComponent(`发生错误: ${error.message}`)}`
+      `${baseUrl}/settings?error=${encodeURIComponent(`An error occurred: ${error.message}`)}`
     );
   }
 }
