@@ -213,6 +213,6 @@ export function createPinterestProvider(): PinterestProvider {
         appId: envConfigs.pinterest_app_id,
         appSecret: envConfigs.pinterest_app_secret,
         refreshToken: envConfigs.pinterest_refresh_token,
-        accessToken: process.env.PINTEREST_ACCESS_TOKEN,
+        accessToken: process.env.PINTEREST_SANDBOX_TOKEN || process.env.PINTEREST_ACCESS_TOKEN,
     }, process.env.PINTEREST_USE_SANDBOX === 'true');
 }

@@ -8,6 +8,11 @@
         "icon": "User"
       },
       {
+        "title": "Integrations",
+        "url": "/settings/integrations",
+        "icon": "Share2"
+      },
+      {
         "title": "Billing",
         "url": "/settings/billing",
         "icon": "CreditCard"

@@ -21,6 +21,7 @@ export async function POST(req: Request) {
   try {
     const formData = await req.formData();
     const files = formData.getAll('files') as File[];
+    const folder = formData.get('folder') as string | null; // Get custom folder
 
     console.log('[API] Received files:', files.length);
     files.forEach((file, i) => {
@@ -30,6 +31,10 @@ export async function POST(req: Request) {
         size: file.size,
       });
     });
+
+    if (folder) {
+      console.log('[API] Custom folder:', folder);
+    }
 
     if (!files || files.length === 0) {
       return respErr('No files provided');
@@ -50,7 +55,11 @@ export async function POST(req: Request) {
 
       const digest = md5(body);
       const ext = extFromMime(file.type) || file.name.split('.').pop() || 'bin';
-      const key = `${digest}.${ext}`;
+      const baseKey = `${digest}.${ext}`;
+
+      // If folder is specified, use absolute path (starting with /) to bypass uploadPath
+      // This allows organizing files in different folders (e.g., coloring-filled for user artwork)
+      const key = folder ? `/${folder}/${baseKey}` : baseKey;
 
       // If the same image already exists, reuse its URL to save storage space.
       // (Still depends on provider supporting signed HEAD + public url generation.)

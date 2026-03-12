@@ -140,6 +140,7 @@
     "use-stick-to-bottom": "^1.1.1",
     "uuid": "^13.0.0",
     "vaul": "^1.1.2",
+    "xml2js": "^0.6.2",
     "zod": "^4.1.5"
   },
   "devDependencies": {
@@ -158,6 +159,7 @@
     "@types/react-dom": "19.2.2",
     "@types/react-lazy-load-image-component": "^1.6.4",
     "@types/sharp": "^0.32.0",
+    "@types/xml2js": "^0.4.14",
     "autoprefixer": "^10.4.21",
     "babel-plugin-react-compiler": "^1.0.0",
     "drizzle-kit": "^0.31.4",

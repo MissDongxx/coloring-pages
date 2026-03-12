@@ -3,7 +3,8 @@ import { envConfigs } from '../src/config';
 import { exec } from 'child_process';
 
 const PORT = 3001;
-const REDIRECT_URI = `https://coloringpages.club/callback`;
+// Use localhost callback for local development
+const REDIRECT_URI = `http://localhost:3001/callback`;
 
 if (!envConfigs.pinterest_app_id || !envConfigs.pinterest_app_secret) {
   console.error("❌ 错误: 请确保 .env 或者 .env.development 中已经配置了 PINTEREST_APP_ID 和 PINTEREST_APP_SECRET");
@@ -19,6 +20,8 @@ const authUrl = `https://www.pinterest.com/oauth/?client_id=${appId}&redirect_ur
 
 console.log("🚀 正在启动本地服务器...");
 console.log(`🔗 请在浏览器中打开此链接进行授权: \n${authUrl}\n`);
+console.log("⚠️  注意：请先在 Pinterest 应用设置中添加这个回调 URL：");
+console.log(`   ${REDIRECT_URI}\n`);
 
 // Attempt to open the auth URL in the user's default browser
 const openCommand = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
@@ -29,7 +32,7 @@ exec(`${openCommand} "${authUrl}"`, (error) => {
 });
 
 const server = createServer(async (req, res) => {
-  // CORS configuration to allow coloringpages.club to call this localhost server
+  // CORS configuration
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
 
@@ -84,12 +87,31 @@ const server = createServer(async (req, res) => {
       console.log("=============================================\n");
       console.log("注意：这个 refresh_token 有效期为 1 年。系统会自动用它来刷新短期的 access_token。");
 
-      res.end('<h1>✅ 授权成功！</h1><p>请查看终端控制台获取你的 <b>PINTEREST_REFRESH_TOKEN</b>，然后你可以关闭此页面了。</p>');
+      res.end(`<!DOCTYPE html>
+<html>
+<head>
+  <title>授权成功</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; text-align: center; padding: 40px; }
+    .success { color: #28a745; font-size: 60px; }
+    .token { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; font-family: monospace; word-break: break-all; }
+    button { background: #E60023; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <div class="success">✅</div>
+  <h1>授权成功！</h1>
+  <p>请查看终端控制台获取你的 <b>PINTEREST_REFRESH_TOKEN</b></p>
+  <p>Refresh Token: <span class="token">${data.refresh_token}</span></p>
+  <button onclick="navigator.clipboard.writeText('${data.refresh_token}'); alert('已复制！')">复制 Refresh Token</button>
+  <p>复制完成后，你可以关闭此页面。</p>
+</body>
+</html>`);
 
       setTimeout(() => {
         console.log("脚本即将退出...");
         process.exit(0);
-      }, 3000);
+      }, 5000);
 
     } catch (err: any) {
       console.error(err);
@@ -103,5 +125,6 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  // Server running
+  console.log(`✅ 本地服务器运行在 http://localhost:${PORT}/`);
+  console.log("等待 Pinterest 授权回调...\n");
 });

@@ -4,13 +4,15 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import { ClientOnly } from "@/shared/components/client-only";
 import Link from "next/link";
 import jsPDF from "jspdf";
+import { toast } from "sonner";
 import { envConfigs } from "@/config";
 import { Button } from "@/shared/components/ui/button";
-import { Redo, Undo, Trash2, Heart, Share2, Sparkles, Plus, Minus, RotateCcw, Crosshair, ChevronRight, Volume2, VolumeX, Wand2 } from "lucide-react";
+import { Redo, Undo, Trash2, Heart, Share2, Sparkles, Plus, Minus, RotateCcw, Crosshair, ChevronRight, Volume2, VolumeX, Wand2, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -26,6 +28,7 @@ import {
 import { ColorPickerDialog } from "@/features/coloring/components/color-picker-dialog";
 import { DownloadDialog } from "@/features/coloring/components/download-dialog";
 import { ColoringCard } from "@/features/coloring/components/coloring-card";
+import { PinterestShareButton } from "@/shared/blocks/pinterest/pinterest-bind-button";
 import { useTheme } from "@/features/coloring/contexts/theme-context";
 import { useSound } from "@/features/coloring/contexts/sound-context";
 import { getProxyUrl } from "@/features/coloring/lib/utils";
@@ -305,6 +308,9 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category,
   const [palettes, setPalettes] = useState<ColorPalette[]>(PREDEFINED_PALETTES);
   const [magicColorHistory, setMagicColorHistory] = useState<typeof NEON_GRADIENTS>([]);
   const [aspectRatio, setAspectRatio] = useState(3 / 4);
+  const [pinterestSharing, setPinterestSharing] = useState(false);
+  const [pinterestSuccessOpen, setPinterestSuccessOpen] = useState(false);
+  const [pinterestPinUrl, setPinterestPinUrl] = useState("");
   const { theme } = useTheme();
   const { isMuted, toggleMute, playSound } = useSound();
   const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
@@ -1037,6 +1043,82 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category,
     playSound("click");
   };
 
+  const handlePinterestShare = async () => {
+    setPinterestSharing(true);
+    try {
+      const canvas = canvasRef.current;
+      if (!canvas) {
+        toast.error('画布未准备好');
+        return;
+      }
+
+      // Convert canvas to blob for upload
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          toast.error('图片生成失败');
+          setPinterestSharing(false);
+          return;
+        }
+
+        // Create form data for upload
+        const formData = new FormData();
+        formData.append('files', blob, `filled-${pageId || 'coloring'}-${Date.now()}.png`);
+        formData.append('folder', 'coloring-filled'); // Separate folder for filled images
+
+        try {
+          // Upload to R2 first
+          const uploadResponse = await fetch('/api/storage/upload-image', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!uploadResponse.ok) {
+            toast.error('图片上传失败');
+            return;
+          }
+
+          const uploadData = await uploadResponse.json();
+          const filledImageUrl = uploadData.data?.urls?.[0];
+
+          if (!filledImageUrl) {
+            toast.error('图片上传失败');
+            return;
+          }
+
+          // Share the filled image URL to Pinterest
+          const response = await fetch('/api/pinterest/share', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              imageUrl: filledImageUrl,  // Use the uploaded filled image URL
+              description: title || description || "Check out this coloring page!",
+              link: typeof window !== 'undefined' ? window.location.href : '',
+            }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            setPinterestPinUrl(data.pin.url);
+            setPinterestSuccessOpen(true);
+            playSound("click");
+          } else {
+            const error = await response.json();
+            toast.error(error.error || '分享失败，请先绑定 Pinterest 账号');
+          }
+        } catch (error) {
+          console.error('Failed to upload or share:', error);
+          toast.error('分享失败，请重试');
+        } finally {
+          setPinterestSharing(false);
+        }
+      }, 'image/png');
+    } catch (error) {
+      console.error('Failed to share to Pinterest:', error);
+      toast.error('分享失败，请重试');
+      setPinterestSharing(false);
+    }
+  };
+
   return (
     <div className="flex flex-col w-full items-start max-w-6xl mx-auto px-4">
       {/* Breadcrumb */}
@@ -1122,6 +1204,26 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category,
               </Button>
             </div>
 
+            {/* Pinterest Share - Top Right */}
+            <div className="absolute top-4 right-4">
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-full shadow-lg bg-white hover:bg-red-50 hover:border-red-300"
+                onClick={handlePinterestShare}
+                disabled={pinterestSharing}
+                title="Share to Pinterest"
+              >
+                {pinterestSharing ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z" />
+                  </svg>
+                )}
+              </Button>
+            </div>
+
             {/* View Controls - Bottom Left/Right */}
             <div className="absolute bottom-4 right-4 flex gap-1">
               <Button
@@ -1173,6 +1275,13 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category,
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-3">
+                      <PinterestShareButton
+                        mediaUrl={imageSrc}
+                        description={title || description || "Check out this coloring page!"}
+                        url={typeof window !== 'undefined' ? window.location.href : ''}
+                        variant="outline"
+                        className="w-full justify-start"
+                      />
                       <Button
                         variant="outline"
                         className="w-full justify-start gap-2"
@@ -1585,6 +1694,34 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category,
           </div>
         </div>
       )}
+
+      {/* Pinterest Success Dialog */}
+      <Dialog open={pinterestSuccessOpen} onOpenChange={setPinterestSuccessOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>分享成功！</DialogTitle>
+            <DialogDescription>
+              您的涂色作品已成功分享到 Pinterest
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 py-4">
+            <a
+              href={pinterestPinUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
+            >
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z" />
+              </svg>
+              点击 Pinterest 查看
+            </a>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setPinterestSuccessOpen(false)}>关闭</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
