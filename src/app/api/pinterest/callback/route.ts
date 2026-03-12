@@ -19,18 +19,20 @@ export async function GET(request: NextRequest) {
   const error = searchParams.get('error');
 
   const appUrl = envConfigs.app_url || 'http://localhost:3000';
+  // 去除末尾斜杠，防止双斜杠问题
+  const baseUrl = appUrl.replace(/\/+$/, '');
 
   // Handle authorization error or denial
   if (error) {
     const errorDescription = searchParams.get('error_description') || error;
     return NextResponse.redirect(
-      `${appUrl}/settings?error=${encodeURIComponent(`Pinterest 授权失败: ${errorDescription}`)}`
+      `${baseUrl}/settings?error=${encodeURIComponent(`Pinterest 授权失败: ${errorDescription}`)}`
     );
   }
 
   if (!code) {
     return NextResponse.redirect(
-      `${appUrl}/settings?error=${encodeURIComponent('无效的回调：缺少 code 参数')}`
+      `${baseUrl}/settings?error=${encodeURIComponent('无效的回调：缺少 code 参数')}`
     );
   }
 
@@ -39,7 +41,7 @@ export async function GET(request: NextRequest) {
     !envConfigs.pinterest_app_secret
   ) {
     return NextResponse.redirect(
-      `${appUrl}/settings?error=${encodeURIComponent('Pinterest 配置错误：缺少 APP_ID 或 APP_SECRET')}`
+      `${baseUrl}/settings?error=${encodeURIComponent('Pinterest 配置错误：缺少 APP_ID 或 APP_SECRET')}`
     );
   }
 
@@ -55,12 +57,12 @@ export async function GET(request: NextRequest) {
       const stateAge = Date.now() - (stateData.timestamp || 0);
       if (stateAge > 30 * 60 * 1000) {
         return NextResponse.redirect(
-          `${appUrl}/settings?error=${encodeURIComponent('授权链接已过期，请重试')}`
+          `${baseUrl}/settings?error=${encodeURIComponent('授权链接已过期，请重试')}`
         );
       }
     } catch {
       return NextResponse.redirect(
-        `${appUrl}/settings?error=${encodeURIComponent('无效的 state 参数')}`
+        `${baseUrl}/settings?error=${encodeURIComponent('无效的 state 参数')}`
       );
     }
   }
@@ -68,7 +70,7 @@ export async function GET(request: NextRequest) {
   try {
     const appId = envConfigs.pinterest_app_id;
     const appSecret = envConfigs.pinterest_app_secret;
-    const redirectUri = `${appUrl}/api/pinterest/callback`;
+    const redirectUri = `${baseUrl}/api/pinterest/callback`;
 
     const authString = Buffer.from(`${appId}:${appSecret}`).toString('base64');
 
@@ -91,7 +93,7 @@ export async function GET(request: NextRequest) {
     if (!tokenResponse.ok) {
       console.error('Pinterest token error:', data);
       return NextResponse.redirect(
-        `${appUrl}/settings?error=${encodeURIComponent(`获取 Token 失败: ${data.error_description || data.error || '未知错误'}`)}`
+        `${baseUrl}/settings?error=${encodeURIComponent(`获取 Token 失败: ${data.error_description || data.error || '未知错误'}`)}`
       );
     }
 
@@ -146,13 +148,13 @@ export async function GET(request: NextRequest) {
 
     // 重定向回设置页面，显示成功消息
     return NextResponse.redirect(
-      `${appUrl}/settings?success=${encodeURIComponent('Pinterest 绑定成功！')}`
+      `${baseUrl}/settings?success=${encodeURIComponent('Pinterest 绑定成功！')}`
     );
 
   } catch (error: any) {
     console.error('Pinterest callback error:', error);
     return NextResponse.redirect(
-      `${appUrl}/settings?error=${encodeURIComponent(`发生错误: ${error.message}`)}`
+      `${baseUrl}/settings?error=${encodeURIComponent(`发生错误: ${error.message}`)}`
     );
   }
 }

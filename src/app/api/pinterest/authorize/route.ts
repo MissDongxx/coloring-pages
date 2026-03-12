@@ -34,7 +34,9 @@ export async function GET(request: NextRequest) {
 
   const appId = envConfigs.pinterest_app_id;
   const appUrl = envConfigs.app_url || 'http://localhost:3000';
-  const redirectUri = `${appUrl}/api/pinterest/callback`;
+  // 去除末尾斜杠，防止双斜杠问题
+  const baseUrl = appUrl.replace(/\/+$/, '');
+  const redirectUri = `${baseUrl}/api/pinterest/callback`;
 
   // 生成 state 参数用于防止 CSRF 攻击
   const state = Buffer.from(
