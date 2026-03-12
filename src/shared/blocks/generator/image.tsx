@@ -9,6 +9,7 @@ import {
   Palette,
   Sparkles,
   User,
+  X,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
@@ -150,6 +151,13 @@ const PROVIDER_OPTIONS = [
   },
 ];
 
+const PREVIEW_PAIRS = [
+  { id: '1', photo: '/previews/landscape_photo_1773238545031.png', lineart: '/previews/landscape_lineart_1773238560906.png', title: 'Landscape' },
+  { id: '2', photo: '/previews/people_child_photo_1773238577924.png', lineart: '/previews/people_child_lineart_1773238593662.png', title: 'Happy Child' },
+  { id: '3', photo: '/previews/still_life_photo_1773238607505.png', lineart: '/previews/still_life_lineart_1773238892533.png', title: 'Vintage Camera' },
+  { id: '4', photo: '/previews/animal_photo_1773238908374.png', lineart: '/previews/animal_lineart_1773238923286.png', title: 'Cute Puppy' },
+];
+
 function parseTaskResult(taskResult: string | null): any {
   if (!taskResult) {
     return null;
@@ -234,6 +242,8 @@ export function ImageGenerator({
     null
   );
   const [isMounted, setIsMounted] = useState(false);
+  const [activePreviewId, setActivePreviewId] = useState<string>(PREVIEW_PAIRS[0].id);
+  const activePreview = PREVIEW_PAIRS.find(p => p.id === activePreviewId) || PREVIEW_PAIRS[0];
 
   const { user, isCheckSign, setIsShowSignModal, fetchUserCredits } =
     useAppContext();
@@ -879,15 +889,35 @@ export function ImageGenerator({
                     ))}
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-16 text-center rounded-2xl border-2 border-dashed border-border/80 bg-muted/30 flex-1 min-h-[300px]">
-                    <div className="text-border mb-4">
-                      <Sparkles className="h-10 w-10 mx-auto opacity-70" />
+                  <div className="flex flex-col items-center py-6 px-6 text-center rounded-[2rem] bg-[#f2f8da] flex-1 min-h-[300px] relative overflow-hidden">
+                    <div className="relative w-full aspect-square max-h-[340px] mb-6 p-2">
+                      <div className="absolute inset-0 border-[3px] border-dashed border-[#2c3f30] rounded-xl pointer-events-none z-20" style={{ transform: 'rotate(-1deg)' }}></div>
+                      <div className="absolute inset-0 border-[3px] border-dashed border-[#2c3f30] rounded-xl pointer-events-none z-20" style={{ transform: 'rotate(1deg)' }}></div>
+                      <div className="relative w-full h-full rounded-xl overflow-hidden group border border-[#2c3f30]">
+                        <img src={activePreview.photo} className="absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-300 group-hover:opacity-0" alt="Original Photo" />
+                        <img src={activePreview.lineart} className="absolute inset-0 w-full h-full object-cover bg-white" alt="Coloring Page" />
+                      </div>
+                      <button className="absolute -top-1 -right-1 z-30 bg-[#f87864] text-white rounded-full p-1.5 shadow-md hover:bg-red-500 hover:scale-105 transition-transform border border-white">
+                        <X className="w-4 h-4 stroke-[3]" />
+                      </button>
                     </div>
-                    <p className="text-muted-foreground text-sm font-medium px-8">
-                      {isGenerating
-                        ? t('ready_to_generate')
-                        : t('no_images_generated')}
-                    </p>
+
+                    <div className="w-full text-left font-[var(--font-sans)] text-[#8dbd9d] text-[22px] font-semibold mb-4 leading-snug">
+                      No image?<br />
+                      Try one of these:
+                    </div>
+
+                    <div className="flex gap-3 justify-start w-full overflow-x-auto pb-2 px-1">
+                      {PREVIEW_PAIRS.map(pair => (
+                        <button
+                          key={pair.id}
+                          onClick={() => setActivePreviewId(pair.id)}
+                          className={`relative flex-shrink-0 w-16 h-16 rounded-2xl overflow-hidden shadow-sm transition-transform hover:scale-105 ${activePreviewId === pair.id ? 'ring-4 ring-[#70abf0] ring-offset-2 ring-offset-[#f2f8da]' : ''}`}
+                        >
+                          <img src={pair.photo} className="w-full h-full object-cover rounded-2xl" alt={pair.title} />
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </CardContent>

@@ -70,8 +70,11 @@ export async function generateMetadata({
   // content/pages/**/*.mdx
 
   // static page slug
-  const staticPageSlug =
+  let staticPageSlug =
     typeof slug === 'string' ? slug : (slug as string[]).join('/') || '';
+
+  // Normalize slug: replace spaces with hyphens for consistency
+  staticPageSlug = staticPageSlug.replace(/\s+/g, '-');
 
   // filter invalid slug
   if (staticPageSlug.includes('.')) {
@@ -250,8 +253,11 @@ export default async function DynamicPage({
   // content/pages/**/*.mdx
 
   // static page slug
-  const staticPageSlug =
+  let staticPageSlug =
     typeof slug === 'string' ? slug : (slug as string[]).join('/') || '';
+
+  // Normalize slug: replace spaces with hyphens for consistency
+  staticPageSlug = staticPageSlug.replace(/\s+/g, '-');
 
   // filter invalid slug
   if (staticPageSlug.includes('.')) {
@@ -497,9 +503,12 @@ export default async function DynamicPage({
       .slice(0, 6)
       .map(c => ({ name: c.name, slug: c.slug, icon: c.icon, count: c.count, imageSrc: getRandomCategoryCover(c.slug) }));
 
-    const slug = modifier
-      ? `${modifier}-${root}-coloring-pages`
-      : `${root}-coloring-pages`;
+    // Normalize slug: replace spaces with hyphens for URL
+    const normalizedModifier = modifier?.replace(/\s+/g, '-') || '';
+    const normalizedRoot = root.replace(/\s+/g, '-');
+    const slug = normalizedModifier
+      ? `${normalizedModifier}-${normalizedRoot}-coloring-pages`
+      : `${normalizedRoot}-coloring-pages`;
 
     return (
       <div className="container mx-auto px-4 pt-16 pb-8 md:pt-20 md:pb-8 max-w-6xl">

@@ -112,9 +112,12 @@ export function HubPage({
     totalPages,
     locale,
 }: HubPageProps) {
-    const slug = modifier
-        ? `${modifier}-${rootKeyword}-coloring-pages`
-        : `${rootKeyword}-coloring-pages`;
+    // Normalize slug: replace spaces with hyphens for URL
+    const normalizedModifier = modifier?.replace(/\s+/g, '-') || '';
+    const normalizedRootKeyword = rootKeyword.replace(/\s+/g, '-');
+    const slug = normalizedModifier
+        ? `${normalizedModifier}-${normalizedRootKeyword}-coloring-pages`
+        : `${normalizedRootKeyword}-coloring-pages`;
 
     return (
         <div className="min-h-screen bg-background">
@@ -128,7 +131,7 @@ export function HubPage({
                         <>
                             <span className="mx-2">/</span>
                             <Link
-                                href={`/${locale}/${rootKeyword}-coloring-pages`}
+                                href={`/${locale}/${normalizedRootKeyword}-coloring-pages`}
                                 className="hover:text-foreground"
                             >
                                 {rootKeyword.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')} Coloring Pages
