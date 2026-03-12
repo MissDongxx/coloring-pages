@@ -160,18 +160,56 @@ export class ColoringWorkflowService {
   }> {
     await this.ensureTempDir();
 
-    await this.log(jobId, 'info', 'Step 1: Generating keywords...', { wordRoots });
+    await this.log(jobId, 'info', 'Step 1: Generating keywords...', { wordRoots, strategy: 'ai_expanded_first' });
 
     try {
-      const result = await this.keywordGenerator.generate({
-        source: wordRoots ? 'word_roots' : 'auto_generated',
-        wordRoots,
-        count,
-      });
+      let result;
+      let usedStrategy: 'ai_expanded' | 'word_roots' | 'auto_generated';
+
+      // Strategy: Try AI expanded first, fallback to dimension generator
+      if (wordRoots && wordRoots.length > 0) {
+        try {
+          await this.log(jobId, 'info', 'Attempting AI keyword expansion...');
+          result = await this.keywordGenerator.generate({
+            source: 'ai_expanded',
+            wordRoots,
+            count,
+          });
+          usedStrategy = 'ai_expanded';
+          await this.log(jobId, 'info', 'AI keyword expansion successful', {
+            count: result.keywords.length,
+            strategy: usedStrategy
+          });
+        } catch (aiError) {
+          await this.log(jobId, 'warn', 'AI expansion failed, falling back to dimension generator', {
+            error: aiError instanceof Error ? aiError.message : String(aiError)
+          });
+          // Fallback to dimension generator
+          result = await this.keywordGenerator.generate({
+            source: 'word_roots',
+            wordRoots,
+            count,
+          });
+          usedStrategy = 'word_roots';
+          await this.log(jobId, 'info', 'Dimension generator successful (fallback)', {
+            count: result.keywords.length,
+            strategy: usedStrategy
+          });
+        }
+      } else {
+        // Auto-generate without specific roots
+        result = await this.keywordGenerator.generate({
+          source: 'auto_generated',
+          wordRoots,
+          count,
+        });
+        usedStrategy = 'auto_generated';
+      }
 
       await this.log(jobId, 'info', 'Keywords generated successfully', {
         count: result.keywords.length,
         csvPath: result.csvPath,
+        strategy: usedStrategy,
         keywords: result.keywords.map((k: any) => `${k.category}:${k.keyword}`).join(', ')
       });
 
@@ -180,7 +218,8 @@ export class ColoringWorkflowService {
         keywordsData: JSON.stringify({
           keywords: result.keywords,
           csvPath: result.csvPath,
-          csvContent: result.csvContent, // Store CSV content directly
+          csvContent: result.csvContent,
+          strategy: usedStrategy, // Store which strategy was used
         }),
         totalKeywords: result.keywords.length,
       });

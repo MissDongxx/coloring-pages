@@ -17,12 +17,13 @@ import { DEFAULT_CATEGORIES } from './types';
 import { DIMENSION_REGISTRY, DimensionGenerator } from './dimensions';
 import { generateAndRegisterConfig } from './ai-config-generator';
 import { getAllGeneratedKeywords } from '@/shared/models/coloring_page';
+import { createAIKeywordExpander } from './ai-expander';
 
 /**
- * Prompt template based on Coloring-Book-Z-Image-Turbo-LoRA format
+ * Prompt template - High quality coloring page
  */
 const DEFAULT_PROMPT_TEMPLATE =
-  'A coloring page of {keyword}, black and white line art, simple outlines, suitable for children coloring, clean design, no shading';
+  '{keyword}, classic style, white background coloring page, contrast black and white, perfect linework';
 
 /**
  * Keyword generator class
@@ -64,8 +65,49 @@ export class KeywordGenerator {
   }
 
   /**
+   * Generate keywords using AI expansion
+   * Uses AI to generate high-quality, logically consistent keyword variations
+   */
+  async generateWithAI(
+    roots: string[],
+    countPerRoot: number = 20
+  ): Promise<KeywordData[]> {
+    const keywords: KeywordData[] = [];
+    const expander = createAIKeywordExpander();
+
+    for (const root of roots) {
+      try {
+        const category = this.guessCategory(root);
+        const result = await expander.expand({
+          keyword: root,
+          count: countPerRoot,
+          category,
+        });
+
+        // Convert AI expanded keywords to KeywordData format
+        const converted = result.keywords.map((kw) => ({
+          category,
+          keyword: kw.keyword,
+          rootKeyword: root,
+          modifier: kw.type,
+        }));
+
+        keywords.push(...converted);
+        console.log(`[AIExpander] Generated ${converted.length} variations for "${root}"`);
+      } catch (error) {
+        console.error(`[AIExpander] Failed to expand "${root}":`, error);
+        // Fallback to dimension generator
+        const fallback = await this.generateFromRoots([root], countPerRoot);
+        keywords.push(...fallback);
+      }
+    }
+
+    return keywords;
+  }
+
+  /**
    * Auto-generate keywords across categories
-   * Strategy: Pick 5 random roots from the pool and generate 20 variations for each
+   * Strategy: Pick 2 random roots from the pool and generate 30 variations for each
    */
   async autoGenerate(): Promise<KeywordData[]> {
     // 1. Collect all available root words from all categories
@@ -261,7 +303,12 @@ export class KeywordGenerator {
   async generate(options: KeywordGeneratorOptions): Promise<KeywordGenerateResult> {
     let keywords: KeywordData[];
 
-    if (options.source === 'word_roots' && options.wordRoots) {
+    if (options.source === 'ai_expanded' && options.wordRoots) {
+      keywords = await this.generateWithAI(
+        options.wordRoots,
+        options.count || 20
+      );
+    } else if (options.source === 'word_roots' && options.wordRoots) {
       keywords = await this.generateFromRoots(
         options.wordRoots,
         options.count || 5

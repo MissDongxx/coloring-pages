@@ -11,24 +11,65 @@ import * as cron from 'node-cron';
 import { envConfigs } from '@/config';
 import { getWorkflowService } from '@/shared/services/coloring-workflow';
 import { ColoringJobType } from '@/shared/models/coloring_job';
+import {
+  getPendingKeywords,
+  markKeywordsAsProcessed,
+  areAllKeywordsProcessed,
+  resetAllKeywords,
+} from '@/shared/services/gist-keywords';
 
 // Store scheduled task reference
 let scheduledTask: cron.ScheduledTask | null = null;
 
 /**
- * Execute scheduled workflow
+ * Execute scheduled workflow using gist-keywords service
  */
 async function executeScheduledWorkflow() {
   console.log(`[Cron] Starting scheduled workflow at ${new Date().toISOString()}`);
 
   try {
     const workflowService = getWorkflowService();
+
+    // Fetch keywords from gist-keywords service
+    console.log('[Cron] Fetching pending keywords from gist...');
+    let gistResult = await getPendingKeywords();
+
+    // If no pending keywords, check if we need to reset
+    if (!gistResult) {
+      console.log('[Cron] No pending keywords found, checking if all are processed...');
+      const allProcessed = await areAllKeywordsProcessed();
+
+      if (allProcessed) {
+        console.log('[Cron] All keywords have been processed. Resetting for next cycle...');
+        await resetAllKeywords();
+
+        // Fetch again after reset
+        gistResult = await getPendingKeywords();
+      }
+    }
+
+    if (!gistResult || gistResult.count === 0) {
+      console.log('[Cron] No keywords available to process. Skipping workflow.');
+      return;
+    }
+
+    console.log(`[Cron] Found ${gistResult.count} keyword(s) from gist: ${gistResult.keywords.join(', ')}`);
+
+    // Run workflow with gist keywords
     const jobId = await workflowService.runWorkflow({
       jobType: ColoringJobType.SCHEDULED,
       userId: 'system',
+      wordRoots: gistResult.keywords,
+      count: 30, // Always use 30 for Gist keywords
     });
 
     console.log(`[Cron] Scheduled workflow started with job ID: ${jobId}`);
+
+    // Mark keywords as processed after workflow starts
+    // Note: We mark them as processed immediately since the workflow is now queued
+    console.log(`[Cron] Marking ${gistResult.ids.length} keyword(s) as processed...`);
+    await markKeywordsAsProcessed(gistResult.ids);
+    console.log('[Cron] Keywords marked successfully.');
   } catch (error) {
     console.error('[Cron] Scheduled workflow failed:', error);
   }

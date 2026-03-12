@@ -14,9 +14,9 @@ export async function POST(request: NextRequest) {
     const { wordRoots, categories, count, source } = body;
 
     // Validate input
-    if (source === 'word_roots' && (!wordRoots || !Array.isArray(wordRoots))) {
+    if ((source === 'word_roots' || source === 'ai_expanded') && (!wordRoots || !Array.isArray(wordRoots))) {
       return NextResponse.json(
-        { code: -1, message: 'wordRoots must be an array when source is word_roots' },
+        { code: -1, message: 'wordRoots must be an array when source is word_roots or ai_expanded' },
         { status: 400 }
       );
     }

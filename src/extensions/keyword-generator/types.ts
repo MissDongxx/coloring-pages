@@ -3,7 +3,7 @@
  */
 
 export interface KeywordGeneratorOptions {
-  source: 'word_roots' | 'auto_generated';
+  source: 'word_roots' | 'auto_generated' | 'ai_expanded';
   wordRoots?: string[];
   categories?: Array<{ name: string; count: number }>;
   count?: number;
