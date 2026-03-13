@@ -3,13 +3,21 @@ import Link from 'next/link';
 import { getAllHubs } from '@/shared/models/coloring_page';
 import { HubGrid } from '@/features/coloring/components/hub-grid';
 import {
-    Breadcrumb,
-    BreadcrumbItem,
-    BreadcrumbLink,
-    BreadcrumbList,
-    BreadcrumbPage,
-    BreadcrumbSeparator,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
 } from "@/shared/components/ui/breadcrumb";
+import { getMetadata } from '@/shared/lib/seo';
+import {
+  JSONLDScript,
+  generateCollectionPageSchema,
+  generateItemListSchema,
+  generateBreadcrumbSchema,
+} from '@/shared/lib/structured-data';
+import { envConfigs } from '@/config';
 
 export const revalidate = 3600;
 
@@ -18,6 +26,9 @@ export async function generateMetadata() {
         title: 'All Coloring Page Themes - Free Printable',
         description:
             'Browse all coloring page themes. Find free printable coloring pages by theme for kids, adults, and teachers.',
+        alternates: {
+            canonical: `${envConfigs.app_url}/themes`,
+        },
     };
 }
 
@@ -41,8 +52,43 @@ export default async function ThemesPage({
         search: search || undefined,
     });
 
+    // Generate structured data for SEO
+    const siteUrl = envConfigs.app_url || 'https://coloringpages.club';
+
+    // CollectionPage Schema
+    const collectionSchema = generateCollectionPageSchema({
+        name: 'All Coloring Page Themes',
+        description: `Browse our collection of ${total} coloring page themes with free printable pages`,
+        url: `${siteUrl}/themes`,
+        numberOfItems: total
+    });
+
+    // ItemList Schema for themes
+    const itemListSchema = generateItemListSchema({
+        name: 'Coloring Page Themes',
+        description: 'List of all coloring page themes available on our site',
+        url: `${siteUrl}/themes`,
+        items: hubs.map((hub: any) => ({
+            name: hub.name || hub.slug,
+            url: `/${hub.slug}`,
+            description: `${hub.count || 0} coloring pages`
+        }))
+    });
+
+    // Breadcrumb Schema
+    const breadcrumbSchema = generateBreadcrumbSchema([
+        { name: 'Home', item: `${siteUrl}/` },
+        { name: 'All Themes', item: `${siteUrl}/themes` }
+    ]);
+
     return (
-        <div className="container mx-auto px-4 pt-16 pb-8 md:pt-20 md:pb-8 max-w-6xl">
+        <>
+            {/* Structured Data for SEO */}
+            <JSONLDScript data={collectionSchema} />
+            <JSONLDScript data={itemListSchema} />
+            <JSONLDScript data={breadcrumbSchema} />
+
+            <div className="container mx-auto px-4 pt-16 pb-8 md:pt-20 md:pb-8 max-w-6xl">
             <Breadcrumb className="mb-8">
                 <BreadcrumbList>
                     <BreadcrumbItem>
@@ -161,5 +207,6 @@ export default async function ThemesPage({
                 </nav>
             )}
         </div>
+        </>
     );
 }

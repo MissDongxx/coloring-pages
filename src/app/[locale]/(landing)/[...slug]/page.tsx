@@ -32,6 +32,13 @@ import {
   BreadcrumbSeparator,
 } from "@/shared/components/ui/breadcrumb";
 import type { Category } from '@/features/coloring/types/coloring-page';
+import {
+  JSONLDScript,
+  generateCategoryPageSchema,
+  generateItemListSchema,
+  generateBreadcrumbSchema,
+  generateImageObjectSchema,
+} from '@/shared/lib/structured-data';
 import { parseSeoHubSlug, validateSeoHub } from '@/features/coloring/lib/seo-hub';
 import { getPagesForHub, findColoringPage, ColoringPageStatus, findHubBySlugPrefix, getColoringPages, getPagesCountForHub } from '@/shared/models/coloring_page';
 
@@ -321,8 +328,37 @@ export default async function DynamicPage({
         pageItems.length
       );
 
+      // Generate structured data for SEO
+      const siteUrl = envConfigs.app_url || 'https://coloringpages.club';
+      const categoryUrl = `${siteUrl}/${category.slug}`;
+
+      // CategoryPage Schema
+      const categorySchema = generateCategoryPageSchema({
+        name: `${category.name} Coloring Pages`,
+        description: category.description,
+        url: categoryUrl,
+        numberOfItems: pageItems.length,
+        categoryName: category.name,
+        items: pageItems.slice(0, 20).map(p => ({
+          name: p.title,
+          url: `/${p.slug}`,
+          image: p.imageSrc
+        }))
+      });
+
+      // Breadcrumb Schema
+      const breadcrumbSchema = generateBreadcrumbSchema([
+        { name: 'Home', item: `${siteUrl}/` },
+        { name: category.name, item: categoryUrl }
+      ]);
+
       return (
-        <div className="container mx-auto px-4 pt-16 pb-8 md:pt-20 md:pb-8 max-w-6xl">
+        <>
+          {/* Structured Data for SEO */}
+          <JSONLDScript data={categorySchema} />
+          <JSONLDScript data={breadcrumbSchema} />
+
+          <div className="container mx-auto px-4 pt-16 pb-8 md:pt-20 md:pb-8 max-w-6xl">
           <Breadcrumb className="mb-8">
             <BreadcrumbList>
               <BreadcrumbItem>
@@ -372,6 +408,7 @@ export default async function DynamicPage({
             dangerouslySetInnerHTML={{ __html: categoryContent }}
           />
         </div>
+        </>
       );
     }
   }
