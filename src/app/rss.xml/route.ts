@@ -57,7 +57,7 @@ export async function GET() {
         url: page.imageUrl,
         type: 'image/jpeg',
       },
-      category: page.category || 'coloring-pages',
+      category: page.rootKeyword || page.category || 'coloring-pages',
     };
   });
 

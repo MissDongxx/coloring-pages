@@ -1,0 +1,36 @@
+name: RSS to Pinterest Sync
+
+on:
+  # 定时任务：每小时执行一次
+  schedule:
+    - cron: '0 * * * *'
+
+  # 允许手动触发
+  workflow_dispatch:
+
+jobs:
+  sync-to-pinterest:
+    name: Sync RSS feed to Pinterest
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Sync to Pinterest
+        run: |
+          response=$(curl -s -w "\n%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            "${{ secrets.APP_URL }}/api/cron/rss-to-pinterest")
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "Response HTTP Status: $http_code"
+          echo "Response Body:"
+          echo "$body"
+
+          if [ "$http_code" -ne 200 ]; then
+            echo "❌ Sync failed with HTTP $http_code"
+            exit 1
+          fi
+
+          echo "✅ Sync completed successfully"

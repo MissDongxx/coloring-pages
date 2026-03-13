@@ -9,21 +9,6 @@ import { parseStringPromise } from 'xml2js';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-interface RSSItem {
-  title: string;
-  description: string;
-  link: string;
-  guid: string;
-  pubDate: string;
-  enclosure?: {
-    $: {
-      url: string;
-      type: string;
-    };
-  };
-  category?: string[];
-}
-
 export async function GET(request: Request) {
   try {
     // Basic authorization for cron endpoint
@@ -108,9 +93,14 @@ export async function GET(request: Request) {
           continue;
         }
 
-        // Determine board name from category or use default
-        const boardName = category
-          ? category.charAt(0).toUpperCase() + category.slice(1)
+        // Determine board name: prioritize rootKeyword from database, then RSS category
+        let boardKeyword = category;
+        if (existingPages.length > 0 && existingPages[0].rootKeyword) {
+          boardKeyword = existingPages[0].rootKeyword;
+        }
+
+        const boardName = boardKeyword
+          ? boardKeyword.charAt(0).toUpperCase() + boardKeyword.slice(1)
           : 'Coloring Pages';
 
         let boardId = boardCache.get(boardName);
