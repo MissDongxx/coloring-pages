@@ -1,6 +1,6 @@
 import { setRequestLocale } from 'next-intl/server';
 import Link from 'next/link';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, getMessages } from 'next-intl/server';
 import { CategoryGrid } from '@/features/coloring/components/category-grid';
 import { PopularGrid } from '@/features/coloring/components/popular-grid';
 import { getAllCategories, getPopularPages } from '@/features/coloring/lib/data';
@@ -9,6 +9,7 @@ import { ImageGenerator } from '@/shared/blocks/generator';
 import { HubGrid } from '@/features/coloring/components/hub-grid';
 import { Features } from '@/features/coloring/components/features';
 import { Palette, Sparkles, Download } from 'lucide-react';
+import { Pricing } from '@/themes/default/blocks/pricing';
 
 // Custom icon components
 function PaletteIcon() {
@@ -75,6 +76,8 @@ export default async function LandingPage({
   }));
 
   const t = await getTranslations('ai.image');
+  const messages = await getMessages();
+  const pricingData = (messages.pages as any).index.page.sections.pricing;
 
   return (
     <div className="container mx-auto px-4 pt-16 pb-8 md:pt-32 md:pb-8 max-w-6xl">
@@ -143,6 +146,9 @@ export default async function LandingPage({
         </h2>
         <PopularGrid items={popularPages} />
       </section>
+
+      {/* Pricing Section */}
+      {pricingData && <Pricing section={pricingData} />}
     </div >
   );
 }

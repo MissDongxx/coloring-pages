@@ -388,10 +388,206 @@
         "id": "pricing",
         "title": "Pricing",
         "description": "Choose the perfect plan for your needs. Start creating beautiful coloring pages today.",
-        "link": {
-          "title": "View Full Pricing",
-          "url": "/pricing"
-        }
+        "groups": [
+          {
+            "name": "monthly",
+            "title": "Monthly",
+            "is_featured": false
+          },
+          {
+            "name": "yearly",
+            "title": "Annually",
+            "is_featured": true,
+            "label": "Save up to 50%"
+          }
+        ],
+        "items": [
+          {
+            "title": "Basic",
+            "description": "Perfect for getting started.",
+            "features_title": "Includes",
+            "features": [
+              "100 credits per month",
+              "Standard resolution downloads",
+              "Personal use only"
+            ],
+            "interval": "month",
+            "amount": 699,
+            "currency": "USD",
+            "price": "$6.99",
+            "unit": "/ month",
+            "is_featured": false,
+            "tip": "Perfect for individuals",
+            "button": {
+              "title": "Get Basic",
+              "url": "/pricing",
+              "icon": "RiFlashlightFill"
+            },
+            "product_id": "basic-monthly",
+            "product_name": "Basic Monthly",
+            "credits": 100,
+            "valid_days": 30,
+            "group": "monthly",
+            "plan_name": "Basic"
+          },
+          {
+            "title": "Pro",
+            "description": "Best for professionals and small teams.",
+            "label": "Popular",
+            "features_title": "Everything in Basic, plus",
+            "features": [
+              "300 credits per month",
+              "High resolution downloads",
+              "Commercial use allowed",
+              "Priority support"
+            ],
+            "interval": "month",
+            "amount": 1299,
+            "currency": "USD",
+            "price": "$12.99",
+            "unit": "/ month",
+            "is_featured": true,
+            "tip": "Best value for professionals",
+            "button": {
+              "title": "Get Pro",
+              "url": "/pricing",
+              "icon": "RiFlashlightFill"
+            },
+            "product_id": "pro-monthly",
+            "product_name": "Pro Monthly",
+            "credits": 300,
+            "valid_days": 30,
+            "group": "monthly",
+            "plan_name": "Pro"
+          },
+          {
+            "title": "Premium",
+            "description": "For power users and businesses.",
+            "features_title": "Everything in Pro, plus",
+            "features": [
+              "1000 credits per month",
+              "4K resolution downloads",
+              "API access",
+              "Custom branding",
+              "Dedicated support"
+            ],
+            "interval": "month",
+            "amount": 2499,
+            "currency": "USD",
+            "price": "$24.99",
+            "unit": "/ month",
+            "is_featured": false,
+            "tip": "For power users",
+            "button": {
+              "title": "Get Premium",
+              "url": "/pricing",
+              "icon": "RiFlashlightFill"
+            },
+            "product_id": "premium-monthly",
+            "product_name": "Premium Monthly",
+            "credits": 1000,
+            "valid_days": 30,
+            "group": "monthly",
+            "plan_name": "Premium"
+          },
+          {
+            "title": "Basic",
+            "description": "Perfect for getting started.",
+            "features_title": "Includes",
+            "features": [
+              "100 credits per month",
+              "Standard resolution downloads",
+              "Personal use only"
+            ],
+            "interval": "year",
+            "amount": 3999,
+            "currency": "USD",
+            "price": "$3.33",
+            "original_price": "$6.99",
+            "unit": "/ month",
+            "sub_price": "$39.99",
+            "sub_unit": "/ year",
+            "is_featured": false,
+            "tip": "Save 52% with annual billing",
+            "button": {
+              "title": "Get Basic",
+              "url": "/pricing",
+              "icon": "RiFlashlightFill"
+            },
+            "product_id": "basic-yearly",
+            "product_name": "Basic Yearly",
+            "credits": 1200,
+            "valid_days": 365,
+            "group": "yearly",
+            "plan_name": "Basic"
+          },
+          {
+            "title": "Pro",
+            "description": "Best for professionals and small teams.",
+            "label": "Popular",
+            "features_title": "Everything in Basic, plus",
+            "features": [
+              "300 credits per month",
+              "High resolution downloads",
+              "Commercial use allowed",
+              "Priority support"
+            ],
+            "interval": "year",
+            "amount": 7999,
+            "currency": "USD",
+            "price": "$6.67",
+            "original_price": "$12.99",
+            "unit": "/ month",
+            "sub_price": "$79.99",
+            "sub_unit": "/ year",
+            "is_featured": true,
+            "tip": "Save 49% with annual billing",
+            "button": {
+              "title": "Get Pro",
+              "url": "/pricing",
+              "icon": "RiFlashlightFill"
+            },
+            "product_id": "pro-yearly",
+            "product_name": "Pro Yearly",
+            "credits": 3600,
+            "valid_days": 365,
+            "group": "yearly",
+            "plan_name": "Pro"
+          },
+          {
+            "title": "Premium",
+            "description": "For power users and businesses.",
+            "features_title": "Everything in Pro, plus",
+            "features": [
+              "1000 credits per month",
+              "4K resolution downloads",
+              "API access",
+              "Custom branding",
+              "Dedicated support"
+            ],
+            "interval": "year",
+            "amount": 14999,
+            "currency": "USD",
+            "price": "$12.49",
+            "original_price": "$24.99",
+            "unit": "/ month",
+            "sub_price": "$149.99",
+            "sub_unit": "/ year",
+            "is_featured": false,
+            "tip": "Save 50% with annual billing",
+            "button": {
+              "title": "Get Premium",
+              "url": "/pricing",
+              "icon": "RiFlashlightFill"
+            },
+            "product_id": "premium-yearly",
+            "product_name": "Premium Yearly",
+            "credits": 12000,
+            "valid_days": 365,
+            "group": "yearly",
+            "plan_name": "Premium"
+          }
+        ]
       },
       "cta": {
         "id": "cta",

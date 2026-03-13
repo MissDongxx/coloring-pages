@@ -387,10 +387,207 @@
         "id": "pricing",
         "title": "价格",
         "description": "选择最适合您的套餐，立即开始创作美丽的涂色作品。",
-        "link": {
-          "title": "查看完整价格表",
-          "url": "/pricing"
-        }
+        "groups": [
+          {
+            "name": "monthly",
+            "title": "包月",
+            "is_featured": false
+          },
+          {
+            "name": "yearly",
+            "title": "包年",
+            "is_featured": true,
+            "label": "立省50%"
+          }
+        ],
+        "items": [
+          {
+            "title": "基础版",
+            "description": "适合初学者使用。",
+            "features_title": "包含",
+            "features": [
+              "每月 100 积分",
+              "基础模板",
+              "标准分辨率下载",
+              "仅限个人使用"
+            ],
+            "interval": "month",
+            "amount": 699,
+            "currency": "USD",
+            "price": "$6.99",
+            "unit": "/ 月",
+            "is_featured": false,
+            "tip": "适合个人用户",
+            "button": {
+              "title": "获取基础版",
+              "url": "/pricing",
+              "icon": "RiFlashlightFill"
+            },
+            "product_id": "basic-monthly",
+            "product_name": "基础版包月",
+            "credits": 100,
+            "valid_days": 30,
+            "group": "monthly",
+            "plan_name": "基础版"
+          },
+          {
+            "title": "专业版",
+            "description": "适合专业人士和小团队。",
+            "label": "热门",
+            "features_title": "包含基础版所有功能，此外",
+            "features": [
+              "每月 300 积分",
+              "高分辨率下载",
+              "允许商业使用",
+              "优先支持"
+            ],
+            "interval": "month",
+            "amount": 1299,
+            "currency": "USD",
+            "price": "$12.99",
+            "unit": "/ 月",
+            "is_featured": true,
+            "tip": "专业人士的最佳选择",
+            "button": {
+              "title": "获取专业版",
+              "url": "/pricing",
+              "icon": "RiFlashlightFill"
+            },
+            "product_id": "pro-monthly",
+            "product_name": "专业版包月",
+            "credits": 300,
+            "valid_days": 30,
+            "group": "monthly",
+            "plan_name": "专业版"
+          },
+          {
+            "title": "高级版",
+            "description": "适合高级用户和企业。",
+            "features_title": "包含专业版所有功能，此外",
+            "features": [
+              "每月 1000 积分",
+              "4K 分辨率下载",
+              "API 访问",
+              "自定义品牌",
+              "专属支持"
+            ],
+            "interval": "month",
+            "amount": 2499,
+            "currency": "USD",
+            "price": "$24.99",
+            "unit": "/ 月",
+            "is_featured": false,
+            "tip": "适合高级用户",
+            "button": {
+              "title": "获取高级版",
+              "url": "/pricing",
+              "icon": "RiFlashlightFill"
+            },
+            "product_id": "premium-monthly",
+            "product_name": "高级版包月",
+            "credits": 1000,
+            "valid_days": 30,
+            "group": "monthly",
+            "plan_name": "高级版"
+          },
+          {
+            "title": "基础版",
+            "description": "适合初学者使用。",
+            "features_title": "包含",
+            "features": [
+              "每月 100 积分",
+              "标准分辨率下载",
+              "仅限个人使用"
+            ],
+            "interval": "year",
+            "amount": 3999,
+            "currency": "USD",
+            "price": "$3.33",
+            "original_price": "$6.99",
+            "unit": "/ 月",
+            "sub_price": "$39.99",
+            "sub_unit": "/ 年",
+            "is_featured": false,
+            "tip": "年付立省 52%",
+            "button": {
+              "title": "获取基础版",
+              "url": "/pricing",
+              "icon": "RiFlashlightFill"
+            },
+            "product_id": "basic-yearly",
+            "product_name": "基础版包年",
+            "credits": 1200,
+            "valid_days": 365,
+            "group": "yearly",
+            "plan_name": "基础版"
+          },
+          {
+            "title": "专业版",
+            "description": "适合专业人士和小团队。",
+            "label": "热门",
+            "features_title": "包含基础版所有功能，此外",
+            "features": [
+              "每月 300 积分",
+              "高分辨率下载",
+              "允许商业使用",
+              "优先支持"
+            ],
+            "interval": "year",
+            "amount": 7999,
+            "currency": "USD",
+            "price": "$6.67",
+            "original_price": "$12.99",
+            "unit": "/ 月",
+            "sub_price": "$79.99",
+            "sub_unit": "/ 年",
+            "is_featured": true,
+            "tip": "年付立省 49%",
+            "button": {
+              "title": "获取专业版",
+              "url": "/pricing",
+              "icon": "RiFlashlightFill"
+            },
+            "product_id": "pro-yearly",
+            "product_name": "专业版包年",
+            "credits": 3600,
+            "valid_days": 365,
+            "group": "yearly",
+            "plan_name": "专业版"
+          },
+          {
+            "title": "高级版",
+            "description": "适合高级用户和企业。",
+            "features_title": "包含专业版所有功能，此外",
+            "features": [
+              "每月 1000 积分",
+              "4K 分辨率下载",
+              "API 访问",
+              "自定义品牌",
+              "专属支持"
+            ],
+            "interval": "year",
+            "amount": 14999,
+            "currency": "USD",
+            "price": "$12.49",
+            "original_price": "$24.99",
+            "unit": "/ 月",
+            "sub_price": "$149.99",
+            "sub_unit": "/ 年",
+            "is_featured": false,
+            "tip": "年付立省 50%",
+            "button": {
+              "title": "获取高级版",
+              "url": "/pricing",
+              "icon": "RiFlashlightFill"
+            },
+            "product_id": "premium-yearly",
+            "product_name": "高级版包年",
+            "credits": 12000,
+            "valid_days": 365,
+            "group": "yearly",
+            "plan_name": "高级版"
+          }
+        ]
       },
       "cta": {
         "id": "cta",
