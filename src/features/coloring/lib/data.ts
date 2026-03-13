@@ -203,10 +203,12 @@ export function getAllPageSlugs(): string[] {
 
 /**
  * 获取热门涂色页（用于首页展示）
- * 返回有实际内容的页面作为热门页面
+ * 返回随机选择的页面
  */
 export function getPopularPages(limit: number = 8): ColoringCardData[] {
-  return allPages.slice(0, limit).map((page) => ({
+  // 创建数组副本并随机打乱
+  const shuffled = [...allPages].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, limit).map((page) => ({
     title: page.title,
     slug: page.slug,
     imageSrc: page.image.png,

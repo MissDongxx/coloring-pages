@@ -58,8 +58,8 @@ export default async function LandingPage({
   setRequestLocale(locale);
 
   const categories = getAllCategories();
-  const popularPages = getPopularPages(8);
-  const popularHubs = await getPopularHubs(8);
+  const popularPages = getPopularPages(12);
+  const popularHubs = await getPopularHubs(16);
 
   // 只显示前8个分类
   const displayCategories = categories.slice(0, 8);
@@ -104,8 +104,25 @@ export default async function LandingPage({
 
       {/* Browse by Theme Section */}
       <section id="browse-by-theme" className="mb-12">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
           <h2 className="text-2xl font-bold">Browse by Theme</h2>
+          <form action={`/${locale}/themes`} method="GET" className="relative w-48 md:w-64">
+            <input
+              type="text"
+              name="q"
+              placeholder="Search themes..."
+              className="w-full px-4 py-2 pl-10 rounded-full border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+            />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </form>
         </div>
         <HubGrid hubs={popularHubs} />
         <div className="mt-8 text-center">
