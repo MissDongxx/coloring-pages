@@ -289,7 +289,7 @@ interface ColoringCanvasProps {
 
 export function ColoringCanvas({ imageSrc, pageId, title, description, category, rootKeyword, relatedPages }: ColoringCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [selectedColor, setSelectedColor] = useState("#FF0000");
+  const [selectedColor, setSelectedColor] = useState("#F4B6BB");
   const [history, setHistory] = useState<ImageData[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [zoom, setZoom] = useState(1);
@@ -406,7 +406,7 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category,
     saveTimeoutRef.current = setTimeout(() => {
       try {
         // Use JPEG compression (quality 0.7) instead of PNG for much smaller file size
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.5);
         localStorage.setItem(getStorageKey(), dataUrl);
         localStorage.setItem(`${getStorageKey()}-timestamp`, Date.now().toString());
         setSaveStatus("saved");
@@ -429,7 +429,7 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category,
           });
           // Try saving again
           try {
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.5);
             localStorage.setItem(getStorageKey(), dataUrl);
             localStorage.setItem(`${getStorageKey()}-timestamp`, Date.now().toString());
             setSaveStatus("saved");
@@ -487,8 +487,8 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category,
       const ratio = img.width / img.height;
       setAspectRatio(ratio);
 
-      canvas.width = 800;
-      canvas.height = 800 / ratio;
+      canvas.width = 1600;
+      canvas.height = 1600 / ratio;
 
       // Draw white background first
       ctx.fillStyle = "white";
@@ -674,8 +674,8 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category,
   };
 
   // Canvas navigation functions
-  const zoomIn = () => setZoom(prev => Math.min(prev * 1.1, 5));
-  const zoomOut = () => setZoom(prev => Math.max(prev / 1.1, 1));
+  const zoomIn = () => setZoom(prev => Math.min(prev * 1.05, 5));
+  const zoomOut = () => setZoom(prev => Math.max(prev / 1.05, 1));
 
   const resetView = () => {
     setZoom(1);
@@ -689,7 +689,7 @@ export function ColoringCanvas({ imageSrc, pageId, title, description, category,
   // Mouse wheel zoom
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     e.preventDefault();
-    const delta = e.deltaY > 0 ? 0.95 : 1.05;
+    const delta = e.deltaY > 0 ? 0.98 : 1.02;
     setZoom(prev => Math.max(1, Math.min(5, prev * delta)));
   };
 
