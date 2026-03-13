@@ -25,8 +25,17 @@ export async function GET(request: NextRequest) {
   // Handle authorization error or denial
   if (error) {
     const errorDescription = searchParams.get('error_description') || error;
+    // Try to get redirectUrl from state even on error
+    const redirectUrl = state ? (() => {
+      try {
+        const stateData = JSON.parse(Buffer.from(state, 'base64').toString());
+        return stateData.redirectUrl || '/settings';
+      } catch {
+        return '/settings';
+      }
+    })() : '/settings';
     return NextResponse.redirect(
-      `${baseUrl}/settings?error=${encodeURIComponent(`Pinterest authorization failed: ${errorDescription}`)}`
+      `${baseUrl}${redirectUrl}?error=${encodeURIComponent(`Pinterest authorization failed: ${errorDescription}`)}`
     );
   }
 
@@ -46,12 +55,14 @@ export async function GET(request: NextRequest) {
   }
 
   let userId: string | null = null;
+  let redirectUrl: string | null = null;
 
   // Verify state parameter (prevent CSRF attacks)
   if (state) {
     try {
       const stateData = JSON.parse(Buffer.from(state, 'base64').toString());
       userId = stateData.userId;
+      redirectUrl = stateData.redirectUrl || null;
 
       // Verify timestamp (state valid for 30 minutes)
       const stateAge = Date.now() - (stateData.timestamp || 0);
@@ -146,9 +157,10 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Redirect back to settings page with success message
+    // Redirect back to the original page or settings page with success message
+    const targetUrl = redirectUrl || '/settings';
     return NextResponse.redirect(
-      `${baseUrl}/settings?success=${encodeURIComponent('Pinterest binding successful!')}`
+      `${baseUrl}${targetUrl}?success=${encodeURIComponent('Pinterest binding successful!')}`
     );
 
   } catch (error: any) {

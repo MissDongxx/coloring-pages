@@ -280,7 +280,8 @@ export const PinterestShareButton = React.memo(function PinterestShareButton({
         className={className}
         onClick={() => {
           if (typeof window !== 'undefined') {
-            window.location.href = '/settings/integrations';
+            const currentPath = window.location.pathname;
+            window.location.href = `/api/pinterest/authorize?redirect_url=${encodeURIComponent(currentPath)}`;
           }
         }}
       >
@@ -305,7 +306,8 @@ export const PinterestShareButton = React.memo(function PinterestShareButton({
         className={className}
         onClick={() => {
           if (typeof window !== 'undefined') {
-            window.location.href = '/settings/integrations';
+            const currentPath = window.location.pathname;
+            window.location.href = `/api/pinterest/authorize?redirect_url=${encodeURIComponent(currentPath)}`;
           }
         }}
       >

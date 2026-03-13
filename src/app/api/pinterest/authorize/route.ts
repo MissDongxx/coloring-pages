@@ -38,11 +38,16 @@ export async function GET(request: NextRequest) {
   const baseUrl = appUrl.replace(/\/+$/, '');
   const redirectUri = `${baseUrl}/api/pinterest/callback`;
 
+  // Get redirect_url from query parameters (where to return after authorization)
+  const searchParams = request.nextUrl.searchParams;
+  const redirectUrl = searchParams.get('redirect_url');
+
   // Generate state parameter to prevent CSRF attacks
   const state = Buffer.from(
     JSON.stringify({
       userId: session.user.id,
       timestamp: Date.now(),
+      redirectUrl: redirectUrl, // Store the URL to redirect back to
     })
   ).toString('base64');
 
