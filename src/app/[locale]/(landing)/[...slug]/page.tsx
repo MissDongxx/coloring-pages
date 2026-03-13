@@ -426,8 +426,38 @@ export default async function DynamicPage({
           imageSrc: p.image.png
         }));
 
+        // Generate structured data for SEO
+        const siteUrl = envConfigs.app_url || 'https://coloringpages.club';
+        const subCategoryUrl = `${siteUrl}/${parentCat.slug}/${subCat.slug}`;
+
+        // CategoryPage Schema for subcategory
+        const subCategorySchema = generateCategoryPageSchema({
+          name: `${subCat.name} Coloring Pages`,
+          description: subCat.description,
+          url: subCategoryUrl,
+          numberOfItems: pageItems.length,
+          categoryName: subCat.name,
+          items: pageItems.slice(0, 20).map(p => ({
+            name: p.title,
+            url: `/${p.slug}`,
+            image: p.imageSrc
+          }))
+        });
+
+        // Breadcrumb Schema
+        const breadcrumbSchema = generateBreadcrumbSchema([
+          { name: 'Home', item: `${siteUrl}/` },
+          { name: parentCat.name, item: `${siteUrl}/${parentCat.slug}` },
+          { name: subCat.name, item: subCategoryUrl }
+        ]);
+
         return (
-          <div className="container mx-auto px-4 pt-16 pb-8 md:pt-20 md:pb-8 max-w-6xl">
+          <>
+            {/* Structured Data for SEO */}
+            <JSONLDScript data={subCategorySchema} />
+            <JSONLDScript data={breadcrumbSchema} />
+
+            <div className="container mx-auto px-4 pt-16 pb-8 md:pt-20 md:pb-8 max-w-6xl">
             <Breadcrumb className="mb-8">
               <BreadcrumbList>
                 <BreadcrumbItem>
@@ -473,6 +503,7 @@ export default async function DynamicPage({
               />
             </section>
           </div>
+          </>
         );
       }
     }
@@ -547,8 +578,50 @@ export default async function DynamicPage({
       ? `${normalizedModifier}-${normalizedRoot}-coloring-pages`
       : `${normalizedRoot}-coloring-pages`;
 
+    // Generate structured data for SEO
+    const siteUrl = envConfigs.app_url || 'https://coloringpages.club';
+    const hubUrl = `${siteUrl}/${slug}`;
+
+    // CategoryPage Schema for SEO Hub
+    const hubSchema = generateCategoryPageSchema({
+      name: hubTitle,
+      description: `Discover our collection of ${totalCount} free printable ${modifier ? modifier + ' ' : ''}${root} coloring pages`,
+      url: hubUrl,
+      numberOfItems: pageItems.length,
+      categoryName: themeName,
+      items: pageItems.slice(0, 20).map(p => ({
+        name: p.title,
+        url: `/${p.slug}`,
+        image: p.imageSrc
+      }))
+    });
+
+    // Breadcrumb Schema
+    const breadcrumbItems = [
+      { name: 'Home', item: `${siteUrl}/` }
+    ];
+
+    if (modifier) {
+      breadcrumbItems.push({
+        name: root.charAt(0).toUpperCase() + root.slice(1),
+        item: `${siteUrl}/${normalizedRoot}-coloring-pages`
+      });
+    }
+
+    breadcrumbItems.push({
+      name: hubTitle,
+      item: hubUrl
+    });
+
+    const breadcrumbSchema = generateBreadcrumbSchema(breadcrumbItems);
+
     return (
-      <div className="container mx-auto px-4 pt-16 pb-8 md:pt-20 md:pb-8 max-w-6xl">
+      <>
+        {/* Structured Data for SEO */}
+        <JSONLDScript data={hubSchema} />
+        <JSONLDScript data={breadcrumbSchema} />
+
+        <div className="container mx-auto px-4 pt-16 pb-8 md:pt-20 md:pb-8 max-w-6xl">
         <Breadcrumb className="mb-8">
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -658,6 +731,7 @@ export default async function DynamicPage({
           dangerouslySetInnerHTML={{ __html: hubSeoContent }}
         />
       </div>
+      </>
     );
   }
 
@@ -717,8 +791,47 @@ export default async function DynamicPage({
         imageSrc: getRandomCategoryCover(c.slug)
       }));
 
+    // Generate structured data for SEO
+    const siteUrl = envConfigs.app_url || 'https://coloringpages.club';
+    const pageUrl = `${siteUrl}/${currentSlug}`;
+
+    // ImageObject Schema for the coloring page
+    const imageSchema = generateImageObjectSchema({
+      name: currentTitle,
+      description: currentDescription || `${currentTitle} - Free printable coloring page`,
+      url: currentImageSrc,
+      thumbnailUrl: currentImageSrc,
+      keywords: currentKeywords.length > 0 ? currentKeywords : [currentCategory, currentRootKeyword || 'coloring page'],
+      category: currentCategory
+    });
+
+    // Breadcrumb Schema
+    const breadcrumbItems = [
+      { name: 'Home', item: `${siteUrl}/` }
+    ];
+
+    // Add category if it exists
+    if (currentCategory) {
+      breadcrumbItems.push({
+        name: currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1),
+        item: `${siteUrl}/${currentCategory}`
+      });
+    }
+
+    breadcrumbItems.push({
+      name: currentTitle,
+      item: pageUrl
+    });
+
+    const breadcrumbSchema = generateBreadcrumbSchema(breadcrumbItems);
+
     return (
-      <div className="pt-6 md:pt-10 pb-8">
+      <>
+        {/* Structured Data for SEO */}
+        <JSONLDScript data={imageSchema} />
+        <JSONLDScript data={breadcrumbSchema} />
+
+        <div className="pt-6 md:pt-10 pb-8">
         <ColoringCanvasWithProviders
           pageId={currentSlug}
           imageSrc={currentImageSrc}
@@ -750,6 +863,7 @@ export default async function DynamicPage({
           }
         />
       </div>
+      </>
     );
   }
 
