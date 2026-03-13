@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   CreditCard,
   Download,
+  Gift,
   ImageIcon,
   Loader2,
   Palette,
@@ -242,6 +243,7 @@ export function ImageGenerator({
     null
   );
   const [isMounted, setIsMounted] = useState(false);
+  const [showBonusBadge, setShowBonusBadge] = useState(true);
   const [activePreviewId, setActivePreviewId] = useState<string>(PREVIEW_PAIRS[0].id);
   const activePreview = PREVIEW_PAIRS.find(p => p.id === activePreviewId) || PREVIEW_PAIRS[0];
 
@@ -458,7 +460,6 @@ export function ImageGenerator({
   const handleGenerate = async () => {
     // Immediate auth check — show sign-in modal right away, no progress bar
     if (!user) {
-      toast.error('Please sign in first to generate images.');
       setIsShowSignModal(true);
       return;
     }
@@ -708,7 +709,22 @@ export function ImageGenerator({
                 </CardContent>
               </Card>
 
-              <div className="space-y-3">
+              <div className="space-y-3 relative">
+                {/* New user bonus badge - show when not logged in */}
+                {!user && isMounted && showBonusBadge && (
+                  <div className="absolute -top-12 right-0 z-10 animate-bounce">
+                    <div className="px-3 py-1.5 rounded-full shadow-md flex items-center gap-2 text-sm font-medium border" style={{ backgroundColor: '#F3CECB', color: '#1a1a1a', borderColor: '#e0b8b5' }}>
+                      <Gift className="h-4 w-4" />
+                      <span>{t('new_user_bonus')}</span>
+                      <button
+                        onClick={() => setShowBonusBadge(false)}
+                        className="ml-1 hover:bg-black/10 rounded-full p-0.5 transition-colors"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {!isMounted ? (
                   <Button className="w-full rounded-full py-4 text-base font-medium shadow-md shadow-primary/20" disabled size="lg">

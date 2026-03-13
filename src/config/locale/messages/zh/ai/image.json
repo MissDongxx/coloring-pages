@@ -38,6 +38,7 @@
     "generated_images": "图片预览",
     "ready_to_generate": "准备生成",
     "no_images_generated": "没有生成图片",
-    "ready_for_generating": "准备生成"
+    "ready_for_generating": "准备生成",
+    "new_user_bonus": "新用户注册送10积分"
   }
 }
