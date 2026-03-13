@@ -10,6 +10,15 @@ import { HubGrid } from '@/features/coloring/components/hub-grid';
 import { Features } from '@/features/coloring/components/features';
 import { Palette, Sparkles, Download } from 'lucide-react';
 import { Pricing } from '@/themes/default/blocks/pricing';
+import { getMetadata } from '@/shared/lib/seo';
+import {
+  JSONLDScript,
+  generateWebSiteSchema,
+  generateCollectionPageSchema,
+  generateBreadcrumbSchema,
+  generateFAQSchema,
+} from '@/shared/lib/structured-data';
+import { envConfigs } from '@/config';
 
 // Custom icon components
 function PaletteIcon() {
@@ -49,6 +58,12 @@ function DownloadIcon() {
 
 export const revalidate = 3600;
 
+// Generate metadata for SEO
+export const generateMetadata = getMetadata({
+  metadataKey: 'pages.index.page.metadata',
+  canonicalUrl: '/',
+});
+
 export default async function LandingPage({
   params,
 }: {
@@ -79,8 +94,43 @@ export default async function LandingPage({
   const messages = await getMessages();
   const pricingData = (messages.pages as any).index.page.sections.pricing;
 
+  // Generate structured data for SEO
+  const siteUrl = envConfigs.app_url || 'https://coloringpages.club';
+
+  // WebSite Schema
+  const websiteSchema = generateWebSiteSchema({
+    name: 'ColoringPages',
+    url: siteUrl,
+    description: 'Download 1000+ free printable coloring pages for kids and adults in PDF format'
+  });
+
+  // CollectionPage Schema
+  const collectionSchema = generateCollectionPageSchema({
+    name: 'Free Printable Coloring Pages Collection',
+    description: 'Browse our collection of free printable coloring pages including animals, princess, cars, holidays and more themes',
+    url: `${siteUrl}/`,
+    numberOfItems: popularPages.length + categoryData.length
+  });
+
+  // Breadcrumb Schema
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: 'Home', item: `${siteUrl}/` }
+  ]);
+
+  // FAQ Schema - Use FAQ data from index.json
+  const tPage = await getTranslations('pages.index.page');
+  const faqRawData = tPage.raw('sections.faq.items') as Array<{question: string; answer: string}>;
+  const faqSchema = generateFAQSchema(faqRawData.slice(0, 5)); // Take first 5 FAQs
+
   return (
-    <div className="container mx-auto px-4 pt-16 pb-8 md:pt-32 md:pb-8 max-w-6xl">
+    <>
+      {/* Structured Data for SEO */}
+      <JSONLDScript data={websiteSchema} />
+      <JSONLDScript data={collectionSchema} />
+      <JSONLDScript data={breadcrumbSchema} />
+      <JSONLDScript data={faqSchema} />
+
+      <div className="container mx-auto px-4 pt-16 pb-8 md:pt-32 md:pb-8 max-w-6xl">
 
 
       {/* H1 - SEO优化标题 */}
@@ -166,6 +216,7 @@ export default async function LandingPage({
 
       {/* Pricing Section */}
       {pricingData && <Pricing section={pricingData} />}
-    </div >
+    </div>
+    </>
   );
 }
