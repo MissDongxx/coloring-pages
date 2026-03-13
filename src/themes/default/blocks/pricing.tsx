@@ -400,27 +400,28 @@ export function Pricing({
                     <h3 className="text-sm font-medium">{item.title}</h3>
                   </CardTitle>
 
-                  <div className="my-3 flex items-baseline gap-2">
-                    {displayedItem.original_price && (
-                      <span className="text-muted-foreground text-sm line-through">
-                        {displayedItem.original_price}
-                      </span>
-                    )}
-
-                    <div className="my-3 block text-2xl font-semibold">
-                      <span className="text-primary">
-                        {displayedItem.price}
-                      </span>{' '}
-                      {displayedItem.unit ? (
-                        <span className="text-muted-foreground text-sm font-normal">
-                          {displayedItem.unit}
+                  <div className="my-3 flex flex-col items-start gap-1">
+                    <div className="flex items-baseline gap-2">
+                      {displayedItem.original_price && (
+                        <span className="text-muted-foreground text-sm line-through">
+                          {displayedItem.original_price}
                         </span>
-                      ) : (
-                        ''
                       )}
-                    </div>
 
-                    {currencies.length > 1 && (
+                      <div className="text-2xl font-semibold">
+                        <span className="text-primary">
+                          {displayedItem.price}
+                        </span>{' '}
+                        {displayedItem.unit ? (
+                          <span className="text-muted-foreground text-sm font-normal">
+                            {displayedItem.unit}
+                          </span>
+                        ) : (
+                          ''
+                        )}
+                      </div>
+
+                      {currencies.length > 1 && (
                       <Select
                         value={selectedCurrency}
                         onValueChange={(currency) =>
@@ -445,6 +446,14 @@ export function Pricing({
                           ))}
                         </SelectContent>
                       </Select>
+                    )}
+                    </div>
+
+                    {displayedItem.sub_price && displayedItem.sub_unit && (
+                      <div className="text-muted-foreground text-sm">
+                        <span>{displayedItem.sub_price}</span>
+                        <span className="ml-1">{displayedItem.sub_unit}</span>
+                      </div>
                     )}
                   </div>
 

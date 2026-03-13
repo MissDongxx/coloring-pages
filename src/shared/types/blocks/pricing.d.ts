@@ -29,6 +29,8 @@ export interface PricingItem {
   currencies?: PricingCurrency[]; // alternative currencies with different prices
 
   unit?: string;
+  sub_price?: string; // secondary price text (e.g., yearly total for monthly plans)
+  sub_unit?: string; // secondary unit text
   features_title?: string;
   features?: string[];
   button?: Button;

@@ -10,6 +10,7 @@
       "stats",
       "testimonials",
       "faq",
+      "pricing",
       "cta"
     ],
     "sections": {
@@ -382,6 +383,15 @@
             "answer": "Absolutely! All ColoringPages templates are fully customizable. You can modify colors, add your own elements, and create unique designs that match your personal style."
           }
         ]
+      },
+      "pricing": {
+        "id": "pricing",
+        "title": "Pricing",
+        "description": "Choose the perfect plan for your needs. Start creating beautiful coloring pages today.",
+        "link": {
+          "title": "View Full Pricing",
+          "url": "/pricing"
+        }
       },
       "cta": {
         "id": "cta",

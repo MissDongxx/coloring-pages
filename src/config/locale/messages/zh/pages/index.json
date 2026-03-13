@@ -10,6 +10,7 @@
       "stats",
       "testimonials",
       "faq",
+      "pricing",
       "cta"
     ],
     "sections": {
@@ -381,6 +382,15 @@
             "answer": "当然可以！所有 ColoringPages 模板都可以完全自定义。你可以修改颜色、添加自己的元素，创建符合个人风格的设计。"
           }
         ]
+      },
+      "pricing": {
+        "id": "pricing",
+        "title": "价格",
+        "description": "选择最适合您的套餐，立即开始创作美丽的涂色作品。",
+        "link": {
+          "title": "查看完整价格表",
+          "url": "/pricing"
+        }
       },
       "cta": {
         "id": "cta",
