@@ -5,6 +5,9 @@ import { envConfigs } from '@/config';
 export default function robots(): MetadataRoute.Robots {
   const appUrl = envConfigs.app_url;
 
+  // Remove trailing slash to avoid double slashes
+  const baseUrl = appUrl.endsWith('/') ? appUrl.slice(0, -1) : appUrl;
+
   return {
     rules: {
       userAgent: '*',
@@ -17,7 +20,7 @@ export default function robots(): MetadataRoute.Robots {
         '/api/*',
       ],
     },
-    sitemap: `${appUrl}/sitemap.xml`,
+    sitemap: `${baseUrl}/sitemap.xml`,
   };
 }
 

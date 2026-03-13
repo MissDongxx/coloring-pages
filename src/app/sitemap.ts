@@ -8,7 +8,9 @@ import { getAllPageSlugs, getAllCategories } from '@/features/coloring/lib/data'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const appUrl = envConfigs.app_url || 'https://coloringpages.club';
-  const baseUrl = new URL(appUrl);
+  // Remove trailing slash to avoid double slashes
+  const baseUrlString = appUrl.endsWith('/') ? appUrl.slice(0, -1) : appUrl;
+  const baseUrl = new URL(baseUrlString);
 
   // Get default locale from config
   const defaultLocale = envConfigs.locale || 'en';
