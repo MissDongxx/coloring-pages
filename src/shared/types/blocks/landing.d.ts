@@ -59,6 +59,7 @@ export interface Footer extends Section {
   show_theme?: boolean;
   show_locale?: boolean;
   show_built_with?: boolean;
+  email?: string;
   className?: string;
 }
 

@@ -27,6 +27,12 @@ export function Footer({ footer }: { footer: FooterType }) {
                 dangerouslySetInnerHTML={{ __html: footer.brand.description }}
               />
             ) : null}
+
+            {footer.email ? (
+              <p className="text-muted-foreground text-sm text-balance break-words">
+                Email: {footer.email}
+              </p>
+            ) : null}
           </div>
 
           <div className="col-span-3 grid min-w-0 gap-6 sm:grid-cols-3">

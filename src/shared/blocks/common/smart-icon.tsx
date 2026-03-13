@@ -1,4 +1,5 @@
 import { HelpCircle, Star, User, Settings, Home, Search, Info, Mail } from 'lucide-react';
+import { IconBrandPinterest } from '@tabler/icons-react';
 import { ComponentType, Suspense } from 'react';
 
 const ICON_MAP: Record<string, any> = {
@@ -10,6 +11,7 @@ const ICON_MAP: Record<string, any> = {
   Search,
   Info,
   Mail,
+  Pinterest: IconBrandPinterest,
 };
 
 export function SmartIcon({
