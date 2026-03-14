@@ -30,12 +30,13 @@ jobs:
           fi
 
           BATCH_SIZE=5
+          MAX_ITEMS_PER_RUN=10  # Maximum items to process per hour (2 batches)
           OFFSET=0
           TOTAL_PROCESSED=0
 
-          echo "Starting batch processing..."
+          echo "Starting batch processing (max $MAX_ITEMS_PER_RUN items per run)..."
 
-          while true; do
+          while [ $TOTAL_PROCESSED -lt $MAX_ITEMS_PER_RUN ]; do
             echo "Processing batch: OFFSET=$OFFSET, BATCH_SIZE=$BATCH_SIZE"
 
             response=$(curl -s -w "\n%{http_code}" \
@@ -63,6 +64,12 @@ jobs:
             fi
 
             echo "Batch completed. Processed in this batch: ${processed:-0}, Total so far: $TOTAL_PROCESSED"
+
+            # Check if we've reached the maximum items for this run
+            if [ $TOTAL_PROCESSED -ge $MAX_ITEMS_PER_RUN ]; then
+              echo "✅ Reached maximum items per run ($MAX_ITEMS_PER_RUN)"
+              break
+            fi
 
             # Check if there are more items to process
             if [ "$has_more" != "true" ]; then

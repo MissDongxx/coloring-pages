@@ -42,7 +42,13 @@ export async function saveConfigs(configs: Record<string, string>) {
     return results;
   });
 
-  revalidateTag(CACHE_TAG_CONFIGS, 'max');
+  if (process.env.NEXT_RUNTIME) {
+    try {
+      revalidateTag(CACHE_TAG_CONFIGS, 'max');
+    } catch (e) {
+      // Silently fail in non-Next environments
+    }
+  }
   // Clear memory cache when configs are saved
   configsMemoryCache = null;
 

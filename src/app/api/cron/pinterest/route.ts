@@ -5,6 +5,7 @@ import { eq, and, isNull } from 'drizzle-orm';
 import { PinterestProvider } from '@/extensions/pinterest';
 import { envConfigs } from '@/config';
 import { updateColoringPage, ColoringPageStatus } from '@/shared/models/coloring_page';
+import { getAllConfigs, saveConfigs } from '@/shared/models/config';
 
 export async function GET(request: Request) {
     try {
@@ -15,36 +16,44 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        if (!envConfigs.pinterest_app_id || !envConfigs.pinterest_app_secret) {
-            return NextResponse.json({ error: 'Pinterest configuration is missing' }, { status: 500 });
+        // Load all configs from database and env
+        const allConfigs = await getAllConfigs();
+
+        const appId = allConfigs.pinterest_app_id;
+        const appSecret = allConfigs.pinterest_app_secret;
+        
+        if (!appId || !appSecret) {
+            return NextResponse.json({ error: 'Pinterest configuration (App ID/Secret) is missing' }, { status: 500 });
         }
 
-        // Get Pinterest account from database or fall back to env var
-        let pinterestAccount: any = null;
-        let useFallbackToken = false;
+        // Get initial tokens from DB configs
+        let refreshToken = allConfigs.pinterest_refresh_token;
+        let accessToken = allConfigs.pinterest_access_token;
 
-        if (envConfigs.cron_user_id) {
-            // Try to get Pinterest account from database for the cron user
+        // Try to get developer/sandbox tokens if available
+        const sandboxToken = process.env.PINTEREST_SANDBOX_TOKEN || process.env.PINTEREST_ACCESS_TOKEN;
+        if (!accessToken && sandboxToken) {
+            accessToken = sandboxToken;
+        }
+
+        // Get Pinterest account from database for specific user if CRON_USER_ID is set
+        let pinterestAccount: any = null;
+        if (allConfigs.cron_user_id) {
             const accounts = await db()
                 .select()
                 .from(account)
-                .where(eq(account.userId, envConfigs.cron_user_id));
+                .where(eq(account.userId, allConfigs.cron_user_id));
 
             pinterestAccount = accounts.find(
                 (acc: any) => acc.providerId === 'pinterest'
             );
 
-            if (!pinterestAccount || !pinterestAccount.refreshToken) {
-                console.warn('No Pinterest account found for cron user, falling back to env var');
-                useFallbackToken = true;
+            if (pinterestAccount?.refreshToken) {
+                refreshToken = pinterestAccount.refreshToken;
+                accessToken = pinterestAccount.accessToken || accessToken;
             }
-        } else {
-            console.log('CRON_USER_ID not set, using fallback token from environment');
-            useFallbackToken = true;
         }
 
-        // Check if we have a valid refresh token
-        const refreshToken = pinterestAccount?.refreshToken || envConfigs.pinterest_refresh_token;
         if (!refreshToken) {
             return NextResponse.json(
                 { error: 'Pinterest refresh token is missing' },
@@ -55,28 +64,36 @@ export async function GET(request: Request) {
         // Create Pinterest provider with token persistence callback
         const pinterestProvider = new PinterestProvider(
             {
-                appId: envConfigs.pinterest_app_id,
-                appSecret: envConfigs.pinterest_app_secret,
+                appId,
+                appSecret,
                 refreshToken,
-                accessToken: process.env.PINTEREST_SANDBOX_TOKEN || process.env.PINTEREST_ACCESS_TOKEN,
+                accessToken,
             },
             process.env.PINTEREST_USE_SANDBOX === 'true',
             // Callback to persist rotated tokens to database
-            async ({ accessToken, refreshToken: newRefreshToken, expiresAt }) => {
-                if (!useFallbackToken && pinterestAccount) {
-                    // Update the account in database
+            async ({ accessToken: newAccessToken, refreshToken: newRefreshToken }) => {
+                const updates: Record<string, string> = {
+                    pinterest_access_token: newAccessToken,
+                };
+                if (newRefreshToken) {
+                    updates.pinterest_refresh_token = newRefreshToken;
+                }
+
+                // 1. Save to config table (General app settings)
+                await saveConfigs(updates);
+                console.log('✅ Persisted rotated Pinterest tokens to config table');
+
+                // 2. Save to account table (Specific user account) if applicable
+                if (pinterestAccount) {
                     await db()
                         .update(account)
                         .set({
-                            accessToken,
-                            refreshToken: newRefreshToken,
-                            accessTokenExpiresAt: new Date(expiresAt),
+                            accessToken: newAccessToken,
+                            refreshToken: newRefreshToken || undefined,
                             updatedAt: new Date(),
                         })
                         .where(eq(account.id, pinterestAccount.id));
-                    console.log('Persisted rotated Pinterest tokens to database');
-                } else {
-                    console.warn('Token rotated but not persisted (using fallback token or no account)');
+                    console.log('✅ Persisted rotated Pinterest tokens to user account table');
                 }
             }
         );

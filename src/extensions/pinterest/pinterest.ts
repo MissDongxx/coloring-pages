@@ -5,13 +5,6 @@
 import { envConfigs } from '@/config';
 import type { PinterestConfigs, PinterestTokenResponse, CreatePinParams, PinResponse, BoardResponse } from './types';
 
-// Callback type for persisting rotated tokens
-export type TokenPersistenceCallback = (tokens: {
-    accessToken: string;
-    refreshToken: string;
-    expiresAt: number;
-}) => Promise<void> | void;
-
 export class PinterestProvider {
     configs: PinterestConfigs;
     private accessToken: string | null = null;
@@ -21,18 +14,21 @@ export class PinterestProvider {
     private tokenExpiresAt: number = 0;
     private baseUrl: string;
     // Callback to persist rotated tokens
-    private onTokenRefresh?: TokenPersistenceCallback;
+    private onTokenRefresh?: (tokens: { accessToken: string; refreshToken?: string }) => Promise<void>;
 
-    constructor(configs: PinterestConfigs, useSandbox: boolean = false, onTokenRefresh?: TokenPersistenceCallback) {
+    constructor(configs: PinterestConfigs, useSandbox: boolean = false, onTokenRefresh?: (tokens: { accessToken: string; refreshToken?: string }) => Promise<void>) {
         this.configs = configs;
         this.currentRefreshToken = configs.refreshToken;
         this.baseUrl = useSandbox ? 'https://api-sandbox.pinterest.com/v5' : 'https://api.pinterest.com/v5';
         this.onTokenRefresh = onTokenRefresh;
 
-        // If a static access token is provided (e.g. for sandbox), use it directly
+        // If a static access token is provided, use it
         if (this.configs.accessToken) {
             this.accessToken = this.configs.accessToken;
-            this.tokenExpiresAt = Date.now() + 1000 * 60 * 60 * 24 * 365; // Assume 1 year for static token
+            // We don't know the exact expiration, but if it was just loaded from DB/env, 
+            // the PinterestProvider will handle 401s and refresh if needed.
+            // Setting a short default to trigger a potential refresh check on first usage if needed.
+            this.tokenExpiresAt = Date.now() + 1000 * 60 * 30; // 30 mins default
         }
     }
 
@@ -41,6 +37,7 @@ export class PinterestProvider {
      * Pinterest rotates refresh tokens, so we update it when we get a new one.
      */
     async refreshAccessToken(): Promise<string> {
+        console.log('🔄 Pinterest: Refreshing access token...');
         const authString = Buffer.from(
             `${this.configs.appId}:${this.configs.appSecret}`
         ).toString('base64');
@@ -67,25 +64,20 @@ export class PinterestProvider {
         // Buffer the expiration time by 60 seconds to be safe
         this.tokenExpiresAt = Date.now() + (data.expires_in - 60) * 1000;
 
+        let newRefreshToken: string | undefined;
         // Pinterest rotates refresh tokens - update the stored one
         if (data.refresh_token) {
             this.currentRefreshToken = data.refresh_token;
-            console.log('Pinterest refresh token rotated successfully');
+            newRefreshToken = data.refresh_token;
+            console.log('✅ Pinterest: Refresh token rotated successfully');
+        }
 
-            // Persist the rotated tokens to storage via callback
-            if (this.onTokenRefresh) {
-                try {
-                    await this.onTokenRefresh({
-                        accessToken: this.accessToken,
-                        refreshToken: this.currentRefreshToken,
-                        expiresAt: this.tokenExpiresAt,
-                    });
-                    console.log('Pinterest tokens persisted successfully');
-                } catch (error: any) {
-                    console.error('Failed to persist Pinterest tokens:', error);
-                    // Don't throw - the token rotation succeeded, just persistence failed
-                }
-            }
+        // Trigger persistence callback if provided
+        if (this.onTokenRefresh) {
+            await this.onTokenRefresh({
+                accessToken: this.accessToken,
+                refreshToken: newRefreshToken,
+            }).catch(err => console.error('❌ Pinterest: Failed to persist refreshed tokens:', err));
         }
 
         return this.accessToken;
@@ -243,11 +235,10 @@ export class PinterestProvider {
     }
 }
 
-export function createPinterestProvider(onTokenRefresh?: TokenPersistenceCallback): PinterestProvider {
-    return new PinterestProvider({
-        appId: envConfigs.pinterest_app_id,
-        appSecret: envConfigs.pinterest_app_secret,
-        refreshToken: envConfigs.pinterest_refresh_token,
-        accessToken: process.env.PINTEREST_SANDBOX_TOKEN || process.env.PINTEREST_ACCESS_TOKEN,
-    }, process.env.PINTEREST_USE_SANDBOX === 'true', onTokenRefresh);
+export function createPinterestProvider(
+    configs: PinterestConfigs, 
+    useSandbox: boolean = false,
+    onTokenRefresh?: (tokens: { accessToken: string; refreshToken?: string }) => Promise<void>
+): PinterestProvider {
+    return new PinterestProvider(configs, useSandbox, onTokenRefresh);
 }

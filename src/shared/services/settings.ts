@@ -283,6 +283,12 @@ export async function getSettingGroups() {
         'custom your <a href="https://www.tawk.to" class="text-primary" target="_blank">Tawk</a> settings',
       tab: 'customer_service',
     },
+    {
+      name: 'pinterest',
+      title: 'Pinterest',
+      description: 'Pinterest API settings',
+      tab: 'ai',
+    },
   ];
   return settingGroups;
 }
@@ -796,6 +802,24 @@ export async function getSettings() {
       placeholder: 'r8_xxx',
       group: 'replicate',
       tab: 'ai',
+    },
+    {
+      name: 'pinterest_refresh_token',
+      title: 'Pinterest Refresh Token',
+      type: 'password',
+      placeholder: '',
+      group: 'pinterest',
+      tab: 'ai',
+      tip: 'Pinterest OAuth Refresh Token (will be rotated automatically)',
+    },
+    {
+      name: 'pinterest_access_token',
+      title: 'Pinterest Access Token',
+      type: 'password',
+      placeholder: '',
+      group: 'pinterest',
+      tab: 'ai',
+      tip: 'Pinterest OAuth Access Token (cached value)',
     },
     {
       name: 'replicate_custom_storage',
