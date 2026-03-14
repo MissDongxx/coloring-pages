@@ -1,21 +1,24 @@
-/**
- * Sync Pinterest pins to database
- * This script fetches all pins from Pinterest boards and matches them with existing pages
- */
-
+import '../src/config';
 import { createPinterestProvider } from '../src/extensions/pinterest/pinterest';
 import { db } from '../src/core/db';
 import { coloringPage } from '../src/config/db/schema';
 import { eq } from 'drizzle-orm';
+import { getAllConfigs } from '../src/shared/models/config';
 
 async function main() {
     console.log('🔄 Starting Pinterest pins sync...');
 
-    const pinterestProvider = createPinterestProvider();
+    const allConfigs = await getAllConfigs();
+    const pinterestProvider = createPinterestProvider({
+        appId: allConfigs.pinterest_app_id,
+        appSecret: allConfigs.pinterest_app_secret,
+        refreshToken: allConfigs.pinterest_refresh_token,
+        accessToken: allConfigs.pinterest_access_token,
+    }, process.env.PINTEREST_USE_SANDBOX === 'true');
 
     // First, refresh the access token
     console.log('🔄 Refreshing Pinterest access token...');
-    await (pinterestProvider as any).refreshAccessToken();
+    await pinterestProvider.refreshAccessToken();
     console.log('✅ Access token refreshed');
 
     // Get all boards

@@ -1,8 +1,16 @@
+import '../src/config';
 import { createPinterestProvider } from '../src/extensions/pinterest';
+import { getAllConfigs } from '../src/shared/models/config';
 
 async function listBoards() {
     try {
-        const provider = createPinterestProvider();
+        const allConfigs = await getAllConfigs();
+        const provider = createPinterestProvider({
+            appId: allConfigs.pinterest_app_id,
+            appSecret: allConfigs.pinterest_app_secret,
+            refreshToken: allConfigs.pinterest_refresh_token,
+            accessToken: allConfigs.pinterest_access_token,
+        }, process.env.PINTEREST_USE_SANDBOX === 'true');
 
         console.log("🚀 正在刷新 Token 并获取看板列表...");
         const accessToken = await provider.refreshAccessToken();

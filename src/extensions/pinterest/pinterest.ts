@@ -14,9 +14,9 @@ export class PinterestProvider {
     private tokenExpiresAt: number = 0;
     private baseUrl: string;
     // Callback to persist rotated tokens
-    private onTokenRefresh?: (tokens: { accessToken: string; refreshToken?: string }) => Promise<void>;
+    private onTokenRefresh?: (tokens: { accessToken: string; refreshToken?: string; expiresIn?: number }) => Promise<void>;
 
-    constructor(configs: PinterestConfigs, useSandbox: boolean = false, onTokenRefresh?: (tokens: { accessToken: string; refreshToken?: string }) => Promise<void>) {
+    constructor(configs: PinterestConfigs, useSandbox: boolean = false, onTokenRefresh?: (tokens: { accessToken: string; refreshToken?: string; expiresIn?: number }) => Promise<void>) {
         this.configs = configs;
         this.currentRefreshToken = configs.refreshToken;
         this.baseUrl = useSandbox ? 'https://api-sandbox.pinterest.com/v5' : 'https://api.pinterest.com/v5';
@@ -112,6 +112,7 @@ export class PinterestProvider {
             await this.onTokenRefresh({
                 accessToken: this.accessToken,
                 refreshToken: newRefreshToken,
+                expiresIn: data.expires_in,
             }).catch(err => console.error('❌ Pinterest: Failed to persist refreshed tokens:', err));
         }
 
@@ -196,7 +197,7 @@ export class PinterestProvider {
 export function createPinterestProvider(
     configs: PinterestConfigs, 
     useSandbox: boolean = false,
-    onTokenRefresh?: (tokens: { accessToken: string; refreshToken?: string }) => Promise<void>
+    onTokenRefresh?: (tokens: { accessToken: string; refreshToken?: string; expiresIn?: number }) => Promise<void>
 ): PinterestProvider {
     return new PinterestProvider(configs, useSandbox, onTokenRefresh);
 }

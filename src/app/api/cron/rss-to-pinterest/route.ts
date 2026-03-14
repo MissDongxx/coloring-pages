@@ -77,7 +77,7 @@ export async function GET(request: Request) {
       },
       process.env.PINTEREST_USE_SANDBOX === 'true',
       // Callback to persist rotated tokens to database
-      async ({ accessToken: newAccessToken, refreshToken: newRefreshToken }) => {
+      async ({ accessToken: newAccessToken, refreshToken: newRefreshToken, expiresIn }) => {
           const updates: Record<string, string> = {
               pinterest_access_token: newAccessToken,
           };
@@ -91,11 +91,13 @@ export async function GET(request: Request) {
 
           // 2. Save to account table (Specific user account) if applicable
           if (pinterestAccount) {
+              const accessTokenExpiresAt = expiresIn ? new Date(Date.now() + expiresIn * 1000) : undefined;
               await db()
                   .update(account)
                   .set({
                       accessToken: newAccessToken,
                       refreshToken: newRefreshToken || undefined,
+                      accessTokenExpiresAt,
                       updatedAt: new Date(),
                   })
                   .where(eq(account.id, pinterestAccount.id));

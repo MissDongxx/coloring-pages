@@ -68,15 +68,16 @@ export async function POST(request: NextRequest) {
       accessToken: sandboxToken,
     }, true, // 使用沙盒环境
     // Callback to persist rotated tokens to database
-    async ({ accessToken, refreshToken: newRefreshToken, expiresAt }) => {
+    async ({ accessToken, refreshToken: newRefreshToken, expiresIn }) => {
       if (!sandboxToken) {
         // Only persist if we're not using sandbox token
+        const accessTokenExpiresAt = expiresIn ? new Date(Date.now() + expiresIn * 1000) : undefined;
         await db()
           .update(account)
           .set({
             accessToken,
             refreshToken: newRefreshToken,
-            accessTokenExpiresAt: new Date(expiresAt),
+            accessTokenExpiresAt,
             updatedAt: new Date(),
           })
           .where(eq(account.id, pinterestAccount.id));
