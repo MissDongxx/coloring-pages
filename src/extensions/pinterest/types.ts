@@ -14,6 +14,9 @@ export interface PinterestTokenResponse {
     token_type: string;
     expires_in: number;
     scope: string;
+    refresh_token?: string; // Pinterest rotates refresh tokens
+    refresh_token_expires_at?: number;
+    refresh_token_expires_in?: number;
 }
 
 export interface CreatePinParams {

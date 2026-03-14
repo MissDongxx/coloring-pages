@@ -8,12 +8,15 @@ import type { PinterestConfigs, PinterestTokenResponse, CreatePinParams, PinResp
 export class PinterestProvider {
     configs: PinterestConfigs;
     private accessToken: string | null = null;
+    // Store the current refresh token (it rotates when we refresh)
+    private currentRefreshToken: string;
     // Store expiration time to avoid 401s when possible
     private tokenExpiresAt: number = 0;
     private baseUrl: string;
 
     constructor(configs: PinterestConfigs, useSandbox: boolean = false) {
         this.configs = configs;
+        this.currentRefreshToken = configs.refreshToken;
         this.baseUrl = useSandbox ? 'https://api-sandbox.pinterest.com/v5' : 'https://api.pinterest.com/v5';
 
         // If a static access token is provided (e.g. for sandbox), use it directly
@@ -25,6 +28,7 @@ export class PinterestProvider {
 
     /**
      * Refresh the access token using the stored refresh token.
+     * Pinterest rotates refresh tokens, so we update it when we get a new one.
      */
     async refreshAccessToken(): Promise<string> {
         const authString = Buffer.from(
@@ -39,7 +43,7 @@ export class PinterestProvider {
             },
             body: new URLSearchParams({
                 grant_type: 'refresh_token',
-                refresh_token: this.configs.refreshToken,
+                refresh_token: this.currentRefreshToken,
             }).toString(),
         });
 
@@ -52,6 +56,12 @@ export class PinterestProvider {
         this.accessToken = data.access_token;
         // Buffer the expiration time by 60 seconds to be safe
         this.tokenExpiresAt = Date.now() + (data.expires_in - 60) * 1000;
+
+        // Pinterest rotates refresh tokens - update the stored one
+        if (data.refresh_token) {
+            this.currentRefreshToken = data.refresh_token;
+            console.log('Pinterest refresh token rotated successfully');
+        }
 
         return this.accessToken;
     }
