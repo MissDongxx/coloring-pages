@@ -25,11 +25,46 @@ export class PinterestProvider {
         // If a static access token is provided, use it
         if (this.configs.accessToken) {
             this.accessToken = this.configs.accessToken;
-            // We don't know the exact expiration, but if it was just loaded from DB/env, 
-            // the PinterestProvider will handle 401s and refresh if needed.
-            // Setting a short default to trigger a potential refresh check on first usage if needed.
-            this.tokenExpiresAt = Date.now() + 1000 * 60 * 30; // 30 mins default
+            // Initially, we treat it as valid but we'll handle 401s if it's already expired
+            this.tokenExpiresAt = Date.now() + 1000 * 60 * 60; // Assume 1 hour default
         }
+    }
+
+    /**
+     * Internal helper to make API calls with automatic token refresh and retry on 401.
+     */
+    private async callApi<T>(path: string, options: RequestInit = {}): Promise<T> {
+        // Ensure we have an active token before attempting
+        if (!this.accessToken || Date.now() >= this.tokenExpiresAt) {
+            await this.refreshAccessToken();
+        }
+
+        const makeRequest = async () => {
+            const url = path.startsWith('http') ? path : `${this.baseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+            return fetch(url, {
+                ...options,
+                headers: {
+                    ...options.headers,
+                    Authorization: `Bearer ${this.accessToken}`,
+                },
+            });
+        };
+
+        let response = await makeRequest();
+
+        // If 401, refresh token and retry ONCE
+        if (response.status === 401) {
+            console.warn(`⚠️ Pinterest API returned 401. Attempting token refresh and retry... Path: ${path}`);
+            await this.refreshAccessToken();
+            response = await makeRequest();
+        }
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Pinterest API Error (${response.status}): ${errorText}`);
+        }
+
+        return (await response.json()) as T;
     }
 
     /**
@@ -87,22 +122,7 @@ export class PinterestProvider {
      * Get all boards for the authenticated user.
      */
     async getBoards(): Promise<BoardResponse[]> {
-        if (!this.accessToken || Date.now() >= this.tokenExpiresAt) {
-            await this.refreshAccessToken();
-        }
-
-        const response = await fetch(`${this.baseUrl}/boards`, {
-            headers: {
-                Authorization: `Bearer ${this.accessToken}`,
-            },
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Failed to fetch Pinterest boards: ${response.status} - ${errorText}`);
-        }
-
-        const data = await response.json() as { items: BoardResponse[] };
+        const data = await this.callApi<{ items: BoardResponse[] }>('/boards');
         return data.items;
     }
 
@@ -110,29 +130,15 @@ export class PinterestProvider {
      * Create a new board.
      */
     async createBoard(name: string, description: string = ''): Promise<BoardResponse> {
-        if (!this.accessToken || Date.now() >= this.tokenExpiresAt) {
-            await this.refreshAccessToken();
-        }
-
-        const response = await fetch(`${this.baseUrl}/boards`, {
+        return this.callApi<BoardResponse>('/boards', {
             method: 'POST',
-            headers: {
-                Authorization: `Bearer ${this.accessToken}`,
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 name: name,
                 description: description,
                 privacy: 'PUBLIC',
             }),
         });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Failed to create Pinterest board "${name}": ${response.status} - ${errorText}`);
-        }
-
-        return await response.json() as BoardResponse;
     }
 
     /**
@@ -151,10 +157,8 @@ export class PinterestProvider {
             return newBoard.id;
         } catch (error: any) {
             // Error code 58 means "Board already exists"
-            // If it exists but wasn't in the list, it's likely due to API latency or a cached/synced view.
             if (error.message.includes('"code":58') || error.message.includes('already have a board')) {
                 console.log(`⏳ 看板 "${name}" 已存在但未在列表中显示。正在等待同步并重试...`);
-                // Wait for a few seconds and try fetching the list again
                 await new Promise(resolve => setTimeout(resolve, 3000));
 
                 boards = await this.getBoards();
@@ -172,16 +176,9 @@ export class PinterestProvider {
      * Create a new pin on a specified board.
      */
     async createPin(params: CreatePinParams): Promise<PinResponse> {
-        if (!this.accessToken || Date.now() >= this.tokenExpiresAt) {
-            await this.refreshAccessToken();
-        }
-
-        const response = await fetch(`${this.baseUrl}/pins`, {
+        return this.callApi<PinResponse>('/pins', {
             method: 'POST',
-            headers: {
-                Authorization: `Bearer ${this.accessToken}`,
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 board_id: params.boardId,
                 title: params.title,
@@ -193,45 +190,6 @@ export class PinterestProvider {
                 },
             }),
         });
-
-        if (!response.ok) {
-            // If unauthorized, token might have expired. Try to refresh and retry once.
-            if (response.status === 401) {
-                await this.refreshAccessToken();
-                return this.retryCreatePin(params);
-            }
-            const errorText = await response.text();
-            throw new Error(`Failed to create Pinterest pin: ${response.status} ${response.statusText} - ${errorText}`);
-        }
-
-        return (await response.json()) as PinResponse;
-    }
-
-    private async retryCreatePin(params: CreatePinParams): Promise<PinResponse> {
-        const response = await fetch(`${this.baseUrl}/pins`, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${this.accessToken}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                board_id: params.boardId,
-                title: params.title,
-                description: params.description,
-                link: params.link,
-                media_source: {
-                    source_type: 'image_url',
-                    url: params.imageUrl,
-                },
-            }),
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Failed to create Pinterest pin on retry: ${response.status} ${response.statusText} - ${errorText}`);
-        }
-
-        return (await response.json()) as PinResponse;
     }
 }
 
