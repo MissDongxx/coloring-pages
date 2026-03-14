@@ -29,6 +29,11 @@ export async function GET(request: Request) {
       );
     }
 
+    // Parse query parameters for batch processing
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get('limit') || '5'); // Default: process 5 items at a time
+    const offset = parseInt(searchParams.get('offset') || '0');
+
     const appUrl = envConfigs.app_url || 'https://coloringpages.club';
     const rssUrl = `${appUrl}/rss.xml`;
 
@@ -45,12 +50,16 @@ export async function GET(request: Request) {
       mergeAttrs: true,
     });
 
-    const items: any[] = rssResult.rss?.channel?.item || [];
-    console.log(`Found ${items.length} items in RSS feed`);
+    const allItems: any[] = rssResult.rss?.channel?.item || [];
+    console.log(`Found ${allItems.length} items in RSS feed`);
 
-    if (items.length === 0) {
+    if (allItems.length === 0) {
       return NextResponse.json({ message: 'No items in RSS feed' });
     }
+
+    // Apply batch processing: slice items with offset and limit
+    const items = allItems.slice(offset, offset + limit);
+    console.log(`Processing batch: offset=${offset}, limit=${limit}, items=${items.length}`);
 
     const pinterestProvider = createPinterestProvider();
     const results = [];
@@ -152,10 +161,19 @@ export async function GET(request: Request) {
       }
     }
 
+    const hasMore = offset + limit < allItems.length;
+    const nextOffset = hasMore ? offset + limit : null;
+
     return NextResponse.json({
-      message: 'RSS to Pinterest sync completed',
-      totalItems: items.length,
-      processed: results.length,
+      message: 'RSS to Pinterest sync batch completed',
+      totalItems: allItems.length,
+      batchInfo: {
+        offset,
+        limit,
+        processedInBatch: results.length,
+        hasMore,
+        nextOffset,
+      },
       results,
     });
   } catch (error: any) {

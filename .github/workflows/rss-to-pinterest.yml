@@ -14,23 +14,67 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Sync to Pinterest
+      - name: Sync to Pinterest (Batch Processing)
         run: |
-          response=$(curl -s -w "\n%{http_code}" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            -H "Content-Type: application/json" \
-            "${{ secrets.APP_URL }}/api/cron/rss-to-pinterest")
+          APP_URL="${{ secrets.APP_URL }}"
+          CRON_SECRET="${{ secrets.CRON_SECRET }}"
 
-          http_code=$(echo "$response" | tail -n1)
-          body=$(echo "$response" | sed '$d')
-
-          echo "Response HTTP Status: $http_code"
-          echo "Response Body:"
-          echo "$body"
-
-          if [ "$http_code" -ne 200 ]; then
-            echo "❌ Sync failed with HTTP $http_code"
+          if [ -z "$APP_URL" ]; then
+            echo "Error: APP_URL secret is not set"
             exit 1
           fi
 
+          if [ -z "$CRON_SECRET" ]; then
+            echo "Error: CRON_SECRET secret is not set"
+            exit 1
+          fi
+
+          BATCH_SIZE=5
+          OFFSET=0
+          TOTAL_PROCESSED=0
+
+          echo "Starting batch processing..."
+
+          while true; do
+            echo "Processing batch: OFFSET=$OFFSET, BATCH_SIZE=$BATCH_SIZE"
+
+            response=$(curl -s -w "\n%{http_code}" \
+              -H "Authorization: Bearer $CRON_SECRET" \
+              -H "Content-Type: application/json" \
+              "${APP_URL}/api/cron/rss-to-pinterest?limit=${BATCH_SIZE}&offset=${OFFSET}")
+
+            http_code=$(echo "$response" | tail -n1)
+            body=$(echo "$response" | sed '$d')
+
+            echo "HTTP Status: $http_code"
+            echo "Response: $body"
+
+            if [ "$http_code" -ne 200 ]; then
+              echo "❌ Sync failed with HTTP $http_code"
+              exit 1
+            fi
+
+            # Parse response to check if there are more items
+            has_more=$(echo "$body" | grep -o '"hasMore":[^,]*' | cut -d':' -f2)
+            processed=$(echo "$body" | grep -o '"processedInBatch":[^,}]*' | cut -d':' -f2)
+
+            if [ -n "$processed" ]; then
+              TOTAL_PROCESSED=$((TOTAL_PROCESSED + processed))
+            fi
+
+            echo "Batch completed. Processed in this batch: ${processed:-0}, Total so far: $TOTAL_PROCESSED"
+
+            # Check if there are more items to process
+            if [ "$has_more" != "true" ]; then
+              echo "No more items to process"
+              break
+            fi
+
+            OFFSET=$((OFFSET + BATCH_SIZE))
+
+            # Small delay between batches to avoid overwhelming the server
+            sleep 2
+          done
+
           echo "✅ Sync completed successfully"
+          echo "Total items processed: $TOTAL_PROCESSED"
