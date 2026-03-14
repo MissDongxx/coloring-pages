@@ -779,8 +779,24 @@ export class ColoringWorkflowService {
         };
       });
 
-      // Use batch creation for efficiency and to reduce DB connection pool pressure
-      const createdPages = await batchCreateColoringPages(pagesToCreate);
+      // Use createColoringPageWithSlugRetry instead of batch creation to handle duplicate slugs
+      // Run concurrently with a limit to avoid connection pool pressure
+      const createdPagesResults = await promiseAllConcurrent(
+        pagesToCreate,
+        async (page) => {
+          try {
+            return await createColoringPageWithSlugRetry(page);
+          } catch (error) {
+            await this.log(jobId, 'error', `Failed to create page for slug ${page.slug}`, {
+              error: error instanceof Error ? error.message : String(error)
+            });
+            return null;
+          }
+        },
+        5 // Max 5 concurrent DB operations
+      );
+
+      const createdPages = createdPagesResults.filter((p): p is NonNullable<typeof p> => p !== null);
 
       const successCount = createdPages.length;
       const failCount = uploadedImages.length - successCount;

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { createPinterestProvider } from '@/extensions/pinterest';
+import { PinterestProvider } from '@/extensions/pinterest';
 import { envConfigs } from '@/config';
 import { db } from '@/core/db';
-import { coloringPage } from '@/config/db/schema';
+import { coloringPage, account } from '@/config/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { parseStringPromise } from 'xml2js';
 
@@ -20,14 +20,75 @@ export async function GET(request: Request) {
 
     if (
       !envConfigs.pinterest_app_id ||
-      !envConfigs.pinterest_app_secret ||
-      !envConfigs.pinterest_refresh_token
+      !envConfigs.pinterest_app_secret
     ) {
       return NextResponse.json(
         { error: 'Pinterest configuration is missing' },
         { status: 500 }
       );
     }
+
+    // Get Pinterest account from database or fall back to env var
+    let pinterestAccount: any = null;
+    let useFallbackToken = false;
+
+    if (envConfigs.cron_user_id) {
+      // Try to get Pinterest account from database for the cron user
+      const accounts = await db()
+        .select()
+        .from(account)
+        .where(eq(account.userId, envConfigs.cron_user_id));
+
+      pinterestAccount = accounts.find(
+        (acc: any) => acc.providerId === 'pinterest'
+      );
+
+      if (!pinterestAccount || !pinterestAccount.refreshToken) {
+        console.warn('No Pinterest account found for cron user, falling back to env var');
+        useFallbackToken = true;
+      }
+    } else {
+      console.log('CRON_USER_ID not set, using fallback token from environment');
+      useFallbackToken = true;
+    }
+
+    // Check if we have a valid refresh token
+    const refreshToken = pinterestAccount?.refreshToken || envConfigs.pinterest_refresh_token;
+    if (!refreshToken) {
+      return NextResponse.json(
+        { error: 'Pinterest refresh token is missing' },
+        { status: 500 }
+      );
+    }
+
+    // Create Pinterest provider with token persistence callback
+    const pinterestProvider = new PinterestProvider(
+      {
+        appId: envConfigs.pinterest_app_id,
+        appSecret: envConfigs.pinterest_app_secret,
+        refreshToken,
+        accessToken: process.env.PINTEREST_SANDBOX_TOKEN || process.env.PINTEREST_ACCESS_TOKEN,
+      },
+      process.env.PINTEREST_USE_SANDBOX === 'true',
+      // Callback to persist rotated tokens to database
+      async ({ accessToken, refreshToken: newRefreshToken, expiresAt }) => {
+        if (!useFallbackToken && pinterestAccount) {
+          // Update the account in database
+          await db()
+            .update(account)
+            .set({
+              accessToken,
+              refreshToken: newRefreshToken,
+              accessTokenExpiresAt: new Date(expiresAt),
+              updatedAt: new Date(),
+            })
+            .where(eq(account.id, pinterestAccount.id));
+          console.log('Persisted rotated Pinterest tokens to database');
+        } else {
+          console.warn('Token rotated but not persisted (using fallback token or no account)');
+        }
+      }
+    );
 
     // Parse query parameters for batch processing
     const { searchParams } = new URL(request.url);
@@ -61,7 +122,6 @@ export async function GET(request: Request) {
     const items = allItems.slice(offset, offset + limit);
     console.log(`Processing batch: offset=${offset}, limit=${limit}, items=${items.length}`);
 
-    const pinterestProvider = createPinterestProvider();
     const results = [];
     const boardCache = new Map<string, string>();
 

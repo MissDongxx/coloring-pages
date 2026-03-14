@@ -67,6 +67,8 @@ export const envConfigs: ConfigMap = {
   pinterest_app_secret: process.env.PINTEREST_APP_SECRET ?? '',
   pinterest_refresh_token: process.env.PINTEREST_REFRESH_TOKEN ?? '',
   pinterest_board_id: process.env.PINTEREST_BOARD_ID ?? '',
+  // User ID for cron jobs (optional - falls back to env var tokens)
+  cron_user_id: process.env.CRON_USER_ID ?? '',
   // Coloring Workflow Configuration
   coloring_workflow_enabled: process.env.COLORING_WORKFLOW_ENABLED ?? 'false',
   coloring_workflow_schedule_time: process.env.COLORING_WORKFLOW_SCHEDULE_TIME ?? '02:00',

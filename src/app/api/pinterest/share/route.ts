@@ -66,7 +66,23 @@ export async function POST(request: NextRequest) {
       refreshToken: sandboxToken ? '' : (pinterestAccount.refreshToken || ''),
       // 沙盒 token（可选）
       accessToken: sandboxToken,
-    }, true); // 使用沙盒环境
+    }, true, // 使用沙盒环境
+    // Callback to persist rotated tokens to database
+    async ({ accessToken, refreshToken: newRefreshToken, expiresAt }) => {
+      if (!sandboxToken) {
+        // Only persist if we're not using sandbox token
+        await db()
+          .update(account)
+          .set({
+            accessToken,
+            refreshToken: newRefreshToken,
+            accessTokenExpiresAt: new Date(expiresAt),
+            updatedAt: new Date(),
+          })
+          .where(eq(account.id, pinterestAccount.id));
+        console.log('Persisted rotated Pinterest tokens to database');
+      }
+    });
 
     // 如果没有指定 boardId，获取用户的第一个 board
     let targetBoardId = boardId;
