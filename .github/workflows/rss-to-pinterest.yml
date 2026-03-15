@@ -29,8 +29,8 @@ jobs:
             exit 1
           fi
 
-          BATCH_SIZE=5
-          MAX_ITEMS_PER_RUN=10  # Maximum items to process per hour (2 batches)
+          BATCH_SIZE=3
+          MAX_ITEMS_PER_RUN=3  # Maximum items to process per hour
           OFFSET=0
           TOTAL_PROCESSED=0
 

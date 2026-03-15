@@ -100,7 +100,7 @@ export async function GET(request: Request) {
             }
         );
 
-        // Fetch up to 10 unpublished pages
+        // Fetch up to 3 unpublished pages
         const pagesToPin = await db()
             .select()
             .from(coloringPage)
@@ -110,7 +110,7 @@ export async function GET(request: Request) {
                     isNull(coloringPage.pinterestPinId)
                 )
             )
-            .limit(10);
+            .limit(3);
 
         if (pagesToPin.length === 0) {
             return NextResponse.json({ message: 'No pages to pin' });
