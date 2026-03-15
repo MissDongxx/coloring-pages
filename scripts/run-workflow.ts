@@ -1,3 +1,11 @@
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Load environment variables from .env BEFORE any other imports to ensure they are available
+// to configurations and modules during their initialization.
+dotenv.config({ path: path.join(process.cwd(), '.env') });
+dotenv.config({ path: path.join(process.cwd(), '.env.local') });
+
 import { parseArgs } from 'util';
 import { getWorkflowService } from '@/shared/services/coloring-workflow';
 import { ColoringJobType } from '@/shared/models/coloring_job';
@@ -7,12 +15,6 @@ import {
   areAllKeywordsProcessed,
   resetAllKeywords,
 } from '@/shared/services/gist-keywords';
-import dotenv from 'dotenv';
-import path from 'path';
-
-// Load environment variables from .env
-dotenv.config({ path: path.join(process.cwd(), '.env') });
-dotenv.config({ path: path.join(process.cwd(), '.env.local') });
 
 async function main() {
     console.log('Starting Coloring Workflow Script...');

@@ -82,9 +82,12 @@ export function getPostgresDb() {
     }
 
     // Create connection pool only once
+    const maxConnections = Number(envConfigs.db_max_connections) || 10;
+    console.log(`[DB] Initializing new connection pool (singleton). Max connections: ${maxConnections}`);
+    
     client = postgres(databaseUrl, {
       prepare: false,
-      max: Number(envConfigs.db_max_connections) || 10, // Increased default connections
+      max: maxConnections, // Increased default connections
       idle_timeout: 60, // Increased idle timeout to reduce reconnections
       connect_timeout: 30, // Increased connection timeout for better reliability
       max_lifetime: 60 * 30, // Connection max lifetime (30 minutes)

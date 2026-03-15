@@ -11,6 +11,7 @@ if (
   try {
     const dotenv = require('dotenv');
     dotenv.config({ path: '.env.development' });
+    dotenv.config({ path: '.env.local', override: true });
     dotenv.config({ path: '.env', override: false });
   } catch (e) {
     // Silently fail - dotenv might not be available in some environments
@@ -45,7 +46,7 @@ export const envConfigs: ConfigMap = {
   // Output folder for drizzle-kit generated migrations
   db_migrations_out:
     process.env.DB_MIGRATIONS_OUT ?? './src/config/db/migrations',
-  db_singleton_enabled: process.env.DB_SINGLETON_ENABLED || 'false',
+  db_singleton_enabled: process.env.DB_SINGLETON_ENABLED || 'true',
   db_max_connections: process.env.DB_MAX_CONNECTIONS || '1',
   auth_url:
     (typeof window !== 'undefined'
