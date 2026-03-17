@@ -26,7 +26,7 @@ export function Image({
   return (
     <LazyImage
       src={value}
-      alt={value}
+      alt="Table image preview"
       width={width}
       height={height}
       className={cn('shrink-0 rounded-md object-cover', className)}

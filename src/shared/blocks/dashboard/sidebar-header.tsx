@@ -27,7 +27,7 @@ export function SidebarHeader({ header }: { header: SidebarHeaderType }) {
                   {header.brand.logo && (
                     <img
                       src={header.brand.logo.src}
-                      alt={header.brand.logo.alt || ''}
+                      alt={header.brand.logo.alt || header.brand.title || 'Logo'}
                       className="h-auto w-8 shrink-0 rounded-md"
                     />
                   )}

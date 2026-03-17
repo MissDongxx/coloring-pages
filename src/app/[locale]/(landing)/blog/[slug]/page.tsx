@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { getThemePage } from '@/core/theme';
 import { envConfigs } from '@/config';
+import { joinUrl } from '@/shared/lib/utils';
 import { Empty } from '@/shared/blocks/common';
 import { getPost } from '@/shared/models/post';
 import { DynamicPage } from '@/shared/types/blocks/landing';
@@ -16,10 +17,12 @@ export async function generateMetadata({
   const { locale, slug } = await params;
   const t = await getTranslations('pages.blog.metadata');
 
-  const canonicalUrl =
-    locale !== envConfigs.locale
-      ? `${envConfigs.app_url}/${locale}/blog/${slug}`
-      : `${envConfigs.app_url}/blog/${slug}`;
+  const canonicalUrl = joinUrl(
+    envConfigs.app_url,
+    locale !== envConfigs.locale ? locale : '',
+    'blog',
+    slug
+  );
 
   const post = await getPost({ slug, locale });
   if (!post) {

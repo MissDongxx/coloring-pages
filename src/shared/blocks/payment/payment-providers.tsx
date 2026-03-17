@@ -133,7 +133,7 @@ export function PaymentProviders({
           {provider.icon_url && (
             <Image
               src={provider.icon_url}
-              alt={provider.title || provider.name || ''}
+              alt={provider.title || provider.name || 'Payment provider logo'}
               width={24}
               height={24}
               className="rounded-full"

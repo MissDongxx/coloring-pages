@@ -124,7 +124,7 @@ export function Hero({
                 <Image
                   className="border-border/25 relative z-2 hidden w-full border dark:block"
                   src={section.image_invert.src}
-                  alt={section.image_invert.alt || section.image?.alt || ''}
+                  alt={section.image_invert.alt || section.image?.alt || section.title || 'Hero image'}
                   width={
                     section.image_invert.width || section.image?.width || 1200
                   }
@@ -142,7 +142,7 @@ export function Hero({
                 <Image
                   className="border-border/25 relative z-2 block w-full border dark:hidden"
                   src={section.image.src}
-                  alt={section.image.alt || section.image_invert?.alt || ''}
+                  alt={section.image.alt || section.image_invert?.alt || section.title || 'Hero image'}
                   width={
                     section.image.width || section.image_invert?.width || 1200
                   }
@@ -166,7 +166,7 @@ export function Hero({
           <div className="from-background/80 via-background/80 to-background absolute inset-0 z-10 bg-gradient-to-b" />
           <Image
             src={section.background_image.src}
-            alt={section.background_image.alt || ''}
+            alt={section.background_image.alt || section.title || 'Background image'}
             className="object-cover opacity-60 blur-[0px]"
             fill
             loading="lazy"

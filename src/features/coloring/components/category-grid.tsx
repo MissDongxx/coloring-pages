@@ -38,7 +38,7 @@ export function CategoryGrid({ categories, hideEmpty = true }: CategoryGridProps
                 {cat.imageSrc ? (
                   <Image
                     src={proxiedSrc}
-                    alt={cat.name}
+                    alt={cat.name || 'Coloring Category'}
                     fill
                     unoptimized={unoptimized}
                     priority={index < 4}

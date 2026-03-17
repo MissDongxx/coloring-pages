@@ -30,7 +30,7 @@ export function HubGrid({ hubs }: HubGridProps) {
                                 {hub.imageSrc ? (
                                     <Image
                                         src={proxiedSrc}
-                                        alt={hub.name}
+                                        alt={hub.name || 'Coloring Hub'}
                                         fill
                                         unoptimized={unoptimized}
                                         priority={index < 4}

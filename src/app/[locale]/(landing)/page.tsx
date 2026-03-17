@@ -19,6 +19,7 @@ import {
   generateFAQSchema,
 } from '@/shared/lib/structured-data';
 import { envConfigs } from '@/config';
+import { joinUrl } from '@/shared/lib/utils';
 
 // Custom icon components
 function PaletteIcon() {
@@ -108,13 +109,13 @@ export default async function LandingPage({
   const collectionSchema = generateCollectionPageSchema({
     name: 'Free Printable Coloring Pages Collection',
     description: 'Browse our collection of free printable coloring pages including animals, princess, cars, holidays and more themes',
-    url: `${siteUrl}/`,
+    url: joinUrl(siteUrl, '/'),
     numberOfItems: popularPages.length + categoryData.length
   });
 
   // Breadcrumb Schema
   const breadcrumbSchema = generateBreadcrumbSchema([
-    { name: 'Home', item: `${siteUrl}/` }
+    { name: 'Home', item: joinUrl(siteUrl, '/') }
   ]);
 
   // FAQ Schema - Use FAQ data from index.json

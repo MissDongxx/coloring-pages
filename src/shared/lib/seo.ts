@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { envConfigs } from '@/config';
 import { defaultLocale } from '@/config/locale';
+import { joinUrl } from './utils';
 
 // get metadata for page component
 export function getMetadata(
@@ -61,10 +62,8 @@ export function getMetadata(
 
     // image url
     let imageUrl = options.imageUrl || envConfigs.app_preview_image;
-    if (imageUrl.startsWith('http')) {
-      imageUrl = imageUrl;
-    } else {
-      imageUrl = `${envConfigs.app_url}${imageUrl}`;
+    if (!imageUrl.startsWith('http')) {
+      imageUrl = joinUrl(envConfigs.app_url, imageUrl);
     }
 
     // app name
@@ -130,27 +129,15 @@ async function getTranslatedMetadata(metadataKey: string, locale: string) {
 }
 
 async function getCanonicalUrl(canonicalUrl: string, locale: string) {
-  if (!canonicalUrl) {
-    canonicalUrl = '/';
+  // Remove leading slash from canonicalUrl to avoid double slashes
+  const urlPath = (canonicalUrl || '/').replace(/^\/+/, '');
+  const localePart = !locale || locale === defaultLocale ? '' : locale;
+
+  let finalUrl = joinUrl(envConfigs.app_url, localePart, urlPath);
+
+  if (locale !== defaultLocale && finalUrl.endsWith('/')) {
+    finalUrl = finalUrl.slice(0, -1);
   }
 
-  if (canonicalUrl.startsWith('http')) {
-    // full url
-    canonicalUrl = canonicalUrl;
-  } else {
-    // relative path
-    if (!canonicalUrl.startsWith('/')) {
-      canonicalUrl = `/${canonicalUrl}`;
-    }
-
-    canonicalUrl = `${envConfigs.app_url}${
-      !locale || locale === defaultLocale ? '' : `/${locale}`
-    }${canonicalUrl}`;
-
-    if (locale !== defaultLocale && canonicalUrl.endsWith('/')) {
-      canonicalUrl = canonicalUrl.slice(0, -1);
-    }
-  }
-
-  return canonicalUrl;
+  return finalUrl;
 }

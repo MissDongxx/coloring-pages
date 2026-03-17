@@ -41,6 +41,7 @@ import {
 } from '@/shared/lib/structured-data';
 import { parseSeoHubSlug, validateSeoHub } from '@/features/coloring/lib/seo-hub';
 import { getPagesForHub, findColoringPage, ColoringPageStatus, findHubBySlugPrefix, getColoringPages, getPagesCountForHub } from '@/shared/models/coloring_page';
+import { joinUrl } from '@/shared/lib/utils';
 
 export const revalidate = 3600;
 
@@ -89,10 +90,11 @@ export async function generateMetadata({
   }
 
   // build canonical url
-  canonicalUrl =
-    locale !== envConfigs.locale
-      ? `${envConfigs.app_url}/${locale}/${staticPageSlug}`
-      : `${envConfigs.app_url}/${staticPageSlug}`;
+  canonicalUrl = joinUrl(
+    envConfigs.app_url,
+    locale !== envConfigs.locale ? locale : '',
+    staticPageSlug
+  );
 
   // get static page content
   const staticPage = await getLocalPage({ slug: staticPageSlug, locale });
@@ -236,7 +238,11 @@ export async function generateMetadata({
     title,
     description,
     alternates: {
-      canonical: canonicalUrl,
+      canonical: joinUrl(
+        envConfigs.app_url,
+        locale !== envConfigs.locale ? locale : '',
+        staticPageSlug
+      ),
     },
   };
 }
@@ -330,7 +336,7 @@ export default async function DynamicPage({
 
       // Generate structured data for SEO
       const siteUrl = envConfigs.app_url || 'https://coloringpages.club';
-      const categoryUrl = `${siteUrl}/${category.slug}`;
+      const categoryUrl = joinUrl(siteUrl, category.slug);
 
       // CategoryPage Schema
       const categorySchema = generateCategoryPageSchema({
@@ -348,7 +354,7 @@ export default async function DynamicPage({
 
       // Breadcrumb Schema
       const breadcrumbSchema = generateBreadcrumbSchema([
-        { name: 'Home', item: `${siteUrl}/` },
+        { name: 'Home', item: joinUrl(siteUrl, '/') },
         { name: category.name, item: categoryUrl }
       ]);
 
@@ -428,7 +434,7 @@ export default async function DynamicPage({
 
         // Generate structured data for SEO
         const siteUrl = envConfigs.app_url || 'https://coloringpages.club';
-        const subCategoryUrl = `${siteUrl}/${parentCat.slug}/${subCat.slug}`;
+        const subCategoryUrl = joinUrl(siteUrl, parentCat.slug, subCat.slug);
 
         // CategoryPage Schema for subcategory
         const subCategorySchema = generateCategoryPageSchema({
@@ -446,8 +452,8 @@ export default async function DynamicPage({
 
         // Breadcrumb Schema
         const breadcrumbSchema = generateBreadcrumbSchema([
-          { name: 'Home', item: `${siteUrl}/` },
-          { name: parentCat.name, item: `${siteUrl}/${parentCat.slug}` },
+          { name: 'Home', item: joinUrl(siteUrl, '/') },
+          { name: parentCat.name, item: joinUrl(siteUrl, parentCat.slug) },
           { name: subCat.name, item: subCategoryUrl }
         ]);
 
@@ -580,7 +586,7 @@ export default async function DynamicPage({
 
     // Generate structured data for SEO
     const siteUrl = envConfigs.app_url || 'https://coloringpages.club';
-    const hubUrl = `${siteUrl}/${slug}`;
+    const hubUrl = joinUrl(siteUrl, slug);
 
     // CategoryPage Schema for SEO Hub
     const hubSchema = generateCategoryPageSchema({
@@ -597,14 +603,15 @@ export default async function DynamicPage({
     });
 
     // Breadcrumb Schema
-    const breadcrumbItems = [
-      { name: 'Home', item: `${siteUrl}/` }
-    ];
+    breadcrumbItems.push({
+      name: 'Home',
+      item: joinUrl(siteUrl, '/')
+    });
 
     if (modifier) {
       breadcrumbItems.push({
         name: root.charAt(0).toUpperCase() + root.slice(1),
-        item: `${siteUrl}/${normalizedRoot}-coloring-pages`
+        item: joinUrl(siteUrl, `${normalizedRoot}-coloring-pages`)
       });
     }
 
@@ -806,15 +813,15 @@ export default async function DynamicPage({
     });
 
     // Breadcrumb Schema
-    const breadcrumbItems = [
-      { name: 'Home', item: `${siteUrl}/` }
+    const breadcrumbItems: any[] = [
+      { name: 'Home', item: joinUrl(siteUrl, '/') }
     ];
 
     // Add category if it exists
     if (currentCategory) {
       breadcrumbItems.push({
         name: currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1),
-        item: `${siteUrl}/${currentCategory}`
+        item: joinUrl(siteUrl, currentCategory)
       });
     }
 

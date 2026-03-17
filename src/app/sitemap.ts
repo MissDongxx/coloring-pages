@@ -3,15 +3,14 @@ import { MetadataRoute } from 'next';
 import { db } from '@/core/db';
 import { coloringPage, post } from '@/config/db/schema';
 import { envConfigs } from '@/config';
+import { joinUrl } from '@/shared/lib/utils';
 import { eq } from 'drizzle-orm';
 import { getAllCategories } from '@/features/coloring/lib/data';
 
 const MAX_SITEMAP_URLS = 1000; // Limit to 1000 URLs for better performance
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const appUrl = envConfigs.app_url || 'https://coloringpages.club';
-  const baseUrlString = appUrl.endsWith('/') ? appUrl.slice(0, -1) : appUrl;
-  const baseUrl = new URL(baseUrlString);
+  const baseUrl = envConfigs.app_url || 'https://coloringpages.club';
   const defaultLocale = envConfigs.locale || 'en';
 
   const routes: MetadataRoute.Sitemap = [];
@@ -19,37 +18,37 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static routes - high priority
   routes.push(
     {
-      url: baseUrl.href,
+      url: baseUrl,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 1,
     },
     {
-      url: `${baseUrl.href}${defaultLocale}`,
+      url: joinUrl(baseUrl, defaultLocale),
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 1,
     },
     {
-      url: `${baseUrl.href}blog`,
+      url: joinUrl(baseUrl, 'blog'),
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.9,
     },
     {
-      url: `${baseUrl.href}${defaultLocale}/blog`,
+      url: joinUrl(baseUrl, defaultLocale, 'blog'),
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.9,
     },
     {
-      url: `${baseUrl.href}categories`,
+      url: joinUrl(baseUrl, 'categories'),
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.8,
     },
     {
-      url: `${baseUrl.href}${defaultLocale}/categories`,
+      url: joinUrl(baseUrl, defaultLocale, 'categories'),
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.8,
@@ -78,14 +77,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       for (const post of publishedPosts) {
         if (routes.length >= MAX_SITEMAP_URLS) break;
         routes.push({
-          url: `${baseUrl.href}blog/${post.slug}`,
+          url: joinUrl(baseUrl, 'blog', post.slug),
           lastModified: post.updatedAt,
           changeFrequency: 'weekly',
           priority: 0.7,
         });
         if (routes.length >= MAX_SITEMAP_URLS) break;
         routes.push({
-          url: `${baseUrl.href}${defaultLocale}/blog/${post.slug}`,
+          url: joinUrl(baseUrl, defaultLocale, 'blog', post.slug),
           lastModified: post.updatedAt,
           changeFrequency: 'weekly',
           priority: 0.7,
@@ -106,14 +105,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       for (const page of publishedPages) {
         if (routes.length >= MAX_SITEMAP_URLS) break;
         routes.push({
-          url: `${baseUrl.href}${page.slug}`,
+          url: joinUrl(baseUrl, page.slug),
           lastModified: page.updatedAt,
           changeFrequency: 'monthly',
           priority: 0.6,
         });
         if (routes.length >= MAX_SITEMAP_URLS) break;
         routes.push({
-          url: `${baseUrl.href}${defaultLocale}/${page.slug}`,
+          url: joinUrl(baseUrl, defaultLocale, page.slug),
           lastModified: page.updatedAt,
           changeFrequency: 'monthly',
           priority: 0.6,
@@ -131,7 +130,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       for (const cat of categories) {
         if (routes.length >= MAX_SITEMAP_URLS) break;
         routes.push({
-          url: `${baseUrl.href}${cat.slug}`,
+          url: joinUrl(baseUrl, cat.slug),
           lastModified: new Date(),
           changeFrequency: 'weekly',
           priority: 0.8,

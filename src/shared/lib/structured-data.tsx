@@ -1,4 +1,5 @@
 import { envConfigs } from '@/config';
+import { joinUrl } from './utils';
 
 interface WebSiteSchema {
   name: string;
@@ -61,7 +62,7 @@ export function generateWebSiteSchema({ name, url, description }: WebSiteSchema)
       '@type': 'SearchAction',
       target: {
         '@type': 'EntryPoint',
-        urlTemplate: `${url}/themes?q={search_term_string}`
+        urlTemplate: joinUrl(url, 'themes?q={search_term_string}')
       },
       'query-input': 'required name=search_term_string'
     }
@@ -180,7 +181,7 @@ export function generateItemListSchema({
       '@type': 'ListItem',
       position: index + 1,
       name: item.name,
-      url: item.url.startsWith('http') ? item.url : `${url}${item.url}`,
+      url: item.url.startsWith('http') ? item.url : joinUrl(url, item.url),
       ...(item.image && { image: item.image }),
       ...(item.description && { description: item.description })
     }))
@@ -263,7 +264,7 @@ export function generateCategoryPageSchema({
         '@type': 'ListItem',
         position: index + 1,
         name: item.name,
-        url: item.url.startsWith('http') ? item.url : `${url}${item.url}`,
+        url: item.url.startsWith('http') ? item.url : joinUrl(url, item.url),
         ...(item.image && { image: item.image })
       }))
     }

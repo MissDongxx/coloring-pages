@@ -910,8 +910,8 @@ export function ImageGenerator({
                       <div className="absolute inset-0 border-[3px] border-dashed border-[#2c3f30] rounded-xl pointer-events-none z-20" style={{ transform: 'rotate(-1deg)' }}></div>
                       <div className="absolute inset-0 border-[3px] border-dashed border-[#2c3f30] rounded-xl pointer-events-none z-20" style={{ transform: 'rotate(1deg)' }}></div>
                       <div className="relative w-full h-full rounded-xl overflow-hidden group border border-[#2c3f30]">
-                        <img src={activePreview.photo} className="absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-300 group-hover:opacity-0" alt="Original Photo" />
-                        <img src={activePreview.lineart} className="absolute inset-0 w-full h-full object-cover bg-white" alt="Coloring Page" />
+                        <img src={activePreview.photo} className="absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-300 group-hover:opacity-0" alt="Original photo to be converted to coloring page" />
+                        <img src={activePreview.lineart} className="absolute inset-0 w-full h-full object-cover bg-white" alt="Generated coloring page preview" />
                       </div>
                       <button className="absolute -top-1 -right-1 z-30 bg-[#f87864] text-white rounded-full p-1.5 shadow-md hover:bg-red-500 hover:scale-105 transition-transform border border-white">
                         <X className="w-4 h-4 stroke-[3]" />

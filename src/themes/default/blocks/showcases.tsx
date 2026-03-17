@@ -135,7 +135,7 @@ export function Showcases({
                     >
                       <Image
                         src={item.image?.src ?? ''}
-                        alt={item.image?.alt ?? ''}
+                        alt={item.image?.alt || item.title || 'Showcase image'}
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         fill
                         className="rounded-t-lg object-cover transition-transform duration-300"
