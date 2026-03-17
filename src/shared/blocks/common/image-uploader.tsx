@@ -503,7 +503,7 @@ export function ImageUploader({
             <div className="relative w-full h-20 flex items-center justify-center">
               <img
                 src={item.preview}
-                alt="Reference"
+                alt="Uploaded image preview"
                 className="max-h-full max-w-full object-contain"
               />
               {item.status === 'uploading' && (
