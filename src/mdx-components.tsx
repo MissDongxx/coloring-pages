@@ -51,6 +51,7 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
         <img
           {...props}
           src={imageSrc}
+          alt={props.alt || 'Coloring page illustration'}
           className={cn('rounded-lg border', props.className)}
           style={{ maxWidth: '100%', height: 'auto' }}
         />

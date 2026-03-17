@@ -603,10 +603,9 @@ export default async function DynamicPage({
     });
 
     // Breadcrumb Schema
-    breadcrumbItems.push({
-      name: 'Home',
-      item: joinUrl(siteUrl, '/')
-    });
+    const breadcrumbItems: any[] = [
+      { name: 'Home', item: joinUrl(siteUrl, '/') }
+    ];
 
     if (modifier) {
       breadcrumbItems.push({
