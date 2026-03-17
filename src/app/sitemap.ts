@@ -4,19 +4,20 @@ import { db } from '@/core/db';
 import { coloringPage, post } from '@/config/db/schema';
 import { envConfigs } from '@/config';
 import { eq } from 'drizzle-orm';
-import { getAllPageSlugs, getAllCategories } from '@/features/coloring/lib/data';
+import { getAllCategories } from '@/features/coloring/lib/data';
+
+const MAX_SITEMAP_URLS = 1000; // Limit to 1000 URLs for better performance
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const appUrl = envConfigs.app_url || 'https://coloringpages.club';
-  // Remove trailing slash to avoid double slashes
   const baseUrlString = appUrl.endsWith('/') ? appUrl.slice(0, -1) : appUrl;
   const baseUrl = new URL(baseUrlString);
-
-  // Get default locale from config
   const defaultLocale = envConfigs.locale || 'en';
 
-  // Static routes - include both root and default locale paths
-  const staticRoutes: MetadataRoute.Sitemap = [
+  const routes: MetadataRoute.Sitemap = [];
+
+  // Static routes - high priority
+  routes.push(
     {
       url: baseUrl.href,
       lastModified: new Date(),
@@ -33,46 +34,38 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl.href}blog`,
       lastModified: new Date(),
       changeFrequency: 'daily',
-      priority: 0.8,
+      priority: 0.9,
     },
     {
       url: `${baseUrl.href}${defaultLocale}/blog`,
       lastModified: new Date(),
       changeFrequency: 'daily',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl.href}showcases`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl.href}${defaultLocale}/showcases`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.7,
+      priority: 0.9,
     },
     {
       url: `${baseUrl.href}categories`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
-      priority: 0.6,
+      priority: 0.8,
     },
     {
       url: `${baseUrl.href}${defaultLocale}/categories`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
-      priority: 0.6,
-    },
-  ];
+      priority: 0.8,
+    }
+  );
 
-  // Dynamic routes - only fetch if database is configured
-  const dynamicRoutes: MetadataRoute.Sitemap = [];
+  // Early return if we've hit the limit
+  if (routes.length >= MAX_SITEMAP_URLS) {
+    return routes.slice(0, MAX_SITEMAP_URLS);
+  }
 
+  // Dynamic routes - only if database configured
   if (envConfigs.database_url) {
     try {
-      // Get published blog posts
+      // Limit blog posts to keep sitemap small
+      const BLOG_LIMIT = Math.min(200, (MAX_SITEMAP_URLS - routes.length) / 2);
       const publishedPosts = await db()
         .select({
           slug: post.slug,
@@ -80,25 +73,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         })
         .from(post)
         .where(eq(post.status, 'published'))
-        .limit(5000);
+        .limit(BLOG_LIMIT);
 
       for (const post of publishedPosts) {
-        // Add both without locale and with default locale
-        dynamicRoutes.push({
+        if (routes.length >= MAX_SITEMAP_URLS) break;
+        routes.push({
           url: `${baseUrl.href}blog/${post.slug}`,
           lastModified: post.updatedAt,
           changeFrequency: 'weekly',
-          priority: 0.6,
+          priority: 0.7,
         });
-        dynamicRoutes.push({
+        if (routes.length >= MAX_SITEMAP_URLS) break;
+        routes.push({
           url: `${baseUrl.href}${defaultLocale}/blog/${post.slug}`,
           lastModified: post.updatedAt,
           changeFrequency: 'weekly',
-          priority: 0.6,
+          priority: 0.7,
         });
       }
 
-      // Get published coloring pages
+      // Limit coloring pages
+      const PAGES_LIMIT = Math.min(200, (MAX_SITEMAP_URLS - routes.length) / 2);
       const publishedPages = await db()
         .select({
           slug: coloringPage.slug,
@@ -106,21 +101,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         })
         .from(coloringPage)
         .where(eq(coloringPage.status, 'published'))
-        .limit(5000);
+        .limit(PAGES_LIMIT);
 
       for (const page of publishedPages) {
-        // Add both without locale and with default locale
-        dynamicRoutes.push({
+        if (routes.length >= MAX_SITEMAP_URLS) break;
+        routes.push({
           url: `${baseUrl.href}${page.slug}`,
           lastModified: page.updatedAt,
           changeFrequency: 'monthly',
-          priority: 0.5,
+          priority: 0.6,
         });
-        dynamicRoutes.push({
+        if (routes.length >= MAX_SITEMAP_URLS) break;
+        routes.push({
           url: `${baseUrl.href}${defaultLocale}/${page.slug}`,
           lastModified: page.updatedAt,
           changeFrequency: 'monthly',
-          priority: 0.5,
+          priority: 0.6,
         });
       }
     } catch (error) {
@@ -128,40 +124,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  // Static coloring pages from all-pages.json + category pages
-  const staticColoringRoutes: MetadataRoute.Sitemap = [];
-
-  // Deduplicate: collect slugs already in dynamicRoutes
-  const existingSlugs = new Set(dynamicRoutes.map(r => {
-    const url = new URL(r.url);
-    return url.pathname.replace(/^\//, '').replace(/\/$/, '');
-  }));
-
-  // Add all static coloring page slugs
-  const allSlugs = getAllPageSlugs();
-  for (const slug of allSlugs) {
-    if (!existingSlugs.has(slug)) {
-      staticColoringRoutes.push({
-        url: `${baseUrl.href}${slug}`,
-        lastModified: new Date(),
-        changeFrequency: 'monthly',
-        priority: 0.5,
-      });
+  // Add category pages (higher priority than individual pages)
+  if (routes.length < MAX_SITEMAP_URLS) {
+    try {
+      const categories = getAllCategories();
+      for (const cat of categories) {
+        if (routes.length >= MAX_SITEMAP_URLS) break;
+        routes.push({
+          url: `${baseUrl.href}${cat.slug}`,
+          lastModified: new Date(),
+          changeFrequency: 'weekly',
+          priority: 0.8,
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching categories for sitemap:', error);
     }
   }
 
-  // Add category pages
-  const categories = getAllCategories();
-  for (const cat of categories) {
-    if (!existingSlugs.has(cat.slug)) {
-      staticColoringRoutes.push({
-        url: `${baseUrl.href}${cat.slug}`,
-        lastModified: new Date(),
-        changeFrequency: 'weekly',
-        priority: 0.7,
-      });
-    }
-  }
-
-  return [...staticRoutes, ...dynamicRoutes, ...staticColoringRoutes];
+  return routes;
 }
