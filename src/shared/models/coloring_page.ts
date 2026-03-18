@@ -19,21 +19,49 @@ export enum ColoringPageStatus {
 
 // Copyright-related keywords to exclude from hubs
 const EXCLUDED_HUB_KEYWORDS = [
+  // Sanrio
   'hello kitty', 'kuromi', 'my melody', 'cinnamoroll', 'pompompurin',
-  'mickey mouse', 'minnie mouse', 'donald duck', 'winnie the pooh',
-  'elsa', 'anna', 'moana', 'ariel', 'belle', 'cinderella', 'jasmine',
-  'peppa pig', 'george pig',
-  'paw patrol', 'chase', 'marshall',
-  'spider-man', 'spiderman', 'batman', 'superman', 'iron man',
-  'pokemon', 'pikachu', 'charizard',
-  'spongebob', 'patrick',
-  'barbie', 'ken',
+  'kerokerokeroppi', 'bad badtz-maru', 'little twin stars', 'pochacco',
+  'tuxedosam', 'hangyodon', 'osaru no monichi', 'chococat', 'spottie dottie', 'purin', 'dearluna',
+  'sanrio',
+  // Disney
+  'mickey mouse', 'minnie mouse', 'donald duck', 'goofy', 'pluto', 'daisy duck',
+  'chip and dale', 'winnie the pooh', 'tigger', 'piglet', 'eeyore', 'rabbit', 'roo', 'lumpy',
+  'elsa', 'anna', 'olaf', 'moana', 'maui', 'ariel', 'belle', 'cinderella', 'snow white',
+  'jasmine', 'aurora', 'rapunzel', 'tiana', 'merida', 'pocahontas', 'mulan', 'sleeping beauty',
+  'disney', 'pixar',
+  // Peppa Pig
+  'peppa pig', 'george pig', 'suzy sheep', 'rebecca rabbit', 'danny dog', 'candy cat',
+  'pedro pony', 'emily elephant', 'edmond elephant', 'richard rabbit', 'freddy fox',
+  'wendy wolf', 'gabriella goat', 'kylie kangaroo', 'gerald giraffe',
+  // Paw Patrol
+  'paw patrol', 'chase', 'marshall', 'rubble', 'sky', 'rocky', 'zuma', 'everest', 'tracker', 'ryder',
+  // Marvel/DC
+  'spider-man', 'spiderman', 'batman', 'superman', 'wonder woman', 'iron man',
+  'captain america', 'thor', 'hulk', 'black widow', 'hawkeye', 'black panther',
+  'doctor strange', 'scarlet witch', 'ant-man', 'wasp', 'flash', 'aquaman', 'cyborg',
+  'marvel', 'dc',
+  // Others
+  'spongebob', 'patrick', 'squidward', 'sandy', 'mr krabs', 'plankton',
+  'pokemon', 'pikachu', 'charizard', 'mewtwo', 'eevee', 'snorlax', 'gengar',
+  'lucario', 'mew', 'gyarados', 'dragonite', 'blastoise', 'venusaur', 'greninja',
+  'ash ketchum', 'team rocket',
+  'barbie', 'ken', 'skipper', 'stacie', 'chelsea', 'raquelle', 'ryan',
   'rainbow friends',
-  'totoro', 'chihiro', 'howl',
-  'doraemon', 'naruto',
-  'dragon ball', 'goku',
+  'totoro', 'chihiro', 'howl', 'ponyo', 'mononoke', 'haku', 'calcifer', 'no-face', 'kiki', 'jiji',
+  'doraemon', 'nobita', 'shizuka', 'takeshi', 'suneo',
+  'crayon shin-chan', 'shinchan',
+  'naruto', 'sasuke', 'sakura', 'kakashi',
+  'dragon ball', 'goku', 'vegeta', 'bulma', 'piccolo', 'gohan', 'trunks', 'frieza', 'cell', 'buu',
   'thomas', 'bob the builder',
-  'sanrio', 'disney', 'marvel', 'dc', 'pixar', 'dreamworks'
+  'dreamworks',
+  // Games
+  'minecraft', 'fortnite', 'roblox', 'among us', 'fnaf', 'five nights at freddys',
+  'league of legends', 'lol', 'genshin impact', 'genshin', 'honkai', 'valorant',
+  'overwatch', 'call of duty', 'cod', 'gta', 'zelda', 'mario', 'luigi', 'princess peach',
+  'sonic', 'pac-man', 'pacman', 'tetris', 'angry birds', 'subway surfers', 'candy crush',
+  // Pop Culture/Toys
+  'labubu', 'pop mart', 'skullpanda', 'hirono', 'dimoo', 'molly'
 ];
 
 /**

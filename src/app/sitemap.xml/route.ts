@@ -3,13 +3,60 @@ import { db } from '@/core/db';
 import { coloringPage, post } from '@/config/db/schema';
 import { envConfigs } from '@/config';
 import { joinUrl } from '@/shared/lib/utils';
-import { eq } from 'drizzle-orm';
+import { eq, or, ilike, and, not } from 'drizzle-orm';
 import { getAllCategories } from '@/features/coloring/lib/data';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const MAX_SITEMAP_URLS = 1000;
+
+// Copyright-related keywords to exclude from sitemap
+const EXCLUDED_HUB_KEYWORDS = [
+  // Sanrio
+  'hello kitty', 'kuromi', 'my melody', 'cinnamoroll', 'pompompurin',
+  'kerokerokeroppi', 'bad badtz-maru', 'little twin stars', 'pochacco',
+  'tuxedosam', 'hangyodon', 'osaru no monichi', 'chococat', 'spottie dottie', 'purin', 'dearluna',
+  'sanrio',
+  // Disney
+  'mickey mouse', 'minnie mouse', 'donald duck', 'goofy', 'pluto', 'daisy duck',
+  'chip and dale', 'winnie the pooh', 'tigger', 'piglet', 'eeyore', 'rabbit', 'roo', 'lumpy',
+  'elsa', 'anna', 'olaf', 'moana', 'maui', 'ariel', 'belle', 'cinderella', 'snow white',
+  'jasmine', 'aurora', 'rapunzel', 'tiana', 'merida', 'pocahontas', 'mulan', 'sleeping beauty',
+  'disney', 'pixar',
+  // Peppa Pig
+  'peppa pig', 'george pig', 'suzy sheep', 'rebecca rabbit', 'danny dog', 'candy cat',
+  'pedro pony', 'emily elephant', 'edmond elephant', 'richard rabbit', 'freddy fox',
+  'wendy wolf', 'gabriella goat', 'kylie kangaroo', 'gerald giraffe',
+  // Paw Patrol
+  'paw patrol', 'chase', 'marshall', 'rubble', 'sky', 'rocky', 'zuma', 'everest', 'tracker', 'ryder',
+  // Marvel/DC
+  'spider-man', 'spiderman', 'batman', 'superman', 'wonder woman', 'iron man',
+  'captain america', 'thor', 'hulk', 'black widow', 'hawkeye', 'black panther',
+  'doctor strange', 'scarlet witch', 'ant-man', 'wasp', 'flash', 'aquaman', 'cyborg',
+  'marvel', 'dc',
+  // Others
+  'spongebob', 'patrick', 'squidward', 'sandy', 'mr krabs', 'plankton',
+  'pokemon', 'pikachu', 'charizard', 'mewtwo', 'eevee', 'snorlax', 'gengar',
+  'lucario', 'mew', 'gyarados', 'dragonite', 'blastoise', 'venusaur', 'greninja',
+  'ash ketchum', 'team rocket',
+  'barbie', 'ken', 'skipper', 'stacie', 'chelsea', 'raquelle', 'ryan',
+  'rainbow friends',
+  'totoro', 'chihiro', 'howl', 'ponyo', 'mononoke', 'haku', 'calcifer', 'no-face', 'kiki', 'jiji',
+  'doraemon', 'nobita', 'shizuka', 'takeshi', 'suneo',
+  'crayon shin-chan', 'shinchan',
+  'naruto', 'sasuke', 'sakura', 'kakashi',
+  'dragon ball', 'goku', 'vegeta', 'bulma', 'piccolo', 'gohan', 'trunks', 'frieza', 'cell', 'buu',
+  'thomas', 'bob the builder',
+  'dreamworks',
+  // Games
+  'minecraft', 'fortnite', 'roblox', 'among us', 'fnaf', 'five nights at freddys',
+  'league of legends', 'lol', 'genshin impact', 'genshin', 'honkai', 'valorant',
+  'overwatch', 'call of duty', 'cod', 'gta', 'zelda', 'mario', 'luigi', 'princess peach',
+  'sonic', 'pac-man', 'pacman', 'tetris', 'angry birds', 'subway surfers', 'candy crush',
+  // Pop Culture/Toys
+  'labubu', 'pop mart', 'skullpanda', 'hirono', 'dimoo', 'molly'
+];
 
 interface SitemapEntry {
   url: string;
@@ -101,14 +148,29 @@ async function getSitemapEntries(): Promise<SitemapEntry[]> {
       }
 
       // Limit coloring pages
+      // Exclude IP/copyright-related pages
       const PAGES_LIMIT = Math.min(200, (MAX_SITEMAP_URLS - entries.length) / 2);
+      const ipExclusionConditions = EXCLUDED_HUB_KEYWORDS.flatMap(keyword => [
+        ilike(coloringPage.rootKeyword, `%${keyword}%`),
+        ilike(coloringPage.keyword, `%${keyword}%`)
+      ]);
+
+      // Build where conditions, filter out undefined
+      const whereConditions = [eq(coloringPage.status, 'published')];
+      if (ipExclusionConditions.length > 0) {
+        const orCondition = or(...ipExclusionConditions);
+        if (orCondition) {
+          whereConditions.push(not(orCondition));
+        }
+      }
+
       const publishedPages = await db()
         .select({
           slug: coloringPage.slug,
           updatedAt: coloringPage.updatedAt,
         })
         .from(coloringPage)
-        .where(eq(coloringPage.status, 'published'))
+        .where(and(...whereConditions))
         .limit(PAGES_LIMIT);
 
       for (const page of publishedPages) {
