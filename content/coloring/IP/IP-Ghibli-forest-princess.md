@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Ghibli Forest Princess Coloring Page"
 slug: "IP-Ghibli-forest-princess"
 description: "Free printable Ghibli Forest Princess coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Ghibli-forest-princess/"
 publishDate: "2026-02-04T00:44:16.239446"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Ghibli Forest Princess Coloring Page
 

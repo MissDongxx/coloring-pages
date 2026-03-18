@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Scifi Desert Walker Coloring Page"
 slug: "IP-SciFi-desert-walker"
 description: "Free printable Scifi Desert Walker coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-SciFi-desert-walker/"
 publishDate: "2026-02-04T00:44:16.184372"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Scifi Desert Walker Coloring Page
 

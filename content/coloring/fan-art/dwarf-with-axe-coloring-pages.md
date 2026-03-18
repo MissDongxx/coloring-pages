@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Free Printable dwarf warrior Coloring Pages for Kids - ColoringPages.club"
 slug: "dwarf-with-axe-coloring-pages"
 description: "Free printable dwarf warrior coloring pages for kids. Download fantasy coloring pages, perfect for toddlers, preschoolers, and children."
@@ -17,6 +18,7 @@ canonical: "https://coloringpages.club/dwarf-with-axe-coloring-pages"
 publishDate: "2026-02-03T15:25:25.820Z"
 author: "Coloring Pages Club"
 ---
+noindex: true
 # Free Printable dwarf warrior Coloring Pages
 
 Discover our collection of free printable dwarf warrior coloring pages for kids. These dwarf warrior coloring sheets are perfect for children who love ip_fantasy.

@@ -77,9 +77,13 @@ export default async function LandingPage({
   const popularPages = getPopularPages(12);
   const popularHubs = await getPopularHubs(16);
 
+  // 过滤掉版权相关的分类（IP, fan-art）
+  const EXCLUDED_SLUGS = ['ip', 'fan-art', 'IP', 'fan-art'];
+  const filteredCategories = categories.filter(cat => !EXCLUDED_SLUGS.includes(cat.slug));
+
   // 只显示前8个分类
-  const displayCategories = categories.slice(0, 8);
-  const showMoreButton = categories.length > 8;
+  const displayCategories = filteredCategories.slice(0, 8);
+  const showMoreButton = filteredCategories.length > 8;
 
   // 转换为 CategoryGrid 需要的格式，包含 icon 和 preview
   const categoryData = displayCategories.map((cat) => ({

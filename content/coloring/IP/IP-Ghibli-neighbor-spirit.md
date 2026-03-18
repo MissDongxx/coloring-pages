@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Ghibli Neighbor Spirit Coloring Page"
 slug: "IP-Ghibli-neighbor-spirit"
 description: "Free printable Ghibli Neighbor Spirit coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Ghibli-neighbor-spirit/"
 publishDate: "2026-02-04T00:44:16.184224"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Ghibli Neighbor Spirit Coloring Page
 

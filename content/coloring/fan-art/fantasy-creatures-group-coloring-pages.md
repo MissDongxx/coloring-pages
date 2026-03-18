@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Free Printable monster group Coloring Pages for Kids - ColoringPages.club"
 slug: "fantasy-creatures-group-coloring-pages"
 description: "Free printable monster group coloring pages for kids. Download coloring pages, perfect for toddlers, preschoolers, and children."
@@ -17,6 +18,7 @@ canonical: "https://coloringpages.club/fantasy-creatures-group-coloring-pages"
 publishDate: "2026-02-03T15:25:25.818Z"
 author: "Coloring Pages Club"
 ---
+noindex: true
 # Free Printable monster group Coloring Pages
 
 Discover our collection of free printable monster group coloring pages for kids. These monster group coloring sheets are perfect for children who love ip_monsters.

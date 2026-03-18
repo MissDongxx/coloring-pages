@@ -45,6 +45,49 @@ import { joinUrl } from '@/shared/lib/utils';
 
 export const revalidate = 3600;
 
+/**
+ * Check if a page should be noindexed based on slug patterns
+ * This handles copyright-related content that should be hidden from search engines
+ */
+function shouldNoindex(slug: string): boolean {
+  const lowerSlug = slug.toLowerCase();
+
+  // Check for IP-related slugs
+  if (lowerSlug.startsWith('ip-')) {
+    return true;
+  }
+
+  // Check for fan-art related slugs
+  if (lowerSlug.includes('beauty-and-beast') ||
+      lowerSlug.includes('glass-slipper') ||
+      lowerSlug.includes('ice-palace') ||
+      lowerSlug.includes('mermaid-princess') ||
+      lowerSlug.includes('genie-lamp') ||
+      lowerSlug.includes('electric-mouse') ||
+      lowerSlug.includes('fire-breathing-lizard') ||
+      lowerSlug.includes('sleeping-bear-creature') ||
+      lowerSlug.includes('water-turtle') ||
+      lowerSlug.includes('iron-armor') ||
+      lowerSlug.includes('dark-knight') ||
+      lowerSlug.includes('web-swinging') ||
+      lowerSlug.includes('thunder-hero') ||
+      lowerSlug.includes('shield-hero') ||
+      lowerSlug.includes('space-soldier') ||
+      lowerSlug.includes('cute-alien') ||
+      lowerSlug.includes('dark-villain-helmet') ||
+      lowerSlug.includes('four-legged-walker') ||
+      lowerSlug.includes('spaceship')) {
+    return true;
+  }
+
+  // Check for categories IP and fan-art
+  if (lowerSlug === 'ip' || lowerSlug === 'fan-art') {
+    return true;
+  }
+
+  return false;
+}
+
 // Generate static params for coloring pages
 export async function generateStaticParams() {
   const coloringSlugs = getAllPageSlugs();
@@ -104,13 +147,23 @@ export async function generateMetadata({
     title = staticPage.title || '';
     description = staticPage.description || '';
 
-    return {
+    const metadata: any = {
       title,
       description,
       alternates: {
         canonical: canonicalUrl,
       },
     };
+
+    // Add noindex if specified in frontmatter
+    if (staticPage.noindex) {
+      metadata.robots = {
+        index: false,
+        follow: false,
+      };
+    }
+
+    return metadata;
   }
 
   // 2. static page not found, try to get category or subcategory metadata
@@ -118,16 +171,29 @@ export async function generateMetadata({
   const isCategory = parts.length === 1;
   const isSubCategory = parts.length === 2;
 
+  // Check if this page should be noindexed
+  const isNoindexPage = shouldNoindex(staticPageSlug);
+
   if (isCategory) {
     const category = getCategoryBySlug(parts[0]);
     if (category) {
-      return {
+      const metadata: any = {
         title: `${category.name} Coloring Pages - Free Printable`,
         description: category.description,
         alternates: {
           canonical: canonicalUrl,
         },
       };
+
+      // Add noindex for copyright-related categories
+      if (isNoindexPage) {
+        metadata.robots = {
+          index: false,
+          follow: false,
+        };
+      }
+
+      return metadata;
     }
   }
 
@@ -136,13 +202,23 @@ export async function generateMetadata({
     if (parentCat && parentCat.subCategories) {
       const subCat = parentCat.subCategories.find((s) => s.slug === parts[1]);
       if (subCat) {
-        return {
+        const metadata: any = {
           title: `${subCat.name} Coloring Pages - Free Printable`,
           description: subCat.description,
           alternates: {
             canonical: canonicalUrl,
           },
         };
+
+        // Add noindex for copyright-related subcategories
+        if (isNoindexPage) {
+          metadata.robots = {
+            index: false,
+            follow: false,
+          };
+        }
+
+        return metadata;
       }
     }
   }
@@ -154,11 +230,21 @@ export async function generateMetadata({
       ? `${seoHubMatch.modifier.charAt(0).toUpperCase() + seoHubMatch.modifier.slice(1)} ${seoHubMatch.root.charAt(0).toUpperCase() + seoHubMatch.root.slice(1)} Coloring Pages`
       : `${seoHubMatch.root.charAt(0).toUpperCase() + seoHubMatch.root.slice(1)} Coloring Pages`;
 
-    return {
+    const metadata: any = {
       title: `${hubTitle} - Free Printable`,
       description: `Discover free printable ${seoHubMatch.modifier ? seoHubMatch.modifier + ' ' : ''}${seoHubMatch.root} coloring pages for kids and adults.`,
       alternates: { canonical: canonicalUrl }
     };
+
+    // Add noindex for copyright-related hubs
+    if (isNoindexPage) {
+      metadata.robots = {
+        index: false,
+        follow: false,
+      };
+    }
+
+    return metadata;
   }
 
   // 4. Check for Static coloring page
@@ -168,7 +254,7 @@ export async function generateMetadata({
     // Check DB for Longtail coloring page
     const dbPage = await findColoringPage({ slug: staticPageSlug, status: ColoringPageStatus.PUBLISHED });
     if (dbPage) {
-      return {
+      const metadata: any = {
         title: dbPage.title,
         description: dbPage.description || '',
         openGraph: {
@@ -178,6 +264,16 @@ export async function generateMetadata({
         },
         alternates: { canonical: canonicalUrl },
       };
+
+      // Add noindex for copyright-related pages
+      if (isNoindexPage) {
+        metadata.robots = {
+          index: false,
+          follow: false,
+        };
+      }
+
+      return metadata;
     }
   }
 
@@ -185,7 +281,7 @@ export async function generateMetadata({
     title = coloringPage.title || '';
     description = coloringPage.description || '';
 
-    return {
+    const metadata: any = {
       title,
       description,
       openGraph: {
@@ -197,6 +293,16 @@ export async function generateMetadata({
         canonical: canonicalUrl,
       },
     };
+
+    // Add noindex for copyright-related pages
+    if (isNoindexPage) {
+      metadata.robots = {
+        index: false,
+        follow: false,
+      };
+    }
+
+    return metadata;
   }
 
   // 3. coloring page not found, try to get dynamic page metadata from
@@ -396,6 +502,7 @@ export default async function DynamicPage({
             <CategoryGrid
               categories={getAllCategories()
                 .filter((c) => c.slug !== category.slug)
+                .filter((c) => !['ip', 'fan-art', 'IP', 'fan-art'].includes(c.slug))
                 .slice(0, 4)
                 .map((cat) => ({
                   name: cat.name,
@@ -497,6 +604,7 @@ export default async function DynamicPage({
               <CategoryGrid
                 categories={getAllCategories()
                   .filter((c) => c.slug !== parentCat.slug)
+                  .filter((c) => !['ip', 'fan-art', 'IP', 'fan-art'].includes(c.slug))
                   .slice(0, 4)
                   .map((cat) => ({
                     name: cat.name,
@@ -574,6 +682,7 @@ export default async function DynamicPage({
 
     // Get cross-category links for internal linking
     const hubCategories = getAllCategories()
+      .filter((c) => !['ip', 'fan-art', 'IP', 'fan-art'].includes(c.slug))
       .slice(0, 6)
       .map(c => ({ name: c.name, slug: c.slug, icon: c.icon, count: c.count, imageSrc: getRandomCategoryCover(c.slug) }));
 

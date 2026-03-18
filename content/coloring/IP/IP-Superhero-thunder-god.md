@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Superhero Thunder God Coloring Page"
 slug: "IP-Superhero-thunder-god"
 description: "Free printable Superhero Thunder God coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Superhero-thunder-god/"
 publishDate: "2026-02-04T00:44:16.247032"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Superhero Thunder God Coloring Page
 

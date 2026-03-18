@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Fantasy Hobbit Hole Coloring Page"
 slug: "IP-Fantasy-hobbit-hole"
 description: "Free printable Fantasy Hobbit Hole coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Fantasy-hobbit-hole/"
 publishDate: "2026-02-04T00:44:16.209286"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Fantasy Hobbit Hole Coloring Page
 

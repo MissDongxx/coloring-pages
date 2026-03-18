@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Fairytale Mermaid Under Sea Coloring Page"
 slug: "IP-Fairytale-mermaid-under-sea"
 description: "Free printable Fairytale Mermaid Under Sea coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Fairytale-mermaid-under-sea/"
 publishDate: "2026-02-04T00:44:16.240067"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Fairytale Mermaid Under Sea Coloring Page
 

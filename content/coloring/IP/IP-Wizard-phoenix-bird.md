@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Wizard Phoenix Bird Coloring Page"
 slug: "IP-Wizard-phoenix-bird"
 description: "Free printable Wizard Phoenix Bird coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Wizard-phoenix-bird/"
 publishDate: "2026-02-04T00:44:16.204035"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Wizard Phoenix Bird Coloring Page
 

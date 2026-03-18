@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Free Printable shield captain Coloring Pages for Kids - ColoringPages.club"
 slug: "shield-hero-coloring-pages"
 description: "Free printable shield captain coloring pages for kids. Download coloring pages, perfect for toddlers, preschoolers, and children."
@@ -17,6 +18,7 @@ canonical: "https://coloringpages.club/shield-hero-coloring-pages"
 publishDate: "2026-02-03T15:25:25.819Z"
 author: "Coloring Pages Club"
 ---
+noindex: true
 # Free Printable shield captain Coloring Pages
 
 Discover our collection of free printable shield captain coloring pages for kids. These shield captain coloring sheets are perfect for children who love ip_superhero.

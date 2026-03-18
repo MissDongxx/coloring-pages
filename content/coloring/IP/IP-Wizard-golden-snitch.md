@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Wizard Golden Snitch Coloring Page"
 slug: "IP-Wizard-golden-snitch"
 description: "Free printable Wizard Golden Snitch coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Wizard-golden-snitch/"
 publishDate: "2026-02-04T00:44:16.237354"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Wizard Golden Snitch Coloring Page
 

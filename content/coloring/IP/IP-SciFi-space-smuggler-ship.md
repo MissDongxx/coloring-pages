@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Scifi Space Smuggler Ship Coloring Page"
 slug: "IP-SciFi-space-smuggler-ship"
 description: "Free printable Scifi Space Smuggler Ship coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-SciFi-space-smuggler-ship/"
 publishDate: "2026-02-04T00:44:16.193082"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Scifi Space Smuggler Ship Coloring Page
 

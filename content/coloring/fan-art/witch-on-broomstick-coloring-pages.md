@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Free Printable witch delivery Coloring Pages for Kids - ColoringPages.club"
 slug: "witch-on-broomstick-coloring-pages"
 description: "Free printable witch delivery coloring pages for kids. Download coloring pages, perfect for toddlers, preschoolers, and children."
@@ -17,6 +18,7 @@ canonical: "https://coloringpages.club/witch-on-broomstick-coloring-pages"
 publishDate: "2026-02-03T15:25:25.817Z"
 author: "Coloring Pages Club"
 ---
+noindex: true
 # Free Printable witch delivery Coloring Pages
 
 Discover our collection of free printable witch delivery coloring pages for kids. These witch delivery coloring sheets are perfect for children who love ip_ghibli.

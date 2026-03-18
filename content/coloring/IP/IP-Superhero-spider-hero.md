@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Superhero Spider Hero Coloring Page"
 slug: "IP-Superhero-spider-hero"
 description: "Free printable Superhero Spider Hero coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Superhero-spider-hero/"
 publishDate: "2026-02-04T00:44:16.231738"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Superhero Spider Hero Coloring Page
 

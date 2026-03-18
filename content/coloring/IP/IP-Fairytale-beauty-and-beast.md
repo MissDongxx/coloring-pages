@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Fairytale Beauty And Beast Coloring Page"
 slug: "IP-Fairytale-beauty-and-beast"
 description: "Free printable Fairytale Beauty And Beast coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Fairytale-beauty-and-beast/"
 publishDate: "2026-02-04T00:44:16.221174"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Fairytale Beauty And Beast Coloring Page
 

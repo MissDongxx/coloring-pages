@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Free Printable spider hero Coloring Pages for Kids - ColoringPages.club"
 slug: "web-swinging-hero-coloring-pages"
 description: "Free printable spider hero coloring pages for kids. Download coloring pages, perfect for toddlers, preschoolers, and children."
@@ -17,6 +18,7 @@ canonical: "https://coloringpages.club/web-swinging-hero-coloring-pages"
 publishDate: "2026-02-03T15:25:25.819Z"
 author: "Coloring Pages Club"
 ---
+noindex: true
 # Free Printable spider hero Coloring Pages
 
 Discover our collection of free printable spider hero coloring pages for kids. These spider hero coloring sheets are perfect for children who love ip_superhero.

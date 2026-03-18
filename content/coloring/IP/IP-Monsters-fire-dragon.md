@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Monsters Fire Dragon Coloring Page"
 slug: "IP-Monsters-fire-dragon"
 description: "Free printable Monsters Fire Dragon coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Monsters-fire-dragon/"
 publishDate: "2026-02-04T00:44:16.241753"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Monsters Fire Dragon Coloring Page
 

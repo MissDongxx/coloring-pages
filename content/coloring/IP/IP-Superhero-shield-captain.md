@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Superhero Shield Captain Coloring Page"
 slug: "IP-Superhero-shield-captain"
 description: "Free printable Superhero Shield Captain coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Superhero-shield-captain/"
 publishDate: "2026-02-04T00:44:16.225788"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Superhero Shield Captain Coloring Page
 

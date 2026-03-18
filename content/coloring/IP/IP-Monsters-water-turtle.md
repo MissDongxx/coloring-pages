@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Monsters Water Turtle Coloring Page"
 slug: "IP-Monsters-water-turtle"
 description: "Free printable Monsters Water Turtle coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Monsters-water-turtle/"
 publishDate: "2026-02-04T00:44:16.185846"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Monsters Water Turtle Coloring Page
 

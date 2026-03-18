@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Fantasy One Ring Coloring Page"
 slug: "IP-Fantasy-one-ring"
 description: "Free printable Fantasy One Ring coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Fantasy-one-ring/"
 publishDate: "2026-02-04T00:44:16.232512"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Fantasy One Ring Coloring Page
 

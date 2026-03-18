@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Scifi Villain Helmet Coloring Page"
 slug: "IP-SciFi-villain-helmet"
 description: "Free printable Scifi Villain Helmet coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-SciFi-villain-helmet/"
 publishDate: "2026-02-04T00:44:16.191331"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Scifi Villain Helmet Coloring Page
 

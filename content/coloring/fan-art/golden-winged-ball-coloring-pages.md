@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Free Printable golden snitch Coloring Pages for Kids - ColoringPages.club"
 slug: "golden-winged-ball-coloring-pages"
 description: "Free printable golden snitch coloring pages for kids. Download coloring pages, perfect for toddlers, preschoolers, and children."
@@ -17,6 +18,7 @@ canonical: "https://coloringpages.club/golden-winged-ball-coloring-pages"
 publishDate: "2026-02-03T15:25:25.817Z"
 author: "Coloring Pages Club"
 ---
+noindex: true
 # Free Printable golden snitch Coloring Pages
 
 Discover our collection of free printable golden snitch coloring pages for kids. These golden snitch coloring sheets are perfect for children who love ip_wizard.

@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Monsters Sleeping Snorlax Coloring Page"
 slug: "IP-Monsters-sleeping-snorlax"
 description: "Free printable Monsters Sleeping Snorlax coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Monsters-sleeping-snorlax/"
 publishDate: "2026-02-04T00:44:16.203124"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Monsters Sleeping Snorlax Coloring Page
 

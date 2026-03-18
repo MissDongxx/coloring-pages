@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Free Printable baby alien Coloring Pages for Kids - ColoringPages.club"
 slug: "cute-alien-baby-coloring-pages"
 description: "Free printable baby alien coloring pages for kids. Download coloring pages, perfect for toddlers, preschoolers, and children."
@@ -17,6 +18,7 @@ canonical: "https://coloringpages.club/cute-alien-baby-coloring-pages"
 publishDate: "2026-02-03T15:25:25.817Z"
 author: "Coloring Pages Club"
 ---
+noindex: true
 # Free Printable baby alien Coloring Pages
 
 Discover our collection of free printable baby alien coloring pages for kids. These baby alien coloring sheets are perfect for children who love ip_scifi.

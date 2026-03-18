@@ -32,6 +32,7 @@ export interface Post {
   tags?: string[];
   version?: string;
   date?: string;
+  noindex?: boolean;
 }
 
 export interface Category {

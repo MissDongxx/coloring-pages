@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Fantasy Dwarf Warrior Coloring Page"
 slug: "IP-Fantasy-dwarf-warrior"
 description: "Free printable Fantasy Dwarf Warrior coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Fantasy-dwarf-warrior/"
 publishDate: "2026-02-04T00:44:16.222105"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Fantasy Dwarf Warrior Coloring Page
 

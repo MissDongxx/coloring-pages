@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Free Printable desert walker Coloring Pages for Kids - ColoringPages.club"
 slug: "four-legged-walker-coloring-pages"
 description: "Free printable desert walker coloring pages for kids. Download coloring pages, perfect for toddlers, preschoolers, and children."
@@ -17,6 +18,7 @@ canonical: "https://coloringpages.club/four-legged-walker-coloring-pages"
 publishDate: "2026-02-03T15:25:25.817Z"
 author: "Coloring Pages Club"
 ---
+noindex: true
 # Free Printable desert walker Coloring Pages
 
 Discover our collection of free printable desert walker coloring pages for kids. These desert walker coloring sheets are perfect for children who love ip_scifi.

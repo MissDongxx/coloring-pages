@@ -14,13 +14,27 @@ interface Category {
 interface CategoryGridProps {
   categories: Category[];
   hideEmpty?: boolean;
+  excludeIP?: boolean; // 新增：是否排除 IP 分类
 }
 
-export function CategoryGrid({ categories, hideEmpty = true }: CategoryGridProps) {
-  // 过滤掉 0 页面的分类（如果 hideEmpty 为 true）
-  const filteredCategories = hideEmpty
-    ? categories.filter((cat) => cat.count > 0)
-    : categories;
+export function CategoryGrid({ categories, hideEmpty = true, excludeIP = true }: CategoryGridProps) {
+  // 需要排除的分类 slugs
+  const EXCLUDED_SLUGS = ['ip', 'fan-art', 'IP', 'fan-art'];
+
+  // 过滤分类
+  const filteredCategories = categories.filter((cat) => {
+    // 过滤掉 0 页面的分类（如果 hideEmpty 为 true）
+    if (hideEmpty && cat.count <= 0) {
+      return false;
+    }
+
+    // 过滤掉版权相关的分类（如果 excludeIP 为 true）
+    if (excludeIP && EXCLUDED_SLUGS.includes(cat.slug)) {
+      return false;
+    }
+
+    return true;
+  });
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">

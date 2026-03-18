@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Ghibli Flying Castle Coloring Page"
 slug: "IP-Ghibli-flying-castle"
 description: "Free printable Ghibli Flying Castle coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Ghibli-flying-castle/"
 publishDate: "2026-02-04T00:44:16.196761"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Ghibli Flying Castle Coloring Page
 

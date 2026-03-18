@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Free Printable flying castle Coloring Pages for Kids - ColoringPages.club"
 slug: "floating-castle-coloring-pages"
 description: "Free printable flying castle coloring pages for kids. Download coloring pages, perfect for toddlers, preschoolers, and children."
@@ -17,6 +18,7 @@ canonical: "https://coloringpages.club/floating-castle-coloring-pages"
 publishDate: "2026-02-03T15:25:25.816Z"
 author: "Coloring Pages Club"
 ---
+noindex: true
 # Free Printable flying castle Coloring Pages
 
 Discover our collection of free printable flying castle coloring pages for kids. These flying castle coloring sheets are perfect for children who love ip_ghibli.

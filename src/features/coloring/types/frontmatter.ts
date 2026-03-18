@@ -48,6 +48,9 @@ export interface Frontmatter {
   /** 是否为高危 IP（true 则自动 noindex） */
   is_high_risk?: boolean;
 
+  /** 是否禁止搜索引擎索引 */
+  noindex?: boolean;
+
   /** 规范 URL */
   canonical?: string;
 

@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Scifi Baby Alien Coloring Page"
 slug: "IP-SciFi-baby-alien"
 description: "Free printable Scifi Baby Alien coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-SciFi-baby-alien/"
 publishDate: "2026-02-04T00:44:16.192717"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Scifi Baby Alien Coloring Page
 

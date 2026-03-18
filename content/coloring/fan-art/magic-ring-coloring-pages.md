@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Free Printable one ring Coloring Pages for Kids - ColoringPages.club"
 slug: "magic-ring-coloring-pages"
 description: "Free printable one ring coloring pages for kids. Download fantasy coloring pages, perfect for toddlers, preschoolers, and children."
@@ -17,6 +18,7 @@ canonical: "https://coloringpages.club/magic-ring-coloring-pages"
 publishDate: "2026-02-03T15:25:25.820Z"
 author: "Coloring Pages Club"
 ---
+noindex: true
 # Free Printable one ring Coloring Pages
 
 Discover our collection of free printable one ring coloring pages for kids. These one ring coloring sheets are perfect for children who love ip_fantasy.

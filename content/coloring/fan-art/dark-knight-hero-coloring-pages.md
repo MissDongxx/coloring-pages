@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Free Printable bat vigilante Coloring Pages for Kids - ColoringPages.club"
 slug: "dark-knight-hero-coloring-pages"
 description: "Free printable bat vigilante coloring pages for kids. Download coloring pages, perfect for toddlers, preschoolers, and children."
@@ -17,6 +18,7 @@ canonical: "https://coloringpages.club/dark-knight-hero-coloring-pages"
 publishDate: "2026-02-03T15:25:25.819Z"
 author: "Coloring Pages Club"
 ---
+noindex: true
 # Free Printable bat vigilante Coloring Pages
 
 Discover our collection of free printable bat vigilante coloring pages for kids. These bat vigilante coloring sheets are perfect for children who love ip_superhero.

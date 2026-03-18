@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Wizard Train Express Coloring Page"
 slug: "IP-Wizard-train-express"
 description: "Free printable Wizard Train Express coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Wizard-train-express/"
 publishDate: "2026-02-04T00:44:16.231955"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Wizard Train Express Coloring Page
 

@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Fairytale Genie Lamp Coloring Page"
 slug: "IP-Fairytale-genie-lamp"
 description: "Free printable Fairytale Genie Lamp coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Fairytale-genie-lamp/"
 publishDate: "2026-02-04T00:44:16.217161"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Fairytale Genie Lamp Coloring Page
 

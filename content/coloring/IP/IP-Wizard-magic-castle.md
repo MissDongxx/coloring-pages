@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Wizard Magic Castle Coloring Page"
 slug: "IP-Wizard-magic-castle"
 description: "Free printable Wizard Magic Castle coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Wizard-magic-castle/"
 publishDate: "2026-02-04T00:44:16.229618"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Wizard Magic Castle Coloring Page
 

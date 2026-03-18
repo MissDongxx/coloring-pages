@@ -17,6 +17,25 @@ export enum ColoringPageStatus {
   ARCHIVED = 'archived',
 }
 
+// Copyright-related keywords to exclude from hubs
+const EXCLUDED_HUB_KEYWORDS = [
+  'hello kitty', 'kuromi', 'my melody', 'cinnamoroll', 'pompompurin',
+  'mickey mouse', 'minnie mouse', 'donald duck', 'winnie the pooh',
+  'elsa', 'anna', 'moana', 'ariel', 'belle', 'cinderella', 'jasmine',
+  'peppa pig', 'george pig',
+  'paw patrol', 'chase', 'marshall',
+  'spider-man', 'spiderman', 'batman', 'superman', 'iron man',
+  'pokemon', 'pikachu', 'charizard',
+  'spongebob', 'patrick',
+  'barbie', 'ken',
+  'rainbow friends',
+  'totoro', 'chihiro', 'howl',
+  'doraemon', 'naruto',
+  'dragon ball', 'goku',
+  'thomas', 'bob the builder',
+  'sanrio', 'disney', 'marvel', 'dc', 'pixar', 'dreamworks'
+];
+
 /**
  * Add a new coloring page
  */
@@ -188,6 +207,12 @@ export async function getPagesForHub({
     eq(coloringPage.status, ColoringPageStatus.PUBLISHED),
     ilike(coloringPage.rootKeyword, rootStr)
   ];
+
+  // Add copyright keyword exclusions
+  const exclusionConditions = EXCLUDED_HUB_KEYWORDS.map(
+    keyword => sql`NOT ILIKE(${coloringPage.rootKeyword}, ${'%' + keyword + '%'})`
+  );
+  conditions.push(...exclusionConditions);
 
   if (modifier) {
     const modStr = modifier.replace(/-/g, ' ');
@@ -413,6 +438,12 @@ export async function getPagesCountForHub({
     ilike(coloringPage.rootKeyword, rootStr)
   ];
 
+  // Add copyright keyword exclusions
+  const exclusionConditions = EXCLUDED_HUB_KEYWORDS.map(
+    keyword => sql`NOT ILIKE(${coloringPage.rootKeyword}, ${'%' + keyword + '%'})`
+  );
+  conditions.push(...exclusionConditions);
+
   if (modifier) {
     const modStr = modifier.replace(/-/g, ' ');
     conditions.push(ilike(coloringPage.modifier, modStr));
@@ -431,6 +462,30 @@ export async function getPagesCountForHub({
  * Get popular SEO Hub combinations aggregated by rootKeyword and modifier
  */
 export async function getPopularHubs(limitCount: number = 8) {
+  // Copyright-related keywords to exclude from hubs
+  const EXCLUDED_KEYWORDS = [
+    'hello kitty', 'kuromi', 'my melody', 'cinnamoroll', 'pompompurin',
+    'mickey mouse', 'minnie mouse', 'donald duck', 'winnie the pooh',
+    'elsa', 'anna', 'moana', 'ariel', 'belle', 'cinderella', 'jasmine',
+    'peppa pig', 'george pig',
+    'paw patrol', 'chase', 'marshall',
+    'spider-man', 'spiderman', 'batman', 'superman', 'iron man',
+    'pokemon', 'pikachu', 'charizard',
+    'spongebob', 'patrick',
+    'barbie', 'ken',
+    'rainbow friends',
+    'totoro', 'chihiro', 'howl',
+    'doraemon', 'naruto',
+    'dragon ball', 'goku',
+    'thomas', 'bob the builder',
+    'sanrio', 'disney', 'marvel', 'dc', 'pixar', 'dreamworks'
+  ];
+
+  // Build exclusion conditions using NOT ILIKE for each keyword
+  const exclusionConditions = EXCLUDED_KEYWORDS.map(
+    keyword => sql`NOT ILIKE(${coloringPage.rootKeyword}, ${'%' + keyword + '%'})`
+  );
+
   // Single query to get all needed data
   const hubs = await db()
     .select({
@@ -446,12 +501,13 @@ export async function getPopularHubs(limitCount: number = 8) {
       and(
         eq(coloringPage.status, ColoringPageStatus.PUBLISHED),
         isNotNull(coloringPage.rootKeyword),
-        sql`${coloringPage.rootKeyword} != ''`
+        sql`${coloringPage.rootKeyword} != ''`,
+        ...exclusionConditions
       )
     )
     .groupBy(coloringPage.rootKeyword)
     .orderBy(desc(sql`count`))
-    .limit(limitCount);
+    .limit(limitCount * 2); // Get more initially to account for filtering
 
   // Transform the results
   return hubs
@@ -484,10 +540,32 @@ export async function getAllHubs({
   pageSize?: number;
   search?: string;
 } = {}) {
+  // Copyright-related keywords to exclude from hubs
+  const EXCLUDED_KEYWORDS = [
+    'hello kitty', 'kuromi', 'my melody', 'cinnamoroll', 'pompompurin',
+    'mickey mouse', 'minnie mouse', 'donald duck', 'winnie the pooh',
+    'elsa', 'anna', 'moana', 'ariel', 'belle', 'cinderella', 'jasmine',
+    'peppa pig', 'george pig',
+    'paw patrol', 'chase', 'marshall',
+    'spider-man', 'spiderman', 'batman', 'superman', 'iron man',
+    'pokemon', 'pikachu', 'charizard',
+    'spongebob', 'patrick',
+    'barbie', 'ken',
+    'rainbow friends',
+    'totoro', 'chihiro', 'howl',
+    'doraemon', 'naruto',
+    'dragon ball', 'goku',
+    'thomas', 'bob the builder',
+    'sanrio', 'disney', 'marvel', 'dc', 'pixar', 'dreamworks'
+  ];
+
   const conditions = [
     eq(coloringPage.status, ColoringPageStatus.PUBLISHED),
     isNotNull(coloringPage.rootKeyword),
     sql`${coloringPage.rootKeyword} != ''`,
+    ...EXCLUDED_KEYWORDS.map(
+      keyword => sql`NOT ILIKE(${coloringPage.rootKeyword}, ${'%' + keyword + '%'})`
+    ),
   ];
 
   if (search) {
@@ -558,6 +636,11 @@ export async function findHubBySlugPrefix(prefix: string) {
   try {
     const now = Date.now();
     if (!hubCache || now - lastCacheTime > CACHE_TTL) {
+      // Build exclusion conditions using NOT ILIKE for each keyword
+      const exclusionConditions = EXCLUDED_HUB_KEYWORDS.map(
+        keyword => sql`NOT ILIKE(${coloringPage.rootKeyword}, ${'%' + keyword + '%'})`
+      );
+
       // Use DISTINCT ON for better performance in PostgreSQL
       hubCache = await db()
         .selectDistinct({
@@ -568,7 +651,8 @@ export async function findHubBySlugPrefix(prefix: string) {
         .where(
           and(
             eq(coloringPage.status, ColoringPageStatus.PUBLISHED),
-            isNotNull(coloringPage.rootKeyword)
+            isNotNull(coloringPage.rootKeyword),
+            ...exclusionConditions
           )
         )
         .orderBy(coloringPage.rootKeyword, coloringPage.modifier)

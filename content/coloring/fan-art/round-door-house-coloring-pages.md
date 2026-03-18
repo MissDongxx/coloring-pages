@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Free Printable hobbit hole Coloring Pages for Kids - ColoringPages.club"
 slug: "round-door-house-coloring-pages"
 description: "Free printable hobbit hole coloring pages for kids. Download fantasy coloring pages, perfect for toddlers, preschoolers, and children."
@@ -17,6 +18,7 @@ canonical: "https://coloringpages.club/round-door-house-coloring-pages"
 publishDate: "2026-02-03T15:25:25.819Z"
 author: "Coloring Pages Club"
 ---
+noindex: true
 # Free Printable hobbit hole Coloring Pages
 
 Discover our collection of free printable hobbit hole coloring pages for kids. These hobbit hole coloring sheets are perfect for children who love ip_fantasy.

@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Free Printable glass slipper Coloring Pages for Kids - ColoringPages.club"
 slug: "glass-shoe-coloring-pages"
 description: "Free printable glass slipper coloring pages for kids. Download coloring pages, perfect for toddlers, preschoolers, and children."
@@ -17,6 +18,7 @@ canonical: "https://coloringpages.club/glass-shoe-coloring-pages"
 publishDate: "2026-02-03T15:25:25.819Z"
 author: "Coloring Pages Club"
 ---
+noindex: true
 # Free Printable glass slipper Coloring Pages
 
 Discover our collection of free printable glass slipper coloring pages for kids. These glass slipper coloring sheets are perfect for children who love ip_fairytale.

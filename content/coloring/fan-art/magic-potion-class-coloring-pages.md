@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Free Printable potions class Coloring Pages for Kids - ColoringPages.club"
 slug: "magic-potion-class-coloring-pages"
 description: "Free printable potions class coloring pages for kids. Download coloring pages, perfect for toddlers, preschoolers, and children."
@@ -17,6 +18,7 @@ canonical: "https://coloringpages.club/magic-potion-class-coloring-pages"
 publishDate: "2026-02-03T15:25:25.817Z"
 author: "Coloring Pages Club"
 ---
+noindex: true
 # Free Printable potions class Coloring Pages
 
 Discover our collection of free printable potions class coloring pages for kids. These potions class coloring sheets are perfect for children who love ip_wizard.

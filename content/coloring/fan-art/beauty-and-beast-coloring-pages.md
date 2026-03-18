@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Free Printable beauty and beast Coloring Pages for Kids - ColoringPages.club"
 slug: "beauty-and-beast-coloring-pages"
 description: "Free printable beauty and beast coloring pages for kids. Download coloring pages, perfect for toddlers, preschoolers, and children."
@@ -17,6 +18,7 @@ canonical: "https://coloringpages.club/beauty-and-beast-coloring-pages"
 publishDate: "2026-02-03T15:25:25.818Z"
 author: "Coloring Pages Club"
 ---
+noindex: true
 # Free Printable beauty and beast Coloring Pages
 
 Discover our collection of free printable beauty and beast coloring pages for kids. These beauty and beast coloring sheets are perfect for children who love ip_fairytale.

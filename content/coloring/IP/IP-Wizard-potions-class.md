@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Wizard Potions Class Coloring Page"
 slug: "IP-Wizard-potions-class"
 description: "Free printable Wizard Potions Class coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Wizard-potions-class/"
 publishDate: "2026-02-04T00:44:16.206798"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Wizard Potions Class Coloring Page
 

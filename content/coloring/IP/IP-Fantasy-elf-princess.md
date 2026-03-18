@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Fantasy Elf Princess Coloring Page"
 slug: "IP-Fantasy-elf-princess"
 description: "Free printable Fantasy Elf Princess coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Fantasy-elf-princess/"
 publishDate: "2026-02-04T00:44:16.210899"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Fantasy Elf Princess Coloring Page
 

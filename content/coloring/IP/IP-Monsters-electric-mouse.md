@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Monsters Electric Mouse Coloring Page"
 slug: "IP-Monsters-electric-mouse"
 description: "Free printable Monsters Electric Mouse coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Monsters-electric-mouse/"
 publishDate: "2026-02-04T00:44:16.194529"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Monsters Electric Mouse Coloring Page
 

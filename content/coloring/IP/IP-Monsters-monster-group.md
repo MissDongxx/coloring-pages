@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Monsters Monster Group Coloring Page"
 slug: "IP-Monsters-monster-group"
 description: "Free printable Monsters Monster Group coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Monsters-monster-group/"
 publishDate: "2026-02-04T00:44:16.184741"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Monsters Monster Group Coloring Page
 

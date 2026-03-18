@@ -30,8 +30,12 @@ export default async function CategoriesPage({
 
   const categories = getAllCategories();
 
+  // 过滤掉版权相关的分类（IP, fan-art）
+  const EXCLUDED_SLUGS = ['ip', 'fan-art', 'IP', 'fan-art'];
+  const filteredCategories = categories.filter(cat => !EXCLUDED_SLUGS.includes(cat.slug));
+
   // 转换为 CategoryGrid 需要的格式，包含 icon 和 preview
-  const categoryData = categories.map((cat) => ({
+  const categoryData = filteredCategories.map((cat) => ({
     name: cat.name,
     slug: cat.slug,
     count: cat.count,
@@ -46,9 +50,9 @@ export default async function CategoriesPage({
   // CollectionPage Schema
   const collectionSchema = generateCollectionPageSchema({
     name: 'All Coloring Page Categories',
-    description: `Browse our collection of ${categories.length} coloring page categories with thousands of free printable pages`,
+    description: `Browse our collection of ${filteredCategories.length} coloring page categories with thousands of free printable pages`,
     url: joinUrl(siteUrl, 'categories'),
-    numberOfItems: categories.length
+    numberOfItems: filteredCategories.length
   });
 
   // ItemList Schema for categories
@@ -56,7 +60,7 @@ export default async function CategoriesPage({
     name: 'Coloring Page Categories',
     description: 'List of all coloring page categories available on our site',
     url: joinUrl(siteUrl, 'categories'),
-    items: categories.map(cat => ({
+    items: filteredCategories.map(cat => ({
       name: cat.name,
       url: `/${cat.slug}`,
       description: `${cat.count} ${cat.name.toLowerCase()} coloring pages`
@@ -82,7 +86,7 @@ export default async function CategoriesPage({
         All Coloring Categories
       </h1>
       <p className="text-lg text-center text-muted-foreground mb-8">
-        Explore all {categories.length} categories of free printable coloring pages
+        Explore all {filteredCategories.length} categories of free printable coloring pages
       </p>
 
       {/* 所有分类 */}

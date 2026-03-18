@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Superhero Bat Vigilante Coloring Page"
 slug: "IP-Superhero-bat-vigilante"
 description: "Free printable Superhero Bat Vigilante coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Superhero-bat-vigilante/"
 publishDate: "2026-02-04T00:44:16.188602"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Superhero Bat Vigilante Coloring Page
 

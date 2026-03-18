@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Ghibli Witch Delivery Coloring Page"
 slug: "IP-Ghibli-witch-delivery"
 description: "Free printable Ghibli Witch Delivery coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Ghibli-witch-delivery/"
 publishDate: "2026-02-04T00:44:16.244810"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Ghibli Witch Delivery Coloring Page
 

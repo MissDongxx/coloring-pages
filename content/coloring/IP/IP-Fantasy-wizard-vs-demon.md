@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Fantasy Wizard Vs Demon Coloring Page"
 slug: "IP-Fantasy-wizard-vs-demon"
 description: "Free printable Fantasy Wizard Vs Demon coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Fantasy-wizard-vs-demon/"
 publishDate: "2026-02-04T00:44:16.186846"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Fantasy Wizard Vs Demon Coloring Page
 

@@ -7,6 +7,7 @@ export interface MdxPage {
   description: string;
   content: string;
   created_at?: string;
+  noindex?: boolean;
 }
 
 /**
@@ -56,6 +57,7 @@ export async function getMdxPage({
       description: data.description || '',
       content,
       created_at: data.created_at || data.date || undefined,
+      noindex: data.noindex || false,
     };
   } catch (error) {
     console.error(`Error reading MDX file for ${slug}:`, error);

@@ -133,11 +133,15 @@ async function getSitemapEntries(): Promise<SitemapEntry[]> {
   }
 
   // Add category pages (higher priority than individual pages)
+  // Exclude copyright-related categories (IP, fan-art)
+  const EXCLUDED_CATEGORIES = ['IP', 'fan-art', 'ip', 'fan-art'];
   if (entries.length < MAX_SITEMAP_URLS) {
     try {
       const categories = getAllCategories();
       for (const cat of categories) {
         if (entries.length >= MAX_SITEMAP_URLS) break;
+        // Skip excluded categories
+        if (EXCLUDED_CATEGORIES.includes(cat.slug)) continue;
         entries.push({
           url: joinUrl(baseUrl, cat.slug),
           lastModified: new Date(),

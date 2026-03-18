@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Ghibli Spirit Bathhouse Coloring Page"
 slug: "IP-Ghibli-spirit-bathhouse"
 description: "Free printable Ghibli Spirit Bathhouse coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Ghibli-spirit-bathhouse/"
 publishDate: "2026-02-04T00:44:16.221788"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Ghibli Spirit Bathhouse Coloring Page
 

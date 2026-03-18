@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Free Printable magic castle Coloring Pages for Kids - ColoringPages.club"
 slug: "wizard-castle-coloring-pages"
 description: "Free printable magic castle coloring pages for kids. Download coloring pages, perfect for toddlers, preschoolers, and children."
@@ -17,6 +18,7 @@ canonical: "https://coloringpages.club/wizard-castle-coloring-pages"
 publishDate: "2026-02-03T15:25:25.817Z"
 author: "Coloring Pages Club"
 ---
+noindex: true
 # Free Printable magic castle Coloring Pages
 
 Discover our collection of free printable magic castle coloring pages for kids. These magic castle coloring sheets are perfect for children who love ip_wizard.

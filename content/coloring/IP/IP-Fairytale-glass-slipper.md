@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Fairytale Glass Slipper Coloring Page"
 slug: "IP-Fairytale-glass-slipper"
 description: "Free printable Fairytale Glass Slipper coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Fairytale-glass-slipper/"
 publishDate: "2026-02-04T00:44:16.213902"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Fairytale Glass Slipper Coloring Page
 

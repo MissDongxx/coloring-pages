@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Fairytale Ice Queen Castle Coloring Page"
 slug: "IP-Fairytale-ice-queen-castle"
 description: "Free printable Fairytale Ice Queen Castle coloring page."
@@ -15,6 +16,7 @@ canonical: "https://coloringpages.club/IP-Fairytale-ice-queen-castle/"
 publishDate: "2026-02-04T00:44:16.240346"
 author: "Coloring Pages Club"
 ---
+noindex: true
 
 # Fairytale Ice Queen Castle Coloring Page
 

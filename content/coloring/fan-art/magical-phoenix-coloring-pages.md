@@ -1,4 +1,5 @@
 ---
+noindex: true
 title: "Free Printable phoenix bird Coloring Pages for Kids - ColoringPages.club"
 slug: "magical-phoenix-coloring-pages"
 description: "Free printable phoenix bird coloring pages for kids. Download coloring pages, perfect for toddlers, preschoolers, and children."
@@ -17,6 +18,7 @@ canonical: "https://coloringpages.club/magical-phoenix-coloring-pages"
 publishDate: "2026-02-03T15:25:25.817Z"
 author: "Coloring Pages Club"
 ---
+noindex: true
 # Free Printable phoenix bird Coloring Pages
 
 Discover our collection of free printable phoenix bird coloring pages for kids. These phoenix bird coloring sheets are perfect for children who love ip_wizard.
