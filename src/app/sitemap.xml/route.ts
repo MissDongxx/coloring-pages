@@ -158,9 +158,9 @@ async function getSitemapEntries(): Promise<SitemapEntry[]> {
       // Build where conditions, filter out undefined
       const whereConditions = [eq(coloringPage.status, 'published')];
       if (ipExclusionConditions.length > 0) {
-        const orCondition = or(...ipExclusionConditions);
-        if (orCondition) {
-          whereConditions.push(not(orCondition));
+        const exclusionOr = or(...ipExclusionConditions);
+        if (exclusionOr) {
+          whereConditions.push(not(exclusionOr));
         }
       }
 
