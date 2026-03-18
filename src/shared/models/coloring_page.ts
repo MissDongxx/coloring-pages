@@ -2,7 +2,7 @@
  * Coloring page model - manages generated coloring pages
  */
 
-import { and, count, desc, eq, like, or, ilike, sql, isNotNull } from 'drizzle-orm';
+import { and, count, desc, eq, like, or, ilike, sql, isNotNull, not } from 'drizzle-orm';
 import { db } from '@/core/db';
 import { coloringPage } from '@/config/db/schema';
 import { nanoid } from 'nanoid';
@@ -208,9 +208,9 @@ export async function getPagesForHub({
     ilike(coloringPage.rootKeyword, rootStr)
   ];
 
-  // Add copyright keyword exclusions
+  // Add copyright keyword exclusions using Drizzle's not() and ilike()
   const exclusionConditions = EXCLUDED_HUB_KEYWORDS.map(
-    keyword => sql`NOT ILIKE(${coloringPage.rootKeyword}, ${'%' + keyword + '%'})`
+    keyword => not(ilike(coloringPage.rootKeyword, `%${keyword}%`))
   );
   conditions.push(...exclusionConditions);
 
@@ -438,9 +438,9 @@ export async function getPagesCountForHub({
     ilike(coloringPage.rootKeyword, rootStr)
   ];
 
-  // Add copyright keyword exclusions
+  // Add copyright keyword exclusions using Drizzle's not() and ilike()
   const exclusionConditions = EXCLUDED_HUB_KEYWORDS.map(
-    keyword => sql`NOT ILIKE(${coloringPage.rootKeyword}, ${'%' + keyword + '%'})`
+    keyword => not(ilike(coloringPage.rootKeyword, `%${keyword}%`))
   );
   conditions.push(...exclusionConditions);
 
@@ -462,28 +462,9 @@ export async function getPagesCountForHub({
  * Get popular SEO Hub combinations aggregated by rootKeyword and modifier
  */
 export async function getPopularHubs(limitCount: number = 8) {
-  // Copyright-related keywords to exclude from hubs
-  const EXCLUDED_KEYWORDS = [
-    'hello kitty', 'kuromi', 'my melody', 'cinnamoroll', 'pompompurin',
-    'mickey mouse', 'minnie mouse', 'donald duck', 'winnie the pooh',
-    'elsa', 'anna', 'moana', 'ariel', 'belle', 'cinderella', 'jasmine',
-    'peppa pig', 'george pig',
-    'paw patrol', 'chase', 'marshall',
-    'spider-man', 'spiderman', 'batman', 'superman', 'iron man',
-    'pokemon', 'pikachu', 'charizard',
-    'spongebob', 'patrick',
-    'barbie', 'ken',
-    'rainbow friends',
-    'totoro', 'chihiro', 'howl',
-    'doraemon', 'naruto',
-    'dragon ball', 'goku',
-    'thomas', 'bob the builder',
-    'sanrio', 'disney', 'marvel', 'dc', 'pixar', 'dreamworks'
-  ];
-
-  // Build exclusion conditions using NOT ILIKE for each keyword
-  const exclusionConditions = EXCLUDED_KEYWORDS.map(
-    keyword => sql`NOT ILIKE(${coloringPage.rootKeyword}, ${'%' + keyword + '%'})`
+  // Build exclusion conditions using Drizzle's not() and ilike()
+  const exclusionConditions = EXCLUDED_HUB_KEYWORDS.map(
+    keyword => not(ilike(coloringPage.rootKeyword, `%${keyword}%`))
   );
 
   // Single query to get all needed data
@@ -540,32 +521,16 @@ export async function getAllHubs({
   pageSize?: number;
   search?: string;
 } = {}) {
-  // Copyright-related keywords to exclude from hubs
-  const EXCLUDED_KEYWORDS = [
-    'hello kitty', 'kuromi', 'my melody', 'cinnamoroll', 'pompompurin',
-    'mickey mouse', 'minnie mouse', 'donald duck', 'winnie the pooh',
-    'elsa', 'anna', 'moana', 'ariel', 'belle', 'cinderella', 'jasmine',
-    'peppa pig', 'george pig',
-    'paw patrol', 'chase', 'marshall',
-    'spider-man', 'spiderman', 'batman', 'superman', 'iron man',
-    'pokemon', 'pikachu', 'charizard',
-    'spongebob', 'patrick',
-    'barbie', 'ken',
-    'rainbow friends',
-    'totoro', 'chihiro', 'howl',
-    'doraemon', 'naruto',
-    'dragon ball', 'goku',
-    'thomas', 'bob the builder',
-    'sanrio', 'disney', 'marvel', 'dc', 'pixar', 'dreamworks'
-  ];
+  // Build exclusion conditions using Drizzle's not() and ilike()
+  const exclusionConditions = EXCLUDED_HUB_KEYWORDS.map(
+    keyword => not(ilike(coloringPage.rootKeyword, `%${keyword}%`))
+  );
 
   const conditions = [
     eq(coloringPage.status, ColoringPageStatus.PUBLISHED),
     isNotNull(coloringPage.rootKeyword),
     sql`${coloringPage.rootKeyword} != ''`,
-    ...EXCLUDED_KEYWORDS.map(
-      keyword => sql`NOT ILIKE(${coloringPage.rootKeyword}, ${'%' + keyword + '%'})`
-    ),
+    ...exclusionConditions,
   ];
 
   if (search) {
@@ -636,9 +601,9 @@ export async function findHubBySlugPrefix(prefix: string) {
   try {
     const now = Date.now();
     if (!hubCache || now - lastCacheTime > CACHE_TTL) {
-      // Build exclusion conditions using NOT ILIKE for each keyword
+      // Build exclusion conditions using Drizzle's not() and ilike()
       const exclusionConditions = EXCLUDED_HUB_KEYWORDS.map(
-        keyword => sql`NOT ILIKE(${coloringPage.rootKeyword}, ${'%' + keyword + '%'})`
+        keyword => not(ilike(coloringPage.rootKeyword, `%${keyword}%`))
       );
 
       // Use DISTINCT ON for better performance in PostgreSQL
@@ -707,4 +672,58 @@ export async function getAllPublishedSlugs(): Promise<string[]> {
     .where(eq(coloringPage.status, ColoringPageStatus.PUBLISHED));
 
   return results.map((r: { slug: string | null }) => r.slug).filter((s: string | null): s is string => s !== null && s !== '');
+}
+
+/**
+ * Unpublish all IP-related coloring pages
+ * Matches pages whose rootKeyword, keyword, title, or description contains IP-related keywords
+ */
+export async function unpublishIPRelatedPages(): Promise<{ count: number; ids: string[] }> {
+  // Build conditions to match any IP-related keyword in multiple fields
+  const keywordConditions = EXCLUDED_HUB_KEYWORDS.flatMap(keyword => [
+    ilike(coloringPage.rootKeyword, `%${keyword}%`),
+    ilike(coloringPage.keyword, `%${keyword}%`),
+    ilike(coloringPage.title, `%${keyword}%`),
+    ilike(coloringPage.description, `%${keyword}%`)
+  ]);
+
+  // Find all published pages that match IP keywords
+  const matchingPages = await db()
+    .select({ id: coloringPage.id, title: coloringPage.title, keyword: coloringPage.keyword })
+    .from(coloringPage)
+    .where(
+      and(
+        eq(coloringPage.status, ColoringPageStatus.PUBLISHED),
+        or(...keywordConditions)
+      )
+    );
+
+  const ids = matchingPages.map((p: { id: string }) => p.id);
+
+  if (ids.length === 0) {
+    console.log('[unpublishIPRelatedPages] No IP-related pages found to unpublish.');
+    return { count: 0, ids: [] };
+  }
+
+  // Log what we're unpublishing
+  console.log(`[unpublishIPRelatedPages] Found ${ids.length} IP-related pages to unpublish:`);
+  matchingPages.slice(0, 10).forEach((p: { title: string; keyword: string }) => {
+    console.log(`  - ${p.title} (keyword: ${p.keyword})`);
+  });
+  if (matchingPages.length > 10) {
+    console.log(`  ... and ${matchingPages.length - 10} more`);
+  }
+
+  // Update by ID to ensure we only update the matched pages
+  for (const id of ids) {
+    await db()
+      .update(coloringPage)
+      .set({
+        status: ColoringPageStatus.DRAFT,
+        publishedAt: null,
+      })
+      .where(eq(coloringPage.id, id));
+  }
+
+  return { count: ids.length, ids };
 }

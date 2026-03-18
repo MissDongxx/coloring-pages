@@ -858,6 +858,33 @@ export class ColoringWorkflowService {
   }
 
   /**
+   * Check if rootKeyword is IP-related (copyrighted content that should be skipped)
+   */
+  private isIpRelated(rootKeyword: string): boolean {
+    // Copyright-related keywords (same as EXCLUDED_HUB_KEYWORDS in coloring_page.ts)
+    const copyrightKeywords = [
+      'hello kitty', 'kuromi', 'my melody', 'cinnamoroll', 'pompompurin',
+      'mickey mouse', 'minnie mouse', 'donald duck', 'winnie the pooh',
+      'elsa', 'anna', 'moana', 'ariel', 'belle', 'cinderella', 'jasmine',
+      'peppa pig', 'george pig',
+      'paw patrol', 'chase', 'marshall',
+      'spider-man', 'spiderman', 'batman', 'superman', 'iron man',
+      'pokemon', 'pikachu', 'charizard',
+      'spongebob', 'patrick',
+      'barbie', 'ken',
+      'rainbow friends',
+      'totoro', 'chihiro', 'howl',
+      'doraemon', 'naruto',
+      'dragon ball', 'goku',
+      'thomas', 'bob the builder',
+      'sanrio', 'disney', 'marvel', 'dc', 'pixar', 'dreamworks'
+    ];
+
+    const normalizedRoot = rootKeyword.toLowerCase().trim();
+    return copyrightKeywords.some(keyword => normalizedRoot.includes(keyword));
+  }
+
+  /**
    * Main workflow orchestration
    */
   async runWorkflow(options: WorkflowOptions): Promise<string> {
@@ -969,7 +996,23 @@ export class ColoringWorkflowService {
       const skippedCount = allKeywords.length - keywords.length;
       await this.log(jobId, 'info', `Dedup complete: ${skippedCount} existing, ${keywords.length} new keywords to process`);
 
-      if (keywords.length === 0) {
+      // Step 1.6: Filter out IP-related keywords
+      const keywordsBeforeIpFilter = keywords.length;
+      const filteredKeywords = keywords.filter((kw: any) => {
+        const rootKeyword = kw.rootKeyword || kw.keyword;
+        const isIp = this.isIpRelated(rootKeyword);
+        if (isIp) {
+          this.log(jobId, 'info', `Skipping IP-related keyword: ${kw.keyword} (rootKeyword: ${rootKeyword})`);
+        }
+        return !isIp;
+      });
+      const ipSkippedCount = keywordsBeforeIpFilter - filteredKeywords.length;
+
+      if (ipSkippedCount > 0) {
+        await this.log(jobId, 'info', `Filtered ${ipSkippedCount} IP-related keywords`);
+      }
+
+      if (filteredKeywords.length === 0) {
         await this.log(jobId, 'info', 'All keywords already have pages. Workflow complete (no new images needed).');
         await updateJobStatus(jobId, ColoringJobStatus.COMPLETED);
         await updateColoringJob(jobId, {
@@ -982,10 +1025,10 @@ export class ColoringWorkflowService {
       }
 
       // Step 2: Generate images
-      imagesDir = await this.generateImages(jobId, keywords, options.provider);
+      imagesDir = await this.generateImages(jobId, filteredKeywords, options.provider);
 
       // Step 3: Check image quality
-      const qualityResult = await this.checkImageQuality(jobId, imagesDir, keywords);
+      const qualityResult = await this.checkImageQuality(jobId, imagesDir, filteredKeywords);
 
       // For placeholder images, if all fail quality check, allow them through for testing
       let finalImages = qualityResult.passedImages;
@@ -999,7 +1042,7 @@ export class ColoringWorkflowService {
           const parts = basename.split('-');
           const category = parts.length >= 2 ? parts[0] : 'uncategorized';
           const keywordStr = parts.length >= 2 ? parts.slice(1).join('-') : basename;
-          const originalKw = keywords.find((k: any) => k.keyword === keywordStr && k.category === category);
+          const originalKw = filteredKeywords.find((k: any) => k.keyword === keywordStr && k.category === category);
 
           return {
             path: path.join(imagesDir!, f),
@@ -1101,6 +1144,28 @@ export class ColoringWorkflowService {
 
     await this.log(jobId, 'info', `Resuming workflow from download step with ${keywords.length} keywords...`);
 
+    // Filter out IP-related keywords
+    const filteredKeywords = keywords.filter((kw: any) => {
+      const rootKeyword = kw.rootKeyword || kw.keyword;
+      const isIp = this.isIpRelated(rootKeyword);
+      if (isIp) {
+        this.log(jobId, 'info', `Skipping IP-related keyword: ${kw.keyword} (rootKeyword: ${rootKeyword})`);
+      }
+      return !isIp;
+    });
+
+    const ipSkippedCount = keywords.length - filteredKeywords.length;
+    if (ipSkippedCount > 0) {
+      await this.log(jobId, 'info', `Filtered ${ipSkippedCount} IP-related keywords from resume workflow`);
+    }
+
+    if (filteredKeywords.length === 0) {
+      await this.log(jobId, 'info', 'All keywords are IP-related. Nothing to process.');
+      await updateJobStatus(jobId, ColoringJobStatus.COMPLETED);
+      await this.flushLogs(jobId);
+      return jobId;
+    }
+
     // Update job status back to processing
     await updateJobStatus(jobId, ColoringJobStatus.PROCESSING);
 
@@ -1168,7 +1233,7 @@ export class ColoringWorkflowService {
       }
 
       // Step 3: Quality check
-      const qualityResult = await this.checkImageQuality(jobId, imagesDir, keywords);
+      const qualityResult = await this.checkImageQuality(jobId, imagesDir, filteredKeywords);
 
       let finalImages = qualityResult.passedImages;
       if (finalImages.length === 0) {
@@ -1184,14 +1249,14 @@ export class ColoringWorkflowService {
 
           if (parts.length >= 2) {
             const fileKeywordSlug = parts.slice(1).join('_');
-            originalKw = keywords.find((k: any) => {
+            originalKw = filteredKeywords.find((k: any) => {
               const kSlug = k.keyword.replace(/[\s-]/g, '_');
               return kSlug === fileKeywordSlug && k.category === category;
             });
 
             if (!originalKw) {
               const fileKeywordSlugHyphen = parts.slice(1).join('-');
-              originalKw = keywords.find((k: any) => {
+              originalKw = filteredKeywords.find((k: any) => {
                 const kSlugHyphen = k.keyword.replace(/[\s_]/g, '-');
                 return kSlugHyphen === fileKeywordSlugHyphen && k.category === category;
               });
