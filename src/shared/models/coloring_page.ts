@@ -488,7 +488,8 @@ export async function getPagesCountForHub({
 }
 
 /**
- * Get popular SEO Hub combinations aggregated by rootKeyword and modifier
+ * Get popular SEO Hub combinations aggregated by rootKeyword
+ * Groups by rootKeyword only, ignoring modifier for simpler URLs
  */
 export async function getPopularHubs(limitCount: number = 8) {
   // Build exclusion conditions using Drizzle's not() and ilike()
@@ -496,7 +497,7 @@ export async function getPopularHubs(limitCount: number = 8) {
     keyword => not(ilike(coloringPage.rootKeyword, `%${keyword}%`))
   );
 
-  // Single query to get all needed data
+  // Single query to get all needed data - group by rootKeyword only
   const hubs = await db()
     .select({
       rootKeyword: coloringPage.rootKeyword,
@@ -517,24 +518,23 @@ export async function getPopularHubs(limitCount: number = 8) {
     )
     .groupBy(coloringPage.rootKeyword)
     .orderBy(desc(sql`count`))
-    .limit(limitCount * 2); // Get more initially to account for filtering
+    .limit(limitCount);
 
   // Transform the results
-  return hubs
-    .map((hub: { rootKeyword: string | null; count: number; imageUrl: string | null }) => {
-      const root = hub.rootKeyword || '';
-      const slug = `${root}-coloring-pages`.replace(/\s+/g, '-').toLowerCase();
-      const name = root.split(' ').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  return hubs.map((hub: { rootKeyword: string | null; count: number; imageUrl: string | null }) => {
+    const root = hub.rootKeyword || '';
+    const slug = `${root}-coloring-pages`.replace(/\s+/g, '-').toLowerCase();
+    const name = root.split(' ').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
-      return {
-        name,
-        slug,
-        count: hub.count,
-        imageSrc: hub.imageUrl || '',
-        rootKeyword: root,
-        modifier: null
-      };
-    });
+    return {
+      name,
+      slug,
+      count: hub.count,
+      imageSrc: hub.imageUrl || '',
+      rootKeyword: root,
+      modifier: null
+    };
+  });
 }
 
 
@@ -574,7 +574,7 @@ export async function getAllHubs({
 
   const totalCount = totalResult?.count || 0;
 
-  // Get paginated hubs
+  // Get paginated hubs - group by rootKeyword only
   const hubs = await db()
     .select({
       rootKeyword: coloringPage.rootKeyword,
@@ -594,10 +594,7 @@ export async function getAllHubs({
   const hubData = hubs.map((hub: { rootKeyword: string | null; roughCount: number; imageUrl: string | null }) => {
     const root = hub.rootKeyword || '';
     const slug = `${root}-coloring-pages`.replace(/\s+/g, '-').toLowerCase();
-    const name = root
-      .split(' ')
-      .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(' ');
+    const name = root.split(' ').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
     return {
       name,

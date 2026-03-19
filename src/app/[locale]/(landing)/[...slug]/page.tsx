@@ -627,20 +627,37 @@ export default async function DynamicPage({
   const seoHubMatch = parseSeoHubSlug(staticPageSlug);
   if (seoHubMatch.isHub) {
     const hubPrefix = staticPageSlug.replace('-coloring-pages', '');
+
+    // Always try to find the hub in the database first, as it has the canonical rootKeyword and modifier
+    // This handles multi-word roots like "lds-bible" that may not be in DIMENSION_REGISTRY
     const dbHub = await findHubBySlugPrefix(hubPrefix);
 
-    let root = seoHubMatch.root;
-    let modifier = seoHubMatch.modifier;
+    let root: string | null = null;
+    let modifier: string | null = null;
 
     if (dbHub) {
-      root = dbHub.rootKeyword!;
+      // Use the canonical values from the database
+      root = dbHub.rootKeyword;
       modifier = dbHub.modifier;
+    } else {
+      // Fallback to parsed values (for hubs that exist in DIMENSION_REGISTRY but not yet in DB)
+      root = seoHubMatch.root;
+      modifier = seoHubMatch.modifier;
     }
+
+    // If we couldn't determine the root, return 404
+    if (!root) {
+      return notFound();
+    }
+
+    // Type narrowing: root is now guaranteed to be a string
+    const rootKeyword: string = root;
+    const hubModifier: string | undefined = modifier || undefined;
 
     // Get total count for pagination
     const totalCount = await getPagesCountForHub({
-      rootKeyword: root,
-      modifier: modifier
+      rootKeyword: rootKeyword,
+      modifier: hubModifier
     });
 
     const totalPages = Math.ceil(totalCount / itemsPerPage);
@@ -649,8 +666,8 @@ export default async function DynamicPage({
     const validPage = currentPage < 1 ? 1 : currentPage > totalPages && totalPages > 0 ? totalPages : currentPage;
 
     const pages = await getPagesForHub({
-      rootKeyword: root,
-      modifier: modifier,
+      rootKeyword: rootKeyword,
+      modifier: hubModifier,
       page: validPage,
       limit: itemsPerPage
     });
@@ -659,9 +676,9 @@ export default async function DynamicPage({
       return notFound(); // 404 if no pages exist and no DB hub found
     }
 
-    const hubTitle = modifier
-      ? `${modifier.charAt(0).toUpperCase() + modifier.slice(1)} ${root.charAt(0).toUpperCase() + root.slice(1)} Coloring Pages`
-      : `${root.charAt(0).toUpperCase() + root.slice(1)} Coloring Pages`;
+    const hubTitle = hubModifier
+      ? `${hubModifier.charAt(0).toUpperCase() + hubModifier.slice(1)} ${rootKeyword.charAt(0).toUpperCase() + rootKeyword.slice(1)} Coloring Pages`
+      : `${rootKeyword.charAt(0).toUpperCase() + rootKeyword.slice(1)} Coloring Pages`;
 
     const pageItems = pages.map(p => ({
       title: p.title,
@@ -670,9 +687,9 @@ export default async function DynamicPage({
     }));
 
     // Generate SEO content for theme/hub page
-    const themeName = modifier
-      ? `${modifier.charAt(0).toUpperCase() + modifier.slice(1)} ${root.charAt(0).toUpperCase() + root.slice(1)}`
-      : root.charAt(0).toUpperCase() + root.slice(1);
+    const themeName = hubModifier
+      ? `${hubModifier.charAt(0).toUpperCase() + hubModifier.slice(1)} ${rootKeyword.charAt(0).toUpperCase() + rootKeyword.slice(1)}`
+      : rootKeyword.charAt(0).toUpperCase() + rootKeyword.slice(1);
     const hubSeoContent = generateCategoryContent(
       themeName,
       staticPageSlug,
@@ -687,8 +704,8 @@ export default async function DynamicPage({
       .map(c => ({ name: c.name, slug: c.slug, icon: c.icon, count: c.count, imageSrc: getRandomCategoryCover(c.slug) }));
 
     // Normalize slug: replace spaces with hyphens for URL
-    const normalizedModifier = modifier?.replace(/\s+/g, '-') || '';
-    const normalizedRoot = root.replace(/\s+/g, '-');
+    const normalizedModifier = hubModifier?.replace(/\s+/g, '-') || '';
+    const normalizedRoot = rootKeyword.replace(/\s+/g, '-');
     const slug = normalizedModifier
       ? `${normalizedModifier}-${normalizedRoot}-coloring-pages`
       : `${normalizedRoot}-coloring-pages`;
@@ -700,7 +717,7 @@ export default async function DynamicPage({
     // CategoryPage Schema for SEO Hub
     const hubSchema = generateCategoryPageSchema({
       name: hubTitle,
-      description: `Discover our collection of ${totalCount} free printable ${modifier ? modifier + ' ' : ''}${root} coloring pages`,
+      description: `Discover our collection of ${totalCount} free printable ${hubModifier ? hubModifier + ' ' : ''}${rootKeyword} coloring pages`,
       url: hubUrl,
       numberOfItems: pageItems.length,
       categoryName: themeName,
@@ -716,9 +733,9 @@ export default async function DynamicPage({
       { name: 'Home', item: joinUrl(siteUrl, '/') }
     ];
 
-    if (modifier) {
+    if (hubModifier) {
       breadcrumbItems.push({
-        name: root.charAt(0).toUpperCase() + root.slice(1),
+        name: rootKeyword.charAt(0).toUpperCase() + rootKeyword.slice(1),
         item: joinUrl(siteUrl, `${normalizedRoot}-coloring-pages`)
       });
     }
@@ -742,12 +759,12 @@ export default async function DynamicPage({
             <BreadcrumbItem>
               <BreadcrumbLink href="/">Home</BreadcrumbLink>
             </BreadcrumbItem>
-            {modifier && (
+            {hubModifier && (
               <>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <BreadcrumbLink href={`/${root.replace(/\s+/g, '-')}-coloring-pages`}>
-                    {root.charAt(0).toUpperCase() + root.slice(1)}
+                  <BreadcrumbLink href={`/${rootKeyword.replace(/\s+/g, '-')}-coloring-pages`}>
+                    {rootKeyword.charAt(0).toUpperCase() + rootKeyword.slice(1)}
                   </BreadcrumbLink>
                 </BreadcrumbItem>
               </>
@@ -762,7 +779,7 @@ export default async function DynamicPage({
         <div className="text-center mb-12">
           <h1 className="text-3xl md:text-4xl font-bold mb-4">{hubTitle}</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Discover our collection of {totalCount} free printable {modifier ? modifier + ' ' : ''}{root} coloring pages.
+            Discover our collection of {totalCount} free printable {hubModifier ? hubModifier + ' ' : ''}{rootKeyword} coloring pages.
           </p>
           {totalPages > 1 && (
             <p className="text-sm text-muted-foreground mt-2">

@@ -52,17 +52,13 @@ function guessRootAndModifier(prefix: string): SeoHubMatch {
         }
     }
 
-    // Fallback: if we just want a generic parser that doesn't depend on registry
-    // We can just use the last part as root, which is risky for multi-word roots.
-    const parts = prefix.split('-');
-    if (parts.length === 1) {
-        return { isHub: true, root: parts[0], modifier: null };
-    }
-
+    // Fallback: use the entire prefix as root (handles multi-word roots like "lds-bible")
+    // This assumes no modifier when not found in registry
+    // URLs like "adorable-lds-bible-coloring-pages" → root="adorable-lds-bible", modifier=null
     return {
         isHub: true,
-        root: parts[parts.length - 1],
-        modifier: parts.slice(0, -1).join('-')
+        root: prefix,
+        modifier: null
     };
 }
 
