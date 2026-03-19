@@ -15,8 +15,11 @@
       "items": [
         {
           "title": "主题",
-          "url": "/themes",
-          "icon": "Tags"
+          "url": "/#browse-by-theme"
+        },
+        {
+          "title": "价格",
+          "url": "/#pricing"
         }
       ]
     },

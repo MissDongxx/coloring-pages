@@ -15,8 +15,11 @@
       "items": [
         {
           "title": "Themes",
-          "url": "/themes",
-          "icon": "Tags"
+          "url": "/#browse-by-theme"
+        },
+        {
+          "title": "Pricing",
+          "url": "/#pricing"
         }
       ]
     },

@@ -220,7 +220,7 @@ export default async function LandingPage({
       </section>
 
       {/* Pricing Section */}
-      {pricingData && <Pricing section={pricingData} />}
+      {pricingData && <div id="pricing"><Pricing section={pricingData} /></div>}
     </div>
     </>
   );
