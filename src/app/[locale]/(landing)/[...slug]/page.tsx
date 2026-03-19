@@ -907,7 +907,25 @@ export default async function DynamicPage({
     const currentDescription = isFromDb ? (dbPage!.description || '') : coloringPage!.description;
     const currentImageSrc = isFromDb ? dbPage!.imageUrl : coloringPage!.image.png;
     const currentRootKeyword = isFromDb ? dbPage!.rootKeyword : (coloringPage!.rootKeyword || null);
+    const currentModifier = isFromDb ? dbPage!.modifier : null;
     const currentKeywords = coloringPage?.keywords || [];
+
+    // Check if the hub has content (prevents broken internal links in breadcrumbs)
+    // Only validate if rootKeyword exists and is not from static pages (static pages don't have modifiers)
+    let hubHasContent: boolean | undefined = undefined;
+    if (currentRootKeyword && isFromDb) {
+      try {
+        const hubCount = await getPagesCountForHub({
+          rootKeyword: currentRootKeyword,
+          modifier: currentModifier
+        });
+        // Only consider hub valid if it has more than 1 page (the current page itself)
+        hubHasContent = hubCount > 1;
+      } catch (error) {
+        console.error('[page.tsx] Error checking hub content:', error);
+        hubHasContent = false;
+      }
+    }
 
     // Get recommended pages for server-rendered internal linking
     const recommendedPages = getRecommendedPages(currentSlug, currentCategory, coloringPage?.subCategory, 12);
@@ -991,6 +1009,7 @@ export default async function DynamicPage({
               description={currentDescription}
               imageSrc={currentImageSrc}
               rootKeyword={currentRootKeyword}
+              hubHasContent={hubHasContent}
             />
           }
         />

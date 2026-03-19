@@ -18,6 +18,8 @@ interface PageInput {
     imageSrc: string;
     rootKeyword?: string | null;
     modifier?: string | null;
+    /** Whether the hub page has actual content (prevents broken internal links) */
+    hubHasContent?: boolean;
 }
 
 interface SeoContentResult {
@@ -330,7 +332,7 @@ function generateFaqItems(
 // ---------- Main Generator ----------
 
 export function generateSeoContent(page: PageInput, appUrl = 'https://coloringpages.club'): SeoContentResult {
-    const { title, slug, category, subCategory, keywords = [], imageSrc, rootKeyword, modifier } = page;
+    const { title, slug, category, subCategory, keywords = [], imageSrc, rootKeyword, modifier, hubHasContent } = page;
     const cleanTitle = title.replace(/ Coloring Page$/i, '');
     const categoryName = formatCategoryName(category);
 
@@ -441,7 +443,8 @@ ${faqHtml}
         { '@type': 'ListItem', position: 1, name: 'Home', item: appUrl },
     ];
 
-    if (rootKeyword) {
+    // Only add hub breadcrumb if the hub actually has content (prevents broken internal links)
+    if (rootKeyword && hubHasContent !== false) {
         const hubSlug = rootKeyword.toLowerCase().replace(/[^a-z0-9]+/g, '-');
         breadcrumbItems.push({
             '@type': 'ListItem',

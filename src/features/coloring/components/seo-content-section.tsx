@@ -15,10 +15,15 @@ interface SeoContentSectionProps {
     imageSrc: string;
     rootKeyword?: string | null;
     modifier?: string | null;
+    /** Whether the hub page has actual content (prevents broken internal links) */
+    hubHasContent?: boolean;
 }
 
 export function SeoContentSection(props: SeoContentSectionProps) {
-    const { htmlContent, imageJsonLd, breadcrumbJsonLd } = generateSeoContent(props);
+    const { htmlContent, imageJsonLd, breadcrumbJsonLd } = generateSeoContent({
+        ...props,
+        hubHasContent: props.hubHasContent
+    });
 
     return (
         <>
