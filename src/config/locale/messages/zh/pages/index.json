@@ -599,13 +599,6 @@
             "url": "https://coloringpages.club",
             "target": "_blank",
             "icon": "Zap"
-          },
-          {
-            "title": "阅读文档",
-            "url": "/docs",
-            "target": "_blank",
-            "variant": "outline",
-            "icon": "BookOpenText"
           }
         ],
         "className": "bg-muted"

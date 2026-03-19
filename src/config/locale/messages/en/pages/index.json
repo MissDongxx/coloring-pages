@@ -37,13 +37,6 @@
             "url": "/pricing",
             "target": "_self",
             "variant": "default"
-          },
-          {
-            "title": "Read Document",
-            "icon": "BookOpenText",
-            "url": "/docs",
-            "target": "_blank",
-            "variant": "outline"
           }
         ],
         "show_avatars": true,
@@ -604,13 +597,6 @@
             "url": "https://coloringpages.club",
             "target": "_blank",
             "icon": "Zap"
-          },
-          {
-            "title": "Read Document",
-            "url": "/docs",
-            "target": "_blank",
-            "variant": "outline",
-            "icon": "BookOpenText"
           }
         ],
         "className": "bg-muted"
