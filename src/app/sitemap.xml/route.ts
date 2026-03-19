@@ -5,6 +5,7 @@ import { envConfigs } from '@/config';
 import { joinUrl } from '@/shared/lib/utils';
 import { eq, or, ilike, and, not } from 'drizzle-orm';
 import { getAllCategories } from '@/features/coloring/lib/data';
+import { localePrefix, locales } from '@/config/locale';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -69,6 +70,11 @@ async function getSitemapEntries(): Promise<SitemapEntry[]> {
   const baseUrl = envConfigs.app_url || 'https://coloringpages.club';
   const defaultLocale = envConfigs.locale || 'en';
 
+  // Determine if we should include locale-prefixed URLs for the default locale
+  // When localePrefix is 'as-needed', default locale URLs don't have a prefix
+  // and including them would cause 307 redirects
+  const shouldIncludeDefaultLocalePrefix = localePrefix !== 'as-needed';
+
   const entries: SitemapEntry[] = [];
 
   // Static routes - high priority
@@ -80,19 +86,7 @@ async function getSitemapEntries(): Promise<SitemapEntry[]> {
       priority: 1,
     },
     {
-      url: joinUrl(baseUrl, defaultLocale),
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 1,
-    },
-    {
       url: joinUrl(baseUrl, 'blog'),
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: joinUrl(baseUrl, defaultLocale, 'blog'),
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.9,
@@ -104,24 +98,73 @@ async function getSitemapEntries(): Promise<SitemapEntry[]> {
       priority: 0.9,
     },
     {
-      url: joinUrl(baseUrl, defaultLocale, 'themes'),
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.9,
-    },
-    {
       url: joinUrl(baseUrl, 'categories'),
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: joinUrl(baseUrl, defaultLocale, 'categories'),
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.8,
     }
   );
+
+  // Add locale-prefixed static routes only if localePrefix is not 'as-needed'
+  if (shouldIncludeDefaultLocalePrefix) {
+    entries.push(
+      {
+        url: joinUrl(baseUrl, defaultLocale),
+        lastModified: new Date(),
+        changeFrequency: 'daily',
+        priority: 1,
+      },
+      {
+        url: joinUrl(baseUrl, defaultLocale, 'blog'),
+        lastModified: new Date(),
+        changeFrequency: 'daily',
+        priority: 0.9,
+      },
+      {
+        url: joinUrl(baseUrl, defaultLocale, 'themes'),
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.9,
+      },
+      {
+        url: joinUrl(baseUrl, defaultLocale, 'categories'),
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.8,
+      }
+    );
+  }
+
+  // Add URLs for non-default locales (e.g., zh)
+  const nonDefaultLocales = locales.filter(l => l !== defaultLocale);
+  for (const locale of nonDefaultLocales) {
+    entries.push(
+      {
+        url: joinUrl(baseUrl, locale),
+        lastModified: new Date(),
+        changeFrequency: 'daily',
+        priority: 1,
+      },
+      {
+        url: joinUrl(baseUrl, locale, 'blog'),
+        lastModified: new Date(),
+        changeFrequency: 'daily',
+        priority: 0.9,
+      },
+      {
+        url: joinUrl(baseUrl, locale, 'themes'),
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.9,
+      },
+      {
+        url: joinUrl(baseUrl, locale, 'categories'),
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.8,
+      }
+    );
+  }
 
   // Early return if we've hit the limit
   if (entries.length >= MAX_SITEMAP_URLS) {
@@ -144,19 +187,35 @@ async function getSitemapEntries(): Promise<SitemapEntry[]> {
 
       for (const post of publishedPosts) {
         if (entries.length >= MAX_SITEMAP_URLS) break;
+
+        // Add URL without locale prefix (works for both default and non-default locales)
         entries.push({
           url: joinUrl(baseUrl, 'blog', post.slug),
           lastModified: post.updatedAt,
           changeFrequency: 'weekly',
           priority: 0.7,
         });
-        if (entries.length >= MAX_SITEMAP_URLS) break;
-        entries.push({
-          url: joinUrl(baseUrl, defaultLocale, 'blog', post.slug),
-          lastModified: post.updatedAt,
-          changeFrequency: 'weekly',
-          priority: 0.7,
-        });
+
+        // Add locale-prefixed URL only for non-default locales or when prefix is always used
+        for (const locale of nonDefaultLocales) {
+          if (entries.length >= MAX_SITEMAP_URLS) break;
+          entries.push({
+            url: joinUrl(baseUrl, locale, 'blog', post.slug),
+            lastModified: post.updatedAt,
+            changeFrequency: 'weekly',
+            priority: 0.7,
+          });
+        }
+
+        // Add default locale prefix only if not 'as-needed'
+        if (shouldIncludeDefaultLocalePrefix && entries.length < MAX_SITEMAP_URLS) {
+          entries.push({
+            url: joinUrl(baseUrl, defaultLocale, 'blog', post.slug),
+            lastModified: post.updatedAt,
+            changeFrequency: 'weekly',
+            priority: 0.7,
+          });
+        }
       }
 
       // Limit coloring pages
@@ -187,19 +246,35 @@ async function getSitemapEntries(): Promise<SitemapEntry[]> {
 
       for (const page of publishedPages) {
         if (entries.length >= MAX_SITEMAP_URLS) break;
+
+        // Add URL without locale prefix (works for both default and non-default locales)
         entries.push({
           url: joinUrl(baseUrl, page.slug),
           lastModified: page.updatedAt,
           changeFrequency: 'monthly',
           priority: 0.6,
         });
-        if (entries.length >= MAX_SITEMAP_URLS) break;
-        entries.push({
-          url: joinUrl(baseUrl, defaultLocale, page.slug),
-          lastModified: page.updatedAt,
-          changeFrequency: 'monthly',
-          priority: 0.6,
-        });
+
+        // Add locale-prefixed URL only for non-default locales
+        for (const locale of nonDefaultLocales) {
+          if (entries.length >= MAX_SITEMAP_URLS) break;
+          entries.push({
+            url: joinUrl(baseUrl, locale, page.slug),
+            lastModified: page.updatedAt,
+            changeFrequency: 'monthly',
+            priority: 0.6,
+          });
+        }
+
+        // Add default locale prefix only if not 'as-needed'
+        if (shouldIncludeDefaultLocalePrefix && entries.length < MAX_SITEMAP_URLS) {
+          entries.push({
+            url: joinUrl(baseUrl, defaultLocale, page.slug),
+            lastModified: page.updatedAt,
+            changeFrequency: 'monthly',
+            priority: 0.6,
+          });
+        }
       }
     } catch (error) {
       console.error('Error fetching dynamic routes for sitemap:', error);
