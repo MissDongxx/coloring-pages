@@ -6,9 +6,20 @@ import { coloringPage, account } from '@/config/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { parseStringPromise } from 'xml2js';
 import { getAllConfigs, saveConfigs } from '@/shared/models/config';
+import { EXCLUDED_HUB_KEYWORDS } from '@/shared/models/coloring_page';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+/**
+ * Check if a given text contains any IP/copyright keywords
+ * @param text - The text to check (title, description, category, etc.)
+ * @returns true if the text contains IP keywords, false otherwise
+ */
+function containsIPKeywords(text: string): boolean {
+  const lowerText = text.toLowerCase();
+  return EXCLUDED_HUB_KEYWORDS.some(keyword => lowerText.includes(keyword.toLowerCase()));
+}
 
 export async function GET(request: Request) {
   try {
@@ -158,6 +169,24 @@ export async function GET(request: Request) {
           continue;
         }
 
+        // Skip IP/copyright related content
+        const titleText = title || '';
+        const descText = description || '';
+        const categoryText = category || '';
+        const searchText = `${titleText} ${descText} ${categoryText}`;
+
+        if (containsIPKeywords(searchText)) {
+          console.log(`Skipping IP/copyright related content: ${title}`);
+          results.push({
+            slug: pageUrl.replace(/^.*\/([^/]+)\/?$/, '$1'),
+            success: false,
+            skipped: true,
+            reason: 'IP content',
+            title: title,
+          });
+          continue;
+        }
+
         // Extract slug from page URL
         const slug = pageUrl.replace(/^.*\/([^/]+)\/?$/, '$1');
 
@@ -176,6 +205,24 @@ export async function GET(request: Request) {
         if (existingPages.length > 0 && existingPages[0].pinterestPinId) {
           console.log(`Page ${slug} already has a Pinterest pin: ${existingPages[0].pinterestPinId}`);
           continue;
+        }
+
+        // Additional IP check using database fields
+        if (existingPages.length > 0) {
+          const page = existingPages[0];
+          const dbSearchText = `${page.rootKeyword || ''} ${page.keyword || ''} ${page.title || ''} ${page.description || ''}`;
+
+          if (containsIPKeywords(dbSearchText)) {
+            console.log(`Skipping page with IP/copyright content (from DB): ${page.title}`);
+            results.push({
+              slug,
+              success: false,
+              skipped: true,
+              reason: 'IP content (DB)',
+              title: page.title,
+            });
+            continue;
+          }
         }
 
         // Determine board name: prioritize rootKeyword from database, then RSS category

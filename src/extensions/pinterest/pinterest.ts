@@ -192,6 +192,63 @@ export class PinterestProvider {
             }),
         });
     }
+
+    /**
+     * Delete a pin by ID.
+     * Pinterest API returns 204 No Content for successful DELETE requests.
+     */
+    async deletePin(pinId: string): Promise<void> {
+        await this.callApiWithoutResponse(`/pins/${pinId}`, {
+            method: 'DELETE',
+        });
+    }
+
+    /**
+     * Internal helper to make API calls that don't return JSON response (e.g., DELETE).
+     */
+    private async callApiWithoutResponse(path: string, options: RequestInit = {}): Promise<void> {
+        // Ensure we have an active token before attempting
+        if (!this.accessToken || Date.now() >= this.tokenExpiresAt) {
+            await this.refreshAccessToken();
+        }
+
+        const makeRequest = async () => {
+            const url = path.startsWith('http') ? path : `${this.baseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+            return fetch(url, {
+                ...options,
+                headers: {
+                    ...options.headers,
+                    Authorization: `Bearer ${this.accessToken}`,
+                },
+            });
+        };
+
+        let response = await makeRequest();
+
+        // If 401, refresh token and retry ONCE
+        if (response.status === 401) {
+            console.warn(`⚠️ Pinterest API returned 401. Attempting token refresh and retry... Path: ${path}`);
+            await this.refreshAccessToken();
+            response = await makeRequest();
+        }
+
+        // Accept 204 No Content as success
+        if (response.status === 204) {
+            return;
+        }
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Pinterest API Error (${response.status}): ${errorText}`);
+        }
+    }
+
+    /**
+     * Get a pin by ID.
+     */
+    async getPin(pinId: string): Promise<PinResponse> {
+        return this.callApi<PinResponse>(`/pins/${pinId}`);
+    }
 }
 
 export function createPinterestProvider(

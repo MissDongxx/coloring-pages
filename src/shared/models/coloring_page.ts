@@ -18,7 +18,8 @@ export enum ColoringPageStatus {
 }
 
 // Copyright-related keywords to exclude from hubs
-const EXCLUDED_HUB_KEYWORDS = [
+// Exported for use in other modules (e.g., Pinterest filtering)
+export const EXCLUDED_HUB_KEYWORDS = [
   // Sanrio
   'hello kitty', 'kuromi', 'my melody', 'cinnamoroll', 'pompompurin',
   'kerokerokeroppi', 'bad badtz-maru', 'little twin stars', 'pochacco',

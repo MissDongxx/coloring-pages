@@ -5,6 +5,17 @@ import { account } from '@/config/db/schema';
 import { eq } from 'drizzle-orm';
 import { getAuth } from '@/core/auth';
 import { PinterestProvider } from '@/extensions/pinterest/pinterest';
+import { EXCLUDED_HUB_KEYWORDS } from '@/shared/models/coloring_page';
+
+/**
+ * Check if a given text contains any IP/copyright keywords
+ * @param text - The text to check (title, description, etc.)
+ * @returns true if the text contains IP keywords, false otherwise
+ */
+function containsIPKeywords(text: string): boolean {
+  const lowerText = text.toLowerCase();
+  return EXCLUDED_HUB_KEYWORDS.some(keyword => lowerText.includes(keyword.toLowerCase()));
+}
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -29,11 +40,20 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { imageUrl, description, link, boardId } = body;
+    const { imageUrl, description, link, boardId, title } = body;
 
     if (!imageUrl) {
       return NextResponse.json(
         { error: 'imageUrl is required' },
+        { status: 400 }
+      );
+    }
+
+    // Check for IP/copyright content
+    const searchText = `${title || ''} ${description || ''}`;
+    if (containsIPKeywords(searchText)) {
+      return NextResponse.json(
+        { error: 'Cannot share content containing copyrighted/Intellectual Property material' },
         { status: 400 }
       );
     }

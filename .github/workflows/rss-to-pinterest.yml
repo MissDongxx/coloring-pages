@@ -1,9 +1,9 @@
 name: RSS to Pinterest Sync
 
 on:
-  # 定时任务：每小时执行一次
+  # 定时任务：每2小时执行一次
   schedule:
-    - cron: '0 * * * *'
+    - cron: '0 */2 * * *'
 
   # 允许手动触发
   workflow_dispatch:
@@ -30,7 +30,7 @@ jobs:
           fi
 
           BATCH_SIZE=3
-          MAX_ITEMS_PER_RUN=3  # Maximum items to process per hour
+          MAX_ITEMS_PER_RUN=3  # Maximum items to process per 2-hour run
           OFFSET=0
           TOTAL_PROCESSED=0
 
