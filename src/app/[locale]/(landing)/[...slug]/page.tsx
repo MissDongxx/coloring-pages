@@ -44,6 +44,8 @@ import { getPagesForHub, findColoringPage, ColoringPageStatus, findHubBySlugPref
 import { joinUrl } from '@/shared/lib/utils';
 
 export const revalidate = 3600;
+// Enable dynamic params for hub pages that aren't in static params
+export const dynamicParams = true;
 
 /**
  * Check if a page should be noindexed based on slug patterns
