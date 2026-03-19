@@ -98,6 +98,18 @@ async function getSitemapEntries(): Promise<SitemapEntry[]> {
       priority: 0.9,
     },
     {
+      url: joinUrl(baseUrl, 'themes'),
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
+      url: joinUrl(baseUrl, defaultLocale, 'themes'),
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
       url: joinUrl(baseUrl, 'categories'),
       lastModified: new Date(),
       changeFrequency: 'weekly',
