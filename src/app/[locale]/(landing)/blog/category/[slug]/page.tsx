@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { formatDate } from '@/shared/lib/dayjs';
+import { getHreflangLanguages } from '@/shared/lib/seo';
 
 import { getThemePage } from '@/core/theme';
 import { envConfigs } from '@/config';
@@ -40,6 +41,7 @@ export async function generateMetadata({
         locale !== envConfigs.locale
           ? `${envConfigs.app_url}/${locale}/blog/category/${slug}`
           : `${envConfigs.app_url}/blog/category/${slug}`,
+      languages: getHreflangLanguages(`/blog/category/${slug}`),
     },
   };
 }

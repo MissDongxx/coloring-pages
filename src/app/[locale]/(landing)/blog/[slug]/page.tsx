@@ -6,6 +6,7 @@ import { joinUrl } from '@/shared/lib/utils';
 import { Empty } from '@/shared/blocks/common';
 import { getPost } from '@/shared/models/post';
 import { DynamicPage } from '@/shared/types/blocks/landing';
+import { getHreflangLanguages } from '@/shared/lib/seo';
 
 export const revalidate = 3600;
 
@@ -31,6 +32,7 @@ export async function generateMetadata({
       description: t('description'),
       alternates: {
         canonical: canonicalUrl,
+        languages: getHreflangLanguages(`/blog/${slug}`),
       },
     };
   }
@@ -40,6 +42,7 @@ export async function generateMetadata({
     description: post.description,
     alternates: {
       canonical: canonicalUrl,
+      languages: getHreflangLanguages(`/blog/${slug}`),
     },
   };
 }

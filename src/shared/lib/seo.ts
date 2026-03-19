@@ -1,7 +1,7 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { envConfigs } from '@/config';
-import { defaultLocale } from '@/config/locale';
+import { defaultLocale, locales } from '@/config/locale';
 import { joinUrl } from './utils';
 
 // get metadata for page component
@@ -72,6 +72,23 @@ export function getMetadata(
       appName = envConfigs.app_name || '';
     }
 
+    // Build hreflang links for all locales
+    const urlPath = (options.canonicalUrl || '').replace(/^\/+/, '');
+    const languages: Record<string, string> = {};
+
+    // Add x-default (points to default locale version)
+    const defaultLocaleUrl = joinUrl(envConfigs.app_url, urlPath);
+    languages['x-default'] = defaultLocaleUrl;
+
+    // Add all locale versions
+    for (const locale of locales) {
+      const localeUrl =
+        locale === defaultLocale
+          ? joinUrl(envConfigs.app_url, urlPath)
+          : joinUrl(envConfigs.app_url, locale, urlPath);
+      languages[locale] = localeUrl;
+    }
+
     return {
       title:
         passedMetadata.title ||
@@ -87,6 +104,7 @@ export function getMetadata(
         defaultMetadata.keywords,
       alternates: {
         canonical: canonicalUrl,
+        languages: languages,
       },
 
       openGraph: {
@@ -140,4 +158,26 @@ async function getCanonicalUrl(canonicalUrl: string, locale: string) {
   }
 
   return finalUrl;
+}
+
+// Helper function to generate hreflang languages object
+// Can be used by pages that have their own generateMetadata function
+export function getHreflangLanguages(urlPath: string = ''): Record<string, string> {
+  const languages: Record<string, string> = {};
+  const cleanPath = urlPath.replace(/^\/+/, '');
+
+  // Add x-default (points to default locale version)
+  const defaultLocaleUrl = joinUrl(envConfigs.app_url, cleanPath);
+  languages['x-default'] = defaultLocaleUrl;
+
+  // Add all locale versions
+  for (const locale of locales) {
+    const localeUrl =
+      locale === defaultLocale
+        ? joinUrl(envConfigs.app_url, cleanPath)
+        : joinUrl(envConfigs.app_url, locale, cleanPath);
+    languages[locale] = localeUrl;
+  }
+
+  return languages;
 }

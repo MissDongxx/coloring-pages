@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { envConfigs } from '@/config';
 import { defaultLocale } from '@/config/locale';
 import { VerifyEmailPage } from '@/shared/blocks/sign/verify-email';
+import { getHreflangLanguages } from '@/shared/lib/seo';
 
 export async function generateMetadata({
   params,
@@ -20,6 +21,7 @@ export async function generateMetadata({
         locale !== defaultLocale
           ? `${envConfigs.app_url}/${locale}/verify-email`
           : `${envConfigs.app_url}/verify-email`,
+      languages: getHreflangLanguages('/verify-email'),
     },
   };
 }

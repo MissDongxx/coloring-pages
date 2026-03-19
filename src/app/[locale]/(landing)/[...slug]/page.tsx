@@ -42,6 +42,7 @@ import {
 import { parseSeoHubSlug, validateSeoHub } from '@/features/coloring/lib/seo-hub';
 import { getPagesForHub, findColoringPage, ColoringPageStatus, findHubBySlugPrefix, getColoringPages, getPagesCountForHub } from '@/shared/models/coloring_page';
 import { joinUrl } from '@/shared/lib/utils';
+import { getHreflangLanguages } from '@/shared/lib/seo';
 
 export const revalidate = 3600;
 // Enable dynamic params for hub pages that aren't in static params
@@ -154,6 +155,7 @@ export async function generateMetadata({
       description,
       alternates: {
         canonical: canonicalUrl,
+        languages: getHreflangLanguages(`/${staticPageSlug}`),
       },
     };
 
@@ -184,6 +186,7 @@ export async function generateMetadata({
         description: category.description,
         alternates: {
           canonical: canonicalUrl,
+          languages: getHreflangLanguages(`/${staticPageSlug}`),
         },
       };
 
@@ -209,6 +212,7 @@ export async function generateMetadata({
           description: subCat.description,
           alternates: {
             canonical: canonicalUrl,
+            languages: getHreflangLanguages(`/${staticPageSlug}`),
           },
         };
 
@@ -235,7 +239,10 @@ export async function generateMetadata({
     const metadata: any = {
       title: `${hubTitle} - Free Printable`,
       description: `Discover free printable ${seoHubMatch.modifier ? seoHubMatch.modifier + ' ' : ''}${seoHubMatch.root} coloring pages for kids and adults.`,
-      alternates: { canonical: canonicalUrl }
+      alternates: {
+        canonical: canonicalUrl,
+        languages: getHreflangLanguages(`/${staticPageSlug}`),
+      },
     };
 
     // Add noindex for copyright-related hubs
@@ -264,7 +271,10 @@ export async function generateMetadata({
           description: dbPage.description || '',
           images: [dbPage.imageUrl],
         },
-        alternates: { canonical: canonicalUrl },
+        alternates: {
+          canonical: canonicalUrl,
+          languages: getHreflangLanguages(`/${staticPageSlug}`),
+        },
       };
 
       // Add noindex for copyright-related pages
@@ -293,6 +303,7 @@ export async function generateMetadata({
       },
       alternates: {
         canonical: canonicalUrl,
+        languages: getHreflangLanguages(`/${staticPageSlug}`),
       },
     };
 
@@ -329,6 +340,7 @@ export async function generateMetadata({
         description,
         alternates: {
           canonical: canonicalUrl,
+          languages: getHreflangLanguages(`/${staticPageSlug}`),
         },
       };
     }
@@ -351,6 +363,7 @@ export async function generateMetadata({
         locale !== envConfigs.locale ? locale : '',
         staticPageSlug
       ),
+      languages: getHreflangLanguages(`/${staticPageSlug}`),
     },
   };
 }

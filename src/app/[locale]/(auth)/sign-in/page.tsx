@@ -6,6 +6,7 @@ import { defaultLocale } from '@/config/locale';
 import { SignIn } from '@/shared/blocks/sign/sign-in';
 import { getConfigs } from '@/shared/models/config';
 import { getSignUser } from '@/shared/models/user';
+import { getHreflangLanguages } from '@/shared/lib/seo';
 
 function safeInternalPath(raw?: string) {
   if (!raw) return '/';
@@ -37,6 +38,7 @@ export async function generateMetadata({
         locale !== defaultLocale
           ? `${envConfigs.app_url}/${locale}/sign-in`
           : `${envConfigs.app_url}/sign-in`,
+      languages: getHreflangLanguages('/sign-in'),
     },
   };
 }

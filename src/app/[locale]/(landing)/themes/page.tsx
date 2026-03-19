@@ -10,7 +10,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/shared/components/ui/breadcrumb";
-import { getMetadata } from '@/shared/lib/seo';
+import { getHreflangLanguages } from '@/shared/lib/seo';
 import {
   JSONLDScript,
   generateCollectionPageSchema,
@@ -28,6 +28,7 @@ export async function generateMetadata() {
             'Browse all coloring page themes. Find free printable coloring pages by theme for kids, adults, and teachers.',
         alternates: {
             canonical: `${envConfigs.app_url}/themes`,
+            languages: getHreflangLanguages('/themes'),
         },
     };
 }
